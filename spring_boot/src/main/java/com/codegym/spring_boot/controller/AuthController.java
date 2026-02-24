@@ -1,8 +1,8 @@
 package com.codegym.spring_boot.controller;
 
-import com.codegym.spring_boot.dto.request.LoginRequest;
-import com.codegym.spring_boot.dto.request.RegisterRequest;
-import com.codegym.spring_boot.dto.response.AuthResponse;
+import com.codegym.spring_boot.dto.auth.request.LoginRequest;
+import com.codegym.spring_boot.dto.auth.request.RegisterRequest;
+import com.codegym.spring_boot.dto.auth.response.AuthResponse;
 import com.codegym.spring_boot.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

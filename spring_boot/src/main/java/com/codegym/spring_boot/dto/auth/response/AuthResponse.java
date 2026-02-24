@@ -1,4 +1,4 @@
-package com.codegym.spring_boot.dto.response;
+package com.codegym.spring_boot.dto.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

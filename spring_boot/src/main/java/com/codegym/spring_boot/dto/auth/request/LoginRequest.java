@@ -1,4 +1,4 @@
-package com.codegym.spring_boot.dto.request;
+package com.codegym.spring_boot.dto.auth.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
