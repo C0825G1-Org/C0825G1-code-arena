@@ -1,0 +1,379 @@
+﻿
+> Task :compileJava FAILED
+.\gradlew.bat : D:\code_arena\spring_boot\src\main\j
+ava\com\codegym\spring_boot\entity\User.java:43: 
+warning: @Builder will ignore the initializing 
+expression entirely. If you want the initializing 
+expression to serve as default, add 
+@Builder.Default. If it is not supposed to be 
+settable during building, make the field final.
+At line:1 char:1
++ .\gradlew.bat compileJava 2>&1 | Out-File 
+-FilePath build.log -Encodi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\cod 
+   e_arena\s...he field final.:String) [], RemoteE  
+  xception
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    private UserRole role = UserRole.user;
+                     ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\User.java:46: warning: @Builder 
+will ignore the initializing expression entirely. 
+If you want the initializing expression to serve as 
+default, add @Builder.Default. If it is not 
+supposed to be settable during building, make the 
+field final.
+    private Integer globalRating = 1500;
+                    ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Submission.java:44: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private SubmissionStatus status = 
+SubmissionStatus.pending;
+                             ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Submission.java:47: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Integer executionTime = 0;
+                    ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Submission.java:50: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Integer memoryUsed = 0;
+                    ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Submission.java:52: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Integer score = 0;
+                    ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Problem.java:41: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Difficulty difficulty = Difficulty.easy;
+                       ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Problem.java:46: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Integer timeLimit = 1000;
+                    ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Problem.java:51: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Integer memoryLimit = 256;
+                    ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Problem.java:55: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private TestCaseStatus testcaseStatus = 
+TestCaseStatus.not_uploaded;
+                           ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Problem.java:67: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+    private Set<Tag> tags = new HashSet<>();
+                     ^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Contest.java:14: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+@Data
+^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\User.java:18: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+@Data
+^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Submission.java:13: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+@Data
+^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\Problem.java:21: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+@EqualsAndHashCode(exclude = {"createdBy", "tags"})
+^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\entity\ContestParticipant.java:11: 
+warning: Generating equals/hashCode implementation 
+but without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+@Data
+^
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\config\ApplicationConfig.java:30: 
+error: constructor DaoAuthenticationProvider in 
+class DaoAuthenticationProvider cannot be applied 
+to given types;
+        DaoAuthenticationProvider authProvider = 
+new DaoAuthenticationProvider();
+                                                 ^
+  required: UserDetailsService
+  found:    no arguments
+  reason: actual and formal argument lists differ 
+in length
+D:\code_arena\spring_boot\src\main\java\com\codegym\
+spring_boot\config\ApplicationConfig.java:31: 
+error: cannot find symbol
+        authProvider.setUserDetailsService(userDetai
+lsService());
+                    ^
+  symbol:   method 
+setUserDetailsService(UserDetailsService)
+  location: variable authProvider of type 
+DaoAuthenticationProvider
+Note: D:\code_arena\spring_boot\src\main\java\com\co
+degym\spring_boot\security\JwtAuthenticationFilter.j
+ava uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+2 errors
+16 warnings
+
+[Incubating] Problems report is available at: file:///D:/code_arena/spring_boot/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  Note: D:\code_arena\spring_boot\src\main\java\com\
+codegym\spring_boot\security\JwtAuthenticationFilter
+.java uses or overrides a deprecated API.
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\config\ApplicationConfig.java:30: 
+error: constructor DaoAuthenticationProvider in 
+class DaoAuthenticationProvider cannot be applied 
+to given types;
+          DaoAuthenticationProvider authProvider = 
+new DaoAuthenticationProvider();
+                                                   ^
+    required: UserDetailsService
+    found:    no arguments
+    reason: actual and formal argument lists differ 
+in length
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\User.java:43: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private UserRole role = UserRole.user;
+                       ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\User.java:46: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Integer globalRating = 1500;
+                      ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Submission.java:44: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private SubmissionStatus status = 
+SubmissionStatus.pending;
+                               ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Submission.java:47: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Integer executionTime = 0;
+                      ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Submission.java:50: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Integer memoryUsed = 0;
+                      ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Submission.java:52: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Integer score = 0;
+                      ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Problem.java:41: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Difficulty difficulty = 
+Difficulty.easy;
+                         ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Problem.java:46: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Integer timeLimit = 1000;
+                      ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Problem.java:51: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Integer memoryLimit = 256;
+                      ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Problem.java:55: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private TestCaseStatus testcaseStatus = 
+TestCaseStatus.not_uploaded;
+                             ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Problem.java:67: warning: 
+@Builder will ignore the initializing expression 
+entirely. If you want the initializing expression 
+to serve as default, add @Builder.Default. If it is 
+not supposed to be settable during building, make 
+the field final.
+      private Set<Tag> tags = new HashSet<>();
+                       ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Contest.java:14: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+  @Data
+  ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\User.java:18: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+  @Data
+  ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Submission.java:13: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+  @Data
+  ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\Problem.java:21: warning: 
+Generating equals/hashCode implementation but 
+without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+  @EqualsAndHashCode(exclude = {"createdBy", 
+"tags"})
+  ^
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\entity\ContestParticipant.java:11: 
+warning: Generating equals/hashCode implementation 
+but without a call to superclass, even though this 
+class does not extend java.lang.Object. If this is 
+intentional, add 
+'@EqualsAndHashCode(callSuper=false)' to your type.
+  @Data
+1 actionable task: 1 executed
+  ^
+  Note: Recompile with -Xlint:deprecation for 
+details.
+  D:\code_arena\spring_boot\src\main\java\com\codegy
+m\spring_boot\config\ApplicationConfig.java:31: 
+error: cannot find symbol
+          authProvider.setUserDetailsService(userDet
+ailsService());
+                      ^
+    symbol:   method 
+setUserDetailsService(UserDetailsService)
+    location: variable authProvider of type 
+DaoAuthenticationProvider
+  2 errors
+  16 warnings
+
+* Try:
+> Check your code and dependencies to fix the 
+compilation error(s)
+> Run with --scan to get full insights from a Build 
+Scan (powered by Develocity).
+
+BUILD FAILED in 2s
