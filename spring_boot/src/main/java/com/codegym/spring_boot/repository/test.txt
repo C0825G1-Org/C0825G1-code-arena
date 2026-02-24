@@ -1,0 +1,1 @@
+Interface Spring Data JPA (truy vấn MySQL)
