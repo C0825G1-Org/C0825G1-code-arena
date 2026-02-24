@@ -71,8 +71,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // Có thể bổ sung cột is_locked sau này
-        return !getIsDeleted();
+        return !getIsLocked();
     }
 
     @Override

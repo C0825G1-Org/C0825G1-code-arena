@@ -28,4 +28,7 @@ public class BaseEntity {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
+
+    @Column(name = "is_locked")
+    private Boolean isLocked = false;
 }
