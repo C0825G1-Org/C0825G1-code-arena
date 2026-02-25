@@ -13,7 +13,10 @@ export const ModDashboardPage = () => {
                 <p className="text-slate-300 mb-6">Xin chào quản trị viên cấp 1: {user?.username}. Tại đây bạn có thể quản lý các Contest và Problem.</p>
 
                 <button
-                    onClick={() => dispatch(logout())}
+                    onClick={() => {
+                        dispatch(logout());
+                        window.location.href = '/';
+                    }}
                     className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                     Đăng xuất

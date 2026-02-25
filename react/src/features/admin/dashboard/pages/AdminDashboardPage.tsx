@@ -13,7 +13,10 @@ export const AdminDashboardPage = () => {
                 <p className="text-slate-300 mb-6">Chào mừng Admin Tối Cao: {user?.username}. Bạn có quyền truy cập toàn bộ hệ thống Code Arena.</p>
 
                 <button
-                    onClick={() => dispatch(logout())}
+                    onClick={() => {
+                        dispatch(logout());
+                        window.location.href = '/';
+                    }}
                     className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                     Đăng xuất

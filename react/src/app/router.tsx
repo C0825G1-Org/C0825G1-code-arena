@@ -10,6 +10,7 @@ import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashb
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
 import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage';
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
+import { LandingPage } from '../features/landing/pages/LandingPage';
 import { CodeEditorPage } from '../features/user/code-editor';
 
 // Error Pages
@@ -22,13 +23,10 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
     if (!isAuthenticated || !user) {
-        // Đúng ý bạn: Chưa đăng nhập mà rình vào trang cần quyền thì phải dập lỗi 403 ngay!
         return <Navigate to="/err/403" replace />;
     }
 
     const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
-
-    // Chặn nếu role không phù hợp
     if (allowedRoles && !allowedRoles.includes(userRole)) {
         return <Navigate to="/err/403" replace />;
     }
@@ -39,7 +37,6 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
-    // Nếu đã đăng nhập, đá về dashboard tương ứng thay vì lúc nào cũng đá về /home
     if (isAuthenticated && user) {
         const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
         if (userRole === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
@@ -53,7 +50,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 export const router = createBrowserRouter([
     {
         path: '/',
-        element: <Navigate to="/login" replace />
+        element: <LandingPage />
     },
     {
         path: '/login',

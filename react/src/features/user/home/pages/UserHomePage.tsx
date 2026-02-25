@@ -13,7 +13,10 @@ export const UserHomePage = () => {
                 <p className="text-slate-300 mb-6">Đây là trang chủ dành cho thí sinh. Bạn có thể xem danh sách bài thi và bảng xếp hạng ở đây.</p>
 
                 <button
-                    onClick={() => dispatch(logout())}
+                    onClick={() => {
+                        dispatch(logout());
+                        window.location.href = '/';
+                    }}
                     className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                     Đăng xuất
