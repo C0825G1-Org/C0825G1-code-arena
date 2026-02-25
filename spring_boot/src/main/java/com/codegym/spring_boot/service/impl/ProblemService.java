@@ -1,0 +1,121 @@
+package com.codegym.spring_boot.service.impl;
+
+import com.codegym.spring_boot.dto.ProblemRequestDTO;
+import com.codegym.spring_boot.dto.ProblemResponseDTO;
+import com.codegym.spring_boot.dto.TagDTO;
+import com.codegym.spring_boot.entity.Problem;
+import com.codegym.spring_boot.entity.Tag;
+import com.codegym.spring_boot.repository.IProblemRepository;
+import com.codegym.spring_boot.repository.ITagRepository;
+import com.codegym.spring_boot.service.IProblemService;
+import jakarta.persistence.NoResultException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+public class ProblemService implements IProblemService {
+    private final IProblemRepository problemRepository;
+    private final ITagRepository tagRepository;
+
+    public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository) {
+        this.problemRepository = problemRepository;
+        this.tagRepository = tagRepository;
+    }
+
+    @Override
+    public List<ProblemResponseDTO> getAllProblems() {
+        return problemRepository.findAll().stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ProblemResponseDTO getProblemById(Integer id) {
+        Problem problem = problemRepository.findById(id)
+                .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
+        return mapToResponseDTO(problem);
+    }
+
+    @Override
+    public ProblemResponseDTO createProblem(ProblemRequestDTO requestDTO) {
+        if (problemRepository.existsBySlug(requestDTO.getSlug())) {
+            throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
+        }
+        Problem problem = new Problem();
+        mapToEntity(problem, requestDTO);
+        Problem savedProblem = problemRepository.save(problem);
+        return mapToResponseDTO(savedProblem);
+    }
+
+    @Override
+    public ProblemResponseDTO updateProblem(Integer id, ProblemRequestDTO requestDTO) {
+        Problem problem = problemRepository.findById(id).orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
+
+        if (!problem.getSlug().equals(requestDTO.getSlug()) && problemRepository.existsBySlug(requestDTO.getSlug())) {
+            throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
+        }
+
+        mapToEntity(problem, requestDTO);
+
+        Problem updatedProblem = problemRepository.save(problem);
+        return mapToResponseDTO(updatedProblem);
+    }
+
+    @Override
+    public Boolean deleteProblem(Integer id) {
+        if (!problemRepository.existsById(id)) {
+            return false;
+        }
+        problemRepository.deleteById(id);
+        return true;
+    }
+
+    private void mapToEntity(Problem problem, ProblemRequestDTO requestDTO) {
+        problem.setTitle(requestDTO.getTitle());
+        problem.setSlug(requestDTO.getSlug());
+        problem.setDescription(requestDTO.getDescription());
+
+        if (requestDTO.getDifficulty() != null) {
+            problem.setDifficulty(requestDTO.getDifficulty());
+        }
+        if (requestDTO.getTimeLimit() != null) {
+            problem.setTimeLimit(requestDTO.getTimeLimit());
+        }
+        if (requestDTO.getMemoryLimit() != null) {
+            problem.setMemoryLimit(requestDTO.getMemoryLimit());
+        }
+        // Xử lý việc gắn Tag (Many-to-Many)
+        if (requestDTO.getTagIds() != null && !requestDTO.getTagIds().isEmpty()) {
+            Set<Tag> tags = new HashSet<>(tagRepository.findAllById(requestDTO.getTagIds()));
+            problem.setTags(tags);
+        } else {
+            problem.setTags(new HashSet<>());
+        }
+    }
+
+
+    private ProblemResponseDTO mapToResponseDTO(Problem problem) {
+        ProblemResponseDTO response = new ProblemResponseDTO();
+        response.setId(problem.getId());
+        response.setTitle(problem.getTitle());
+        response.setSlug(problem.getSlug());
+        response.setDescription(problem.getDescription());
+        response.setDifficulty(problem.getDifficulty());
+        response.setTimeLimit(problem.getTimeLimit());
+        response.setMemoryLimit(problem.getMemoryLimit());
+        response.setTestcaseStatus(problem.getTestcaseStatus());
+
+        if (problem.getTags() != null) {
+            Set<TagDTO> tagDTOs = problem.getTags().stream()
+                    .map(tag -> new TagDTO(tag.getId(), tag.getName()))
+                    .collect(Collectors.toSet());
+            response.setTags(tagDTOs);
+        }
+        return response;
+    }
+}
