@@ -32,7 +32,7 @@ public class TagController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    private ResponseEntity<TagDTO> createTag(@Valid @RequestBody TagDTO tagDTO) {
+    public ResponseEntity<TagDTO> createTag(@Valid @RequestBody TagDTO tagDTO) {
         return new ResponseEntity<>(tagService.createTag(tagDTO), HttpStatus.CREATED);
     }
 

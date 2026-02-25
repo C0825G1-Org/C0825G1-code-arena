@@ -5,11 +5,14 @@ import com.codegym.spring_boot.dto.ProblemResponseDTO;
 import com.codegym.spring_boot.dto.TagDTO;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Tag;
+import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITagRepository;
+import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.service.IProblemService;
 import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -21,10 +24,12 @@ import java.util.stream.Collectors;
 public class ProblemService implements IProblemService {
     private final IProblemRepository problemRepository;
     private final ITagRepository tagRepository;
+    private final UserRepository userRepository;
 
-    public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository) {
+    public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository, com.codegym.spring_boot.repository.UserRepository userRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -48,6 +53,13 @@ public class ProblemService implements IProblemService {
         }
         Problem problem = new Problem();
         mapToEntity(problem, requestDTO);
+
+        // Lấy username của người dùng đang đăng nhập (từ token)
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername)
+                .orElseThrow(() -> new NoResultException("Không tìm thấy người dùng hiện tại"));
+        problem.setCreatedBy(currentUser);
+
         Problem savedProblem = problemRepository.save(problem);
         return mapToResponseDTO(savedProblem);
     }
