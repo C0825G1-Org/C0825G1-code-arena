@@ -12,6 +12,12 @@ import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage'
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { CodeEditorPage } from '../features/user/code-editor';
 
+// Error Pages
+import { Error400Page } from '../features/errors/pages/Error400Page';
+import { Error403Page } from '../features/errors/pages/Error403Page';
+import { Error404Page } from '../features/errors/pages/Error404Page';
+import { Error500Page } from '../features/errors/pages/Error500Page';
+
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
@@ -117,5 +123,21 @@ export const router = createBrowserRouter([
     {
         path: '/code-editor',
         element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
+    },
+    {
+        path: '/err/400',
+        element: <Error400Page />
+    },
+    {
+        path: '/err/403',
+        element: <Error403Page />
+    },
+    {
+        path: '/err/500',
+        element: <Error500Page />
+    },
+    {
+        path: '*',
+        element: <Error404Page />
     }
 ]);
