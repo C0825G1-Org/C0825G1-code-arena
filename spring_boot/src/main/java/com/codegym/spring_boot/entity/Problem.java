@@ -34,7 +34,7 @@ public class Problem extends BaseEntity {
 
     @NotBlank(message = "Mô tả không được để trống")
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)

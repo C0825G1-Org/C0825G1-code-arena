@@ -29,6 +29,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @Column(name = "full_name")
+    private String fullName;
+
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không đúng định dạng")
     @Column(unique = true, nullable = false)
