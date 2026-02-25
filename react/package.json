@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "json-server --watch src/data/user/code-editor/db.json --port 3001"
+    "server": "json-server --watch src/features/user/code-editor/data/db.json --port 3001"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

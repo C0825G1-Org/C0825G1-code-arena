@@ -25,7 +25,7 @@ public class ProblemController {
         return ResponseEntity.ok(problemService.getAllProblems());
     }
     @GetMapping("/{id}")
-    public ResponseEntity<ProblemResponseDTO> getProblemById(@PathVariable Integer id) {
+    public ResponseEntity<ProblemResponseDTO> getProblemById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(problemService.getProblemById(id));
     }
     @PostMapping
@@ -35,12 +35,12 @@ public class ProblemController {
     }
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
-    public ResponseEntity<ProblemResponseDTO> updateProblem(@PathVariable Integer id, @Valid @RequestBody ProblemRequestDTO requestDTO) {
+    public ResponseEntity<ProblemResponseDTO> updateProblem(@PathVariable("id") Integer id, @Valid @RequestBody ProblemRequestDTO requestDTO) {
         return ResponseEntity.ok(problemService.updateProblem(id, requestDTO));
     }
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Boolean> deleteProblem(@PathVariable Integer id) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    public ResponseEntity<Boolean> deleteProblem(@PathVariable("id") Integer id) {
         problemService.deleteProblem(id);
         return ResponseEntity.noContent().build();
     }

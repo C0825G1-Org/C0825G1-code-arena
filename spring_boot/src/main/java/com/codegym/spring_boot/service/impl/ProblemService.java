@@ -6,12 +6,14 @@ import com.codegym.spring_boot.dto.TagDTO;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Tag;
 import com.codegym.spring_boot.entity.User;
+import com.codegym.spring_boot.entity.enums.UserRole;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITagRepository;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.service.IProblemService;
 import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +36,7 @@ public class ProblemService implements IProblemService {
 
     @Override
     public List<ProblemResponseDTO> getAllProblems() {
-        return problemRepository.findAll().stream()
+        return problemRepository.findAllByIsDeletedFalse().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -42,6 +44,7 @@ public class ProblemService implements IProblemService {
     @Override
     public ProblemResponseDTO getProblemById(Integer id) {
         Problem problem = problemRepository.findById(id)
+                .filter(p -> !p.getIsDeleted())
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
         return mapToResponseDTO(problem);
     }
@@ -68,6 +71,8 @@ public class ProblemService implements IProblemService {
     public ProblemResponseDTO updateProblem(Integer id, ProblemRequestDTO requestDTO) {
         Problem problem = problemRepository.findById(id).orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
 
+        checkModifyPermission(problem);
+
         if (!problem.getSlug().equals(requestDTO.getSlug()) && problemRepository.existsBySlug(requestDTO.getSlug())) {
             throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
         }
@@ -80,11 +85,34 @@ public class ProblemService implements IProblemService {
 
     @Override
     public Boolean deleteProblem(Integer id) {
-        if (!problemRepository.existsById(id)) {
+        Problem problem = problemRepository.findById(id).orElse(null);
+        if (problem == null) {
             return false;
         }
-        problemRepository.deleteById(id);
+
+        checkModifyPermission(problem);
+
+        problem.setIsDeleted(true);
+        problemRepository.save(problem);
         return true;
+    }
+
+    private void checkModifyPermission(Problem problem) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername)
+                .orElseThrow(() -> new NoResultException("Không tìm thấy người dùng hiện tại"));
+
+        if (currentUser.getRole() == UserRole.admin) {
+            return;
+        }
+
+        if (currentUser.getRole() == UserRole.moderator) {
+            if (problem.getCreatedBy() == null || !problem.getCreatedBy().getId().equals(currentUser.getId())) {
+                throw new AccessDeniedException("Bạn chỉ có quyền sửa hoặc xóa bài toán do chính bạn tạo.");
+            }
+        } else {
+            throw new AccessDeniedException("Bạn không có quyền thực hiện thao tác này.");
+        }
     }
 
     private void mapToEntity(Problem problem, ProblemRequestDTO requestDTO) {
