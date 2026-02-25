@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
@@ -18,12 +18,12 @@ import {
 export const LandingPage: React.FC = () => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     const handleLogout = (e: React.MouseEvent) => {
         e.preventDefault();
+        navigate('/');
         dispatch(logout());
-        // Sau khi logoutSlice được gọi, hệ thống xoá token và reload lại landing page
-        window.location.href = '/';
     };
 
     const getDashboardLink = () => {

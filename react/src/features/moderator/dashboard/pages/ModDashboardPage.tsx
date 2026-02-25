@@ -1,10 +1,12 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
 
 export const ModDashboardPage = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-slate-900 text-white p-10">
@@ -14,8 +16,8 @@ export const ModDashboardPage = () => {
 
                 <button
                     onClick={() => {
+                        navigate('/');
                         dispatch(logout());
-                        window.location.href = '/';
                     }}
                     className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-medium transition-colors"
                 >
