@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Code Arena Weekly #1 - Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: '#0f172a', card: '#1e293b' }, fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] } }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+            font-medium;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+
+        .card-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .leaderboard-row {
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-row:hover {
+            background-color: rgba(30, 41, 59, 0.8);
+            transform: translateX(4px);
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navbar (Khác với sidebar thông thường vì đây là Dashboard giám sát full màn hình) -->
+    <header
+        class="h-16 border-b border-[#1e293b] bg-slate-900/80 backdrop-blur z-20 flex justify-between items-center px-8 shrink-0">
+        <div class="flex items-center gap-6">
+            <a href="manage_contests.html" class="text-slate-400 hover:text-white transition-colors tooltip"
+                title="Quay lại Quản lý Kỳ thi">
+                <i class="ph-bold ph-arrow-left text-xl"></i>
+            </a>
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="ph-bold ph-chart-line-up text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">Code Arena Weekly #1</h1>
+                    <div class="text-xs font-mono text-emerald-400 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        LIVE MONITOR (Cập nhật 1s trước)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <!-- Thống kê nhanh Header -->
+            <div class="hidden md:flex gap-6 pr-6 border-r border-[#1e293b]">
+                <div class="text-center">
+                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Thí sinh thi</div>
+                    <div class="text-xl font-bold font-mono text-white">1,245</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Submissions</div>
+                    <div class="text-xl font-bold font-mono text-blue-400">8,920</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Time Remaing</div>
+                    <div class="text-xl font-bold font-mono text-orange-400">01:45:22</div>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div class="relative flex items-center gap-3 cursor-pointer p-1 rounded-lg">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white leading-tight">Giảng viên Tùng</div>
+                    <div class="text-xs text-indigo-400 font-mono">Host</div>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=2"
+                    class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-[#0f172a] p-8">
+
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-8 h-full min-h-[600px]">
+
+            <!-- Left: Leaderboard (Rankings) - Chiếm 3/4 màn hình -->
+            <div
+                class="xl:col-span-3 flex flex-col card-glass rounded-xl overflow-hidden border border-[#334155] shadow-2xl">
+                <div class="p-4 border-b border-[#334155] bg-[#1e293b]/50 flex justify-between items-center">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2"><i
+                            class="ph-fill ph-trophy text-yellow-500 text-xl"></i> Bảng Vàng Xếp Hạng (Rankings)</h2>
+                    <div class="flex gap-2">
+                        <div class="relative">
+                            <i
+                                class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" placeholder="Tìm ID Thí sinh..."
+                                class="w-48 bg-[#0f172a] border border-[#334155] text-white text-xs rounded-lg focus:border-blue-500 block pl-8 p-1.5 outline-none font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto bg-[#0f172a]">
+                    <table class="w-full text-sm text-left whitespace-nowrap">
+                        <thead class="text-xs uppercase text-slate-400 bg-[#1e293b] sticky top-0 z-10">
+                            <tr>
+                                <th class="px-6 py-4 font-bold w-16 text-center">Rank</th>
+                                <th class="px-6 py-4 font-bold">Lập trình viên</th>
+                                <th class="px-6 py-4 font-bold text-center border-x border-[#334155]">Điểm Tổng</th>
+                                <!-- Cột Các Bài Toán (Ví dụ Có 3 bài trong contest này) -->
+                                <th class="px-6 py-4 font-bold text-center w-32 border-r border-[#334155]">Bài
+                                    1<br><span class="text-[10px] text-slate-500 font-mono">100đ</span></th>
+                                <th class="px-6 py-4 font-bold text-center w-32 border-r border-[#334155]">Bài
+                                    2<br><span class="text-[10px] text-slate-500 font-mono">200đ</span></th>
+                                <th class="px-6 py-4 font-bold text-center w-32 border-r border-[#334155]">Bài
+                                    3<br><span class="text-[10px] text-slate-500 font-mono">300đ</span></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-[#1e293b] text-slate-300">
+
+                            <!-- Hạng 1 -->
+                            <tr
+                                class="leaderboard-row bg-yellow-500/5 hover:bg-yellow-500/10 border-l-2 border-yellow-500">
+                                <td class="px-6 py-4 text-center font-bold text-xl text-yellow-500">1</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://i.pravatar.cc/150?u=12"
+                                            class="w-8 h-8 rounded-full border border-yellow-500">
+                                        <div>
+                                            <div class="text-white font-bold">hoangdeptrai <i
+                                                    class="ph-fill ph-check-circle text-blue-400 text-xs ml-1 tooltip"
+                                                    title="Verified Account"></i></div>
+                                            <div class="text-xs text-slate-500 font-mono">ID: HS0012</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="px-6 py-4 text-center font-mono font-bold text-lg text-emerald-400 bg-emerald-500/5">
+                                    600</td>
+                                <!-- B1 -->
+                                <td class="px-6 py-4 text-center border-x border-[#1e293b]">
+                                    <div class="text-emerald-400 font-bold font-mono">100</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">12:05 (1 lần)</div>
+                                </td>
+                                <!-- B2 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b]">
+                                    <div class="text-emerald-400 font-bold font-mono">200</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">12:45 (3 lần) <i
+                                            class="ph-fill ph-warning-circle text-orange-400"></i></div>
+                                </td>
+                                <!-- B3 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b]">
+                                    <div class="text-emerald-400 font-bold font-mono">300</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">13:10 (1 lần)</div>
+                                </td>
+                            </tr>
+
+                            <!-- Hạng 2 -->
+                            <tr class="leaderboard-row bg-slate-400/5 border-l-2 border-slate-400">
+                                <td class="px-6 py-4 text-center font-bold text-xl text-slate-400">2</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="w-8 h-8 rounded-full border border-slate-400 bg-slate-700 flex justify-center items-center font-bold text-xs text-white">
+                                            TD</div>
+                                        <div>
+                                            <div class="text-white font-bold">trandat_coder</div>
+                                            <div class="text-xs text-slate-500 font-mono">ID: HS0981</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="px-6 py-4 text-center font-mono font-bold text-lg text-emerald-400 bg-emerald-500/5">
+                                    300</td>
+                                <!-- B1 -->
+                                <td class="px-6 py-4 text-center border-x border-[#1e293b]">
+                                    <div class="text-emerald-400 font-bold font-mono">100</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">12:15 (2 lần)</div>
+                                </td>
+                                <!-- B2 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b]">
+                                    <div class="text-emerald-400 font-bold font-mono">200</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">13:20 (1 lần)</div>
+                                </td>
+                                <!-- B3 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b] bg-slate-800/30">
+                                    <div class="text-slate-500 font-bold font-mono">-</div>
+                                </td>
+                            </tr>
+
+                            <!-- Hạng 3 -->
+                            <tr class="leaderboard-row bg-amber-700/5 border-l-2 border-amber-600">
+                                <td class="px-6 py-4 text-center font-bold text-xl text-amber-600">3</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://i.pravatar.cc/150?u=5"
+                                            class="w-8 h-8 rounded-full border border-amber-600">
+                                        <div>
+                                            <div class="text-white font-bold">nguyenvana</div>
+                                            <div class="text-xs text-slate-500 font-mono">ID: HS0055</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="px-6 py-4 text-center font-mono font-bold text-lg text-emerald-400 bg-emerald-500/5">
+                                    100</td>
+                                <!-- B1 -->
+                                <td class="px-6 py-4 text-center border-x border-[#1e293b]">
+                                    <div class="text-emerald-400 font-bold font-mono">100</div>
+                                    <div class="text-[10px] text-slate-500 mt-1">12:02 (1 lần)</div>
+                                </td>
+                                <!-- B2 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b] bg-red-500/5 relative">
+                                    <!-- Lỗi dang lam -->
+                                    <div class="text-red-400 font-bold font-mono">0</div>
+                                    <div class="text-[10px] text-red-500/80 mt-1">WA (5 lần thử)</div>
+                                    <button class="absolute top-1 right-1 text-slate-400 hover:text-white"
+                                        title="Xem Logs WA"><i class="ph-bold ph-terminal"></i></button>
+                                </td>
+                                <!-- B3 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b] bg-slate-800/30">
+                                    <div class="text-slate-500 font-bold font-mono">-</div>
+                                </td>
+                            </tr>
+
+                            <!-- Hạng 4 -->
+                            <tr class="leaderboard-row border-l-2 border-transparent">
+                                <td class="px-6 py-4 text-center font-bold text-slate-500">4</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <img src="https://i.pravatar.cc/150?u=8"
+                                            class="w-8 h-8 rounded-full border border-slate-600">
+                                        <div>
+                                            <div class="text-white font-bold">lethib</div>
+                                            <div class="text-xs text-slate-500 font-mono">ID: HS0123</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td
+                                    class="px-6 py-4 text-center font-mono font-bold text-lg text-slate-500 bg-slate-800/30">
+                                    0</td>
+                                <!-- B1 -->
+                                <td class="px-6 py-4 text-center border-x border-[#1e293b]">
+                                    <span
+                                        class="inline-flex items-center justify-center gap-1 text-xs text-indigo-400 font-semibold bg-indigo-500/10 px-2 py-1 rounded">
+                                        <i class="ph-bold ph-spinner animate-spin"></i> Judging
+                                    </span>
+                                </td>
+                                <!-- B2 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b] bg-slate-800/30">
+                                    <div class="text-slate-500 font-bold font-mono">-</div>
+                                </td>
+                                <!-- B3 -->
+                                <td class="px-6 py-4 text-center border-r border-[#1e293b] bg-slate-800/30">
+                                    <div class="text-slate-500 font-bold font-mono">-</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right: Live Activity Stream - Chiếm 1/4 màn hình -->
+            <div class="xl:col-span-1 flex flex-col gap-6">
+
+                <!-- Live Submissions Flash -->
+                <div
+                    class="card-glass rounded-xl flex-1 border border-[#334155] flex flex-col overflow-hidden bg-slate-900/50">
+                    <div class="p-4 border-b border-[#334155] bg-[#1e293b]/80 flex justify-between items-center">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span class="relative flex h-3 w-3">
+                                <span
+                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                            Live Log (Toàn cầu)
+                        </h2>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-xs">
+
+                        <div
+                            class="bg-[#1e293b] p-3 rounded border-l-2 border-emerald-500 shadow-lg animate-[fadeIn_0.5s_ease-out]">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-emerald-400 font-bold">ACCEPTED (AC)</span>
+                                <span class="text-slate-500">Vừa xong</span>
+                            </div>
+                            <div class="text-slate-300"><span class="text-white">@hoangdeptrai</span> solved <span
+                                    class="text-blue-400">Bài 3</span> (+300đ)</div>
+                        </div>
+
+                        <div class="bg-[#1e293b] p-3 rounded border-l-2 border-indigo-500 text-slate-300">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-indigo-400 font-bold">SUBMITTED</span>
+                                <span class="text-slate-500">1p trước</span>
+                            </div>
+                            <div><span class="text-white">@lethib</span> sumbitted <span class="text-blue-400">Bài
+                                    1</span> (Cpp)</div>
+                        </div>
+
+                        <div class="bg-[#1e293b] p-3 rounded border-l-2 border-red-500 text-slate-300">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-red-500 font-bold">WRONG ANSWER</span>
+                                <span class="text-slate-500">3p trước</span>
+                            </div>
+                            <div><span class="text-white">@nguyenvana</span> failed <span class="text-blue-400">Bài
+                                    2</span></div>
+                            <button class="mt-2 text-slate-400 hover:text-white underline"
+                                onclick="window.location.href='submission_detail.html'">Xem nguyên nhân</button>
+                        </div>
+
+                        <div
+                            class="bg-[#1e293b] p-3 rounded border-l-2 border-orange-500 text-slate-300 hover:bg-slate-800 transition">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-orange-500 font-bold">COMPILE ERROR</span>
+                                <span class="text-slate-500">4p trước</span>
+                            </div>
+                            <div><span class="text-white">@vuongtoan</span> bị lỗi build <span class="text-blue-400">Bài
+                                    1</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Action Cảnh báo -->
+                <div class="card-glass rounded-xl p-4 border border-red-500/30 bg-red-500/5">
+                    <h3 class="text-sm font-bold text-red-500 mb-2 flex items-center gap-2">
+                        <i class="ph-bold ph-warning"></i> Cảnh báo hệ thống Server
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-3">Phát hiện Judge Engine 2 (C++) đang quá tải do lượng
+                        Submission đột biến (Load > 90%).</p>
+                    <button
+                        class="w-full bg-red-600/20 text-red-400 font-semibold text-xs py-2 rounded border border-red-500/50 hover:bg-red-600 hover:text-white transition">Scale
+                        Up Docker Instance</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

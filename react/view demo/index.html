@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Arena - Nền Tảng Thi Đấu Lập Trình Hàng Đầu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)',
+                        primary: '#3b82f6',
+                        accent: '#10b981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+    <!-- Background Glow -->
+    <div
+        class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none">
+    </div>
+    <div
+        class="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-purple-600/20 blur-[150px] rounded-full pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-600/10 blur-[150px] rounded-full pointer-events-none">
+    </div>
+
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center gap-8">
+            <a href="index.html" class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="login.html" class="px-5 py-2 font-medium text-slate-300 hover:text-white transition-colors">
+                Đăng nhập
+            </a>
+            <a href="register.html"
+                class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                Đăng ký miễn phí <i class="ph-bold ph-arrow-right"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-4 py-20 z-10">
+        <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-8">
+            <span class="relative flex h-2 w-2">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+            </span>
+            Nền tảng thi đấu lập trình số 1 VN
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-relaxed max-w-4xl mb-6">
+            <span class="block mb-4 pt-4">Khẳng định Bản lĩnh</span>
+            <span class="text-gradient inline-block pb-4">Giải Thuật Đỉnh Cao</span>
+        </h1>
+
+        <p class="text-xl text-slate-400 max-w-2xl mb-12 leading-relaxed">
+            Hàng nghìn bài tập thuật toán, hệ thống chấm điểm siêu tốc và các cuộc thi lập trình hàng tuần. Nâng trình
+            code, cày rank và trở thành Master ngay hôm nay.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+            <a href="register.html"
+                class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-xl shadow-blue-500/30 text-lg flex items-center justify-center gap-2">
+                Bắt Đầu Ngay <i class="ph-bold ph-rocket-launch"></i>
+            </a>
+            <a href="#features"
+                class="px-8 py-4 glass hover:bg-slate-800 text-white font-bold rounded-xl transition-all text-lg flex items-center justify-center gap-2 border border-slate-700">
+                Tìm Hiểu Thêm
+            </a>
+        </div>
+
+        <!-- Dashboard Mocup -->
+        <div class="mt-20 relative w-full max-w-5xl">
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur opacity-20">
+            </div>
+            <div class="relative glass rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
+                <div class="h-8 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="p-2 sm:p-0">
+                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                        alt="Dashboard Preview"
+                        class="w-full h-[300px] md:h-[500px] object-cover opacity-80 mix-blend-screen">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 px-6 border-t border-slate-800/50 bg-[#0a0f1d]">
+        <div class="container mx-auto max-w-6xl">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Tại sao chọn Code Arena?</h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto">Hệ sinh thái hoàn hảo cho coder rèn luyện và tỏa
+                    sáng.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass p-8 rounded-2xl hover-lift border-t-4 border-t-blue-500">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6">
+                        <i class="ph-duotone ph-terminal-window text-3xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Online IDE Hiện Đại</h3>
+                    <p class="text-slate-400 leading-relaxed">Môi trường code tích hợp trực tiếp trên web với
+                        CodeMirror. Hỗ trợ C++, Java, Python, Auto-complete và Syntax Highlight.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass p-8 rounded-2xl hover-lift border-t-4 border-t-purple-500">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6">
+                        <i class="ph-duotone ph-rocket text-3xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Hệ thống Siêu Tốc</h3>
+                    <p class="text-slate-400 leading-relaxed">Judger System chấm bài song song, trả kết quả chỉ trong
+                        vài mili-giây. Phân tích chi tiết Time & Memory Limit cho từng Test Case.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass p-8 rounded-2xl hover-lift border-t-4 border-t-emerald-500">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6">
+                        <i class="ph-duotone ph-trophy text-3xl text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">Ranking & Contest</h3>
+                    <p class="text-slate-400 leading-relaxed">Tham gia các kỳ thi hàng tuần, leo rank Elo quốc tế. Giành
+                        huy hiệu đặc biệt và xây dựng Profile ấn tượng cho nhà tuyển dụng.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glass border-t border-slate-800 py-12 px-6">
+        <div class="container mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </div>
+            <div class="text-slate-500 text-sm">
+                &copy; 2026 Code Arena Platform. All rights reserved.
+            </div>
+            <div class="flex gap-4">
+                <a href="#"
+                    class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-colors">
+                    <i class="ph-fill ph-facebook-logo text-xl"></i>
+                </a>
+                <a href="#"
+                    class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-400 transition-colors">
+                    <i class="ph-fill ph-twitter-logo text-xl"></i>
+                </a>
+                <a href="#"
+                    class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+                    <i class="ph-fill ph-github-logo text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

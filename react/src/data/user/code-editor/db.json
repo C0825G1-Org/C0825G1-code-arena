@@ -1,0 +1,34 @@
+{
+  "problems": [
+    {
+      "id": 1,
+      "title": "Sum of Two Numbers",
+      "description": "Given two integers a and b, return their sum.",
+      "sampleInput": "1 2",
+      "sampleOutput": "3"
+    }
+  ],
+  "test_cases": [
+    {
+      "id": 1,
+      "problemId": 1,
+      "input": "1 2",
+      "output": "3",
+      "is_sample": true
+    },
+    {
+      "id": 2,
+      "problemId": 1,
+      "input": "10 -5",
+      "output": "5",
+      "is_sample": true
+    },
+    {
+      "id": 3,
+      "problemId": 1,
+      "input": "0 0",
+      "output": "0",
+      "is_sample": false
+    }
+  ]
+}

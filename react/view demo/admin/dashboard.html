@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Arena - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: '#0f172a', card: '#1e293b' }, fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] } }
+            }
+        }
+    </script>
+    <!-- Phophor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+            font-medium;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+        }
+
+        .sidebar-link.active {
+            box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+            background-color: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex overflow-hidden selection:bg-red-500/30">
+
+    <!-- Admin Sidebar -->
+    <aside
+        class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col pt-6 pb-4 shrink-0 transition-transform duration-300 z-20">
+        <div class="px-6 mb-8 mt-2 text-xl font-bold tracking-tight text-white flex gap-2 items-center">
+            <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+                <i class="ph-bold ph-hard-drives text-lg"></i>
+            </div>
+            CodeArena<span class="text-red-500 text-sm align-top ml-1">ADMIN</span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2">
+            <a href="dashboard.html" class="sidebar-link active">
+                <i class="ph-duotone ph-squares-four text-xl"></i> System Dashboard
+            </a>
+            <a href="manage_users.html" class="sidebar-link">
+                <i class="ph-duotone ph-users text-xl"></i> Quản lý Users
+            </a>
+            <a href="manage_languages.html" class="sidebar-link">
+                <i class="ph-duotone ph-cpu text-xl"></i> Cấu hình Máy chấm
+            </a>
+            <a href="manage_tags.html" class="sidebar-link">
+                <i class="ph-duotone ph-tag text-xl"></i> Phân loại (Tags)
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-900">
+
+        <!-- HeaderBar -->
+        <header
+            class="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+            <h1 class="text-xl font-semibold text-white">System Monitoring</h1>
+
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span class="text-red-400 text-xs font-bold uppercase tracking-wider">Root Access</span>
+                </div>
+                <div class="h-6 w-px bg-slate-700"></div>
+                <!-- Profile -->
+                <div
+                    class="relative flex items-center gap-3 cursor-pointer hover:bg-slate-800 p-2 rounded-lg transition">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm font-semibold text-white leading-tight">System Admin</div>
+                        <div class="text-xs text-slate-400 font-mono">ID: 1</div>
+                    </div>
+                    <img src="https://i.pravatar.cc/150?u=1"
+                        class="w-10 h-10 rounded-full border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-8">
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- System Status -->
+                <div
+                    class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 hover:border-red-500/50 transition relative overflow-hidden group">
+                    <div
+                        class="absolute -right-6 -top-6 text-slate-700/50 group-hover:text-red-500/10 transition-colors">
+                        <i class="ph-fill ph-heartbeat text-8xl"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-slate-400 font-medium mb-1">Status Server</h3>
+                        <div class="text-3xl font-bold text-white mb-2 flex items-center gap-2">
+                            Healthy <span class="bg-green-500/20 text-green-400 p-1 rounded-full"><i
+                                    class="ph-bold ph-check"></i></span>
+                        </div>
+                        <span
+                            class="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">Uptime:
+                            99.9%</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 hover:border-slate-500 transition">
+                    <h3 class="text-slate-400 font-medium mb-1">Tổng số Users</h3>
+                    <div class="text-3xl font-bold text-white mb-2">1,245</div>
+                    <span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                        <i class="ph-bold ph-trend-up"></i> +12 user mới
+                    </span>
+                </div>
+
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 hover:border-slate-500 transition">
+                    <h3 class="text-slate-400 font-medium mb-1">Queue Máy Chấm</h3>
+                    <div class="text-3xl font-bold text-white mb-2 font-mono">0<span
+                            class="text-sm font-sans text-slate-500 ml-1">pending</span></div>
+                    <span
+                        class="text-xs text-green-400 bg-green-500/10 px-2 py-0.5 rounded border border-green-500/20">Idle</span>
+                </div>
+
+                <div class="bg-slate-800/80 p-6 rounded-2xl border border-slate-700 hover:border-slate-500 transition">
+                    <h3 class="text-slate-400 font-medium mb-1">Docker Engines</h3>
+                    <div class="text-3xl font-bold text-white mb-2">3 <span
+                            class="text-sm font-sans text-slate-500 ml-1">/ 5 Node</span></div>
+                    <span
+                        class="text-xs text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20"><i
+                            class="ph-bold ph-activity"></i> Active</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Resource Monitor -->
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2 mb-6">
+                        <i class="ph-duotone ph-cpu text-blue-400"></i> Resource Monitor
+                    </h3>
+
+                    <!-- CPU -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-400 font-medium">CPU Usage (Core 1-4)</span>
+                            <span class="text-white font-mono">42%</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: 42%"></div>
+                        </div>
+                    </div>
+
+                    <!-- RAM -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-400 font-medium">Memory (RAM)</span>
+                            <span class="text-white font-mono">24.5 GB / 32 GB</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2">
+                            <div class="bg-yellow-500 h-2 rounded-full" style="width: 76%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Redis Queue -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-slate-400 font-medium">Redis Cache Memory</span>
+                            <span class="text-white font-mono">1.2 GB / 2 GB</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2">
+                            <div class="bg-purple-500 h-2 rounded-full" style="width: 60%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities Logs -->
+                <div
+                    class="bg-slate-800 p-0 rounded-2xl border border-slate-700 flex flex-col overflow-hidden shadow-2xl">
+                    <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/80">
+                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="ph-duotone ph-terminal-window text-emerald-400"></i> System Logs
+                        </h3>
+                        <button class="text-xs text-blue-400 hover:text-blue-300">View All</button>
+                    </div>
+                    <div
+                        class="flex-1 overflow-y-auto p-4 bg-slate-950 font-mono text-[13px] text-slate-400 leading-relaxed shadow-inner">
+                        <div class="flex gap-4 mb-2">
+                            <span class="text-blue-500 shrink-0">[10:05:22]</span>
+                            <span class="text-slate-500 shrink-0">INFO</span>
+                            <span class="text-slate-300 w-full">User 'tung.moderator@hust.edu.vn' logged in.</span>
+                        </div>
+                        <div class="flex gap-4 mb-2">
+                            <span class="text-blue-500 shrink-0">[10:07:15]</span>
+                            <span class="text-yellow-500 shrink-0">WARN</span>
+                            <span class="text-slate-300 w-full">Redis connection slow (latency 105ms).</span>
+                        </div>
+                        <div class="flex gap-4 mb-2">
+                            <span class="text-blue-500 shrink-0">[10:12:01]</span>
+                            <span class="text-red-500 shrink-0">ERR!</span>
+                            <span class="text-red-300 w-full">Docker container 'jv-run-304' crashed. Reason:
+                                OOMKilled.</span>
+                        </div>
+                        <div class="flex gap-4 mb-2">
+                            <span class="text-blue-500 shrink-0">[10:12:05]</span>
+                            <span class="text-slate-500 shrink-0">INFO</span>
+                            <span class="text-slate-300 w-full">Spawning new Java 17 worker... OK.</span>
+                        </div>
+                        <div class="flex gap-4 mb-2">
+                            <span class="text-blue-500 shrink-0">[10:15:33]</span>
+                            <span class="text-slate-500 shrink-0">INFO</span>
+                            <span class="text-slate-300 w-full">Submission #15420 received. Enqueued.</span>
+                        </div>
+                        <div class="flex gap-4 mb-2 text-green-400 animate-pulse">
+                            <span class="text-blue-500 shrink-0">[10:15:34]</span>
+                            <span class="text-slate-500 shrink-0">INFO</span>
+                            <span class="text-slate-300 justify-self-stretch w-full">Waiting for events...</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

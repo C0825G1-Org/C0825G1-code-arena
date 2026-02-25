@@ -1,0 +1,19 @@
+# IDE and System files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Build and Dependency folders (dùng ** để quét mọi cấp thư mục)
+**/node_modules/
+**/dist/
+**/build/
+**/.gradle/
+**/out/
+**/target/
+
+# Logs and temp files
+*.log
+temp/
+bin/
