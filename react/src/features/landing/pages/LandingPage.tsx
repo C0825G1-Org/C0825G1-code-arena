@@ -55,7 +55,7 @@ export const LandingPage: React.FC = () => {
                     {isAuthenticated ? (
                         <>
                             <Link to={getDashboardLink()} className="px-5 py-2 font-medium text-slate-300 hover:text-white transition-colors">
-                                Vào Dashboard
+                                Home
                             </Link>
                             <button
                                 onClick={handleLogout}
