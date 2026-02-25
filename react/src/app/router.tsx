@@ -22,16 +22,15 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
     if (!isAuthenticated || !user) {
-        return <Navigate to="/login" replace />;
+        // Điều hướng thẳng ra trang 403 (hoặc 401) thay vì đá về Login
+        return <Navigate to="/err/403" replace />;
     }
 
     const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
 
     // Chặn nếu role không phù hợp
     if (allowedRoles && !allowedRoles.includes(userRole)) {
-        if (userRole === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
-        if (userRole === 'MODERATOR') return <Navigate to="/moderator/dashboard" replace />;
-        return <Navigate to="/home" replace />;
+        return <Navigate to="/err/403" replace />;
     }
 
     return children;

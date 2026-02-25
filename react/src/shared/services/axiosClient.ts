@@ -26,6 +26,13 @@ axiosClient.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            // Sau khi xóa token, thường frontend sẽ tự đá về login qua state auth
+        } else if (error.response?.status === 403) {
+            // Lỗi forbidden từ API
+            window.location.href = '/err/403';
+        } else if (error.response?.status >= 500) {
+            // Lỗi server crash
+            window.location.href = '/err/500';
         }
         return Promise.reject(error);
     }
