@@ -23,7 +23,9 @@ export const LandingPage: React.FC = () => {
     const handleLogout = (e: React.MouseEvent) => {
         e.preventDefault();
         navigate('/');
-        dispatch(logout());
+        setTimeout(() => {
+            dispatch(logout());
+        }, 10);
     };
 
     const getDashboardLink = () => {
