@@ -22,8 +22,8 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
     if (!isAuthenticated || !user) {
-        // Điều hướng thẳng ra trang 403 (hoặc 401) thay vì đá về Login
-        return <Navigate to="/err/403" replace />;
+        // Chưa đăng nhập thì bắt buộc phải về trang đăng nhập
+        return <Navigate to="/login" replace />;
     }
 
     const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';

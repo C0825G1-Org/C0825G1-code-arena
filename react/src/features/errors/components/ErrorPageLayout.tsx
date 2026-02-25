@@ -16,7 +16,7 @@ export const ErrorPageLayout: React.FC<ErrorPageLayoutProps> = ({
     title,
     description,
     icon,
-    homeLink = '/home',
+    homeLink = '/',
     homeText = 'Back To Home'
 }) => {
     return (
