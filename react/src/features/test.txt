@@ -1,5 +1,0 @@
-├── features/           # Các logic theo chức năng (Redux slices, API hooks)
-│   │   ├── auth/           # Login, Register, UserSlice
-│   │   ├── problems/       # ProblemList, CodeEditor (Monaco)
-│   │   ├── contests/       # Timer, Ranking
-│   │   └── admin/          # Quản lý user/bài tập

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Arena - Nền tảng Thi Đấu Lập Trình</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)',
+                        primary: '#3b82f6',
+                        accent: '#10b981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+    <!-- Background Glow -->
+    <div
+        class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none">
+    </div>
+
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-8">
+            <a href="home.html" class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+                <a href="home.html" class="text-white hover:text-blue-400 transition-colors">Trang chủ</a>
+                <a href="problems.html" class="hover:text-blue-400 transition-colors">Bài tập</a>
+                <a href="contests.html" class="hover:text-blue-400 transition-colors">Cuộc thi</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition-colors">Bảng xếp hạng</a>
+                <a href="discussions.html" class="hover:text-blue-400 transition-colors">Thảo luận</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300">
+                <i class="ph ph-bell text-xl"></i>
+            </button>
+            <a href="profile.html"
+                class="flex items-center gap-3 cursor-pointer group pl-2 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">nguyenvana
+                    </div>
+                    <div class="text-xs text-slate-400 font-mono">Rating: <span class="text-yellow-400">1550</span>
+                    </div>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=3" alt="Avatar"
+                    class="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover">
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-6 py-10 z-10">
+
+        <!-- Hero Section -->
+        <div class="mb-16 mt-8 flex flex-col md:flex-row items-center justify-between gap-12">
+            <div class="flex-1 space-y-6">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-sm text-blue-400 font-medium">
+                    <span class="relative flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    </span>
+                    Code Arena Weekly #1 đang diễn ra
+                </div>
+                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
+                    Nâng Tầm Kỹ Năng <br>
+                    <span class="text-gradient">Thuật Toán Của Bạn</span>
+                </h1>
+                <p class="text-lg text-slate-400 max-w-xl">
+                    Tham gia nền tảng thi đấu lập trình hàng đầu. Giải quyết các bài toán hóc búa, rèn luyện tư duy
+                    logic và cạnh tranh với hàng ngàn lập trình viên khác.
+                </p>
+                <div class="flex gap-4 pt-4">
+                    <a href="problems.html"
+                        class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-all shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                        Bắt đầu giải bài <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                    <a href="contests.html"
+                        class="px-6 py-3 glass hover:bg-slate-800 text-white font-medium rounded-lg transition-all flex items-center gap-2">
+                        Xem Leaderboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Widget (Personalized Dashboard) -->
+            <div
+                class="w-full md:w-[400px] glass p-6 rounded-2xl flex flex-col gap-6 relative overflow-hidden group border-blue-500/20">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                </div>
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold text-lg text-white/90">Tiến Độ Của Bạn</h3>
+                    <a href="profile.html" class="text-xs text-blue-400 hover:underline">Chi tiết</a>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div
+                        class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                        <i class="ph-duotone ph-ranking text-3xl mb-2 text-yellow-400"></i>
+                        <div class="text-2xl font-bold">1550</div>
+                        <div class="text-xs text-slate-400">Elo Ranking</div>
+                    </div>
+                    <div
+                        class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                        <i class="ph-duotone ph-check-circle text-3xl mb-2 text-emerald-400"></i>
+                        <div class="text-2xl font-bold">42<span class="text-sm text-slate-500 font-normal">/120</span>
+                        </div>
+                        <div class="text-xs text-slate-400">Bài đã giải</div>
+                    </div>
+                    <div
+                        class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                        <i class="ph-duotone ph-target text-3xl mb-2 text-blue-400"></i>
+                        <div class="text-2xl font-bold">65%</div>
+                        <div class="text-xs text-slate-400">Tỉ lệ AC</div>
+                    </div>
+                    <div
+                        class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                        <i class="ph-duotone ph-fire text-3xl mb-2 text-orange-400"></i>
+                        <div class="text-2xl font-bold">7 Ngày</div>
+                        <div class="text-xs text-slate-400">Chuỗi (Streak)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Contests -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="flex justify-between items-end">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i class="ph-duotone ph-calendar-star text-blue-500"></i> Cuộc Thi Sắp Tới
+                    </h2>
+                    <a href="contests.html" class="text-blue-400 text-sm hover:underline">Xem tất cả</a>
+                </div>
+
+                <div
+                    class="glass rounded-2xl p-6 hover-lift flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden border-blue-500/30">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span
+                                class="px-2 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30 w-fit">Đang
+                                diễn ra</span>
+                            <span class="text-sm text-slate-400"><i class="ph ph-clock mr-1"></i>Còn 2 giờ nữa</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-1">Code Arena Weekly #1</h3>
+                        <p class="text-slate-400 text-sm">Cuộc thi hàng tuần dành cho người mới. 2 bài tập.</p>
+                    </div>
+                    <a href="contests.html"
+                        class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors whitespace-nowrap">
+                        Vào thi ngay
+                    </a>
+                </div>
+
+                <div
+                    class="glass rounded-2xl p-6 hover-lift flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span
+                                class="px-2 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 w-fit">Sắp
+                                tới</span>
+                            <span class="text-sm text-slate-400"><i class="ph ph-calendar mr-1"></i>Bắt đầu sau 5
+                                ngày</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-1">Algorithm Masters 2024</h3>
+                        <p class="text-slate-400 text-sm">Cuộc thi thuật toán đỉnh cao toàn quốc.</p>
+                    </div>
+                    <a href="contests.html"
+                        class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors whitespace-nowrap outline outline-1 outline-white/20">
+                        Đăng ký
+                    </a>
+                </div>
+            </div>
+
+            <!-- Top Coders -->
+            <div class="space-y-6">
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="ph-duotone ph-fire text-orange-500"></i> Top Coders
+                </h2>
+                <div class="glass rounded-2xl p-2">
+                    <a href="leaderboard.html"
+                        class="flex items-center justify-between p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group block">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 text-center font-bold text-yellow-400">1</div>
+                            <img src="https://i.pravatar.cc/150?u=1" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <div class="font-medium text-white group-hover:text-blue-400 transition-colors">admin
+                                </div>
+                                <div class="text-xs text-slate-400">Legendary Grandmaster</div>
+                            </div>
+                        </div>
+                        <div class="font-mono font-bold text-yellow-400">2000</div>
+                    </a>
+
+                    <div
+                        class="flex items-center justify-between p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 text-center font-bold text-slate-300">2</div>
+                            <img src="https://i.pravatar.cc/150?u=2" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <div class="font-medium text-white group-hover:text-blue-400 transition-colors">
+                                    giangvien_tung</div>
+                                <div class="text-xs text-slate-400">Grandmaster</div>
+                            </div>
+                        </div>
+                        <div class="font-mono font-bold text-blue-400">1800</div>
+                    </div>
+
+                    <div
+                        class="flex items-center justify-between p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-6 text-center font-bold text-orange-400">3</div>
+                            <img src="https://i.pravatar.cc/150?u=15" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <div class="font-medium text-white group-hover:text-blue-400 transition-colors">lethic
+                                </div>
+                                <div class="text-xs text-slate-400">Master</div>
+                            </div>
+                        </div>
+                        <div class="font-mono font-bold text-purple-400">1600</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass mt-20 py-8 border-t border-slate-800">
+        <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
+            <p>&copy; 2026 Code Arena. Modern Platform for Algo Masters.</p>
+        </div>
+    </footer>
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

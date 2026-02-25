@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace - Code Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a', /* slate-900 */
+                        base: '#1e293b', /* slate-800 */
+                        panel: '#020617', /* slate-950 */
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <!-- CodeMirror for real Editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar for panels */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .panel {
+            background-color: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background-color: #0f172a;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-content {
+            padding: 1rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Markdown Styles */
+        .prose pre {
+            background-color: #1e293b !important;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            border: 1px solid #334155;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        .prose code {
+            color: #e2e8f0;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .prose p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .prose h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #f8fafc;
+        }
+
+        /* Override CodeMirror Styles to match our dark theme */
+        .CodeMirror {
+            height: 100%;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background: #020617;
+            /* panel base */
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .CodeMirror-gutters {
+            background: #0f172a;
+            border-right: 1px solid #1e293b;
+        }
+
+        .CodeMirror-linenumber {
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar Minimal -->
+    <nav class="glass-header px-4 py-2 flex justify-between items-center z-50 h-12">
+        <div class="flex items-center gap-4">
+            <a href="problems.html" class="text-slate-400 hover:text-white transition-colors">
+                <i class="ph-bold ph-list text-xl"></i>
+            </a>
+            <div class="font-semibold text-sm flex items-center gap-2">
+                <span class="text-green-400">Easy</span>
+                <span class="text-slate-500">|</span>
+                <span class="text-white">1. Tổng hai số</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="settings.html" class="text-slate-400 hover:text-white tooltip transition-colors" title="Cài đặt">
+                <i class="ph-bold ph-gear text-lg"></i>
+            </a>
+            <a href="profile.html" class="hover:opacity-80 transition-opacity">
+                <img src="https://i.pravatar.cc/150?u=3" class="w-7 h-7 rounded-full border border-slate-600">
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Workspace (Split Layout) -->
+    <main class="flex-1 flex gap-2 p-2 overflow-hidden h-[calc(100vh-3rem)]">
+
+        <!-- Left Panel: Problem Description -->
+        <div class="panel w-2/5 flex flex-col">
+            <div class="panel-header">
+                <div class="flex gap-4">
+                    <button class="text-blue-400 font-semibold border-b-2 border-blue-400 pb-1 -mb-2">Mô tả</button>
+                    <button
+                        class="text-slate-400 hover:text-slate-200 pb-1 -mb-2 transition-colors border-b-2 border-transparent hover:border-slate-500">Thảo
+                        luận (12)</button>
+                    <button
+                        class="text-slate-400 hover:text-slate-200 pb-1 -mb-2 transition-colors border-b-2 border-transparent hover:border-slate-500">Submissions</button>
+                </div>
+            </div>
+            <div class="panel-content prose">
+                <h2 class="text-2xl font-bold text-white mb-2">1. Tổng hai số</h2>
+                <div class="flex gap-2 mb-6 text-xs font-medium">
+                    <span
+                        class="px-2 py-0.5 rounded text-green-400 bg-green-400/10 border border-green-400/20">Easy</span>
+                    <span class="px-2 py-0.5 rounded text-slate-300 bg-slate-800 border border-slate-700">Math</span>
+                    <span class="px-2 py-0.5 rounded text-slate-300 bg-slate-800 border border-slate-700">Time:
+                        1000ms</span>
+                    <span class="px-2 py-0.5 rounded text-slate-300 bg-slate-800 border border-slate-700">Mem:
+                        256MB</span>
+                </div>
+
+                <p>Cho hai số nguyên A và B. Hãy tính tổng của chúng.</p>
+
+                <h3>Dữ liệu đầu vào (Input)</h3>
+                <p>Một dòng duy nhất chứa hai số nguyên A, B phân tách nhau bởi một khoảng trắng. (-10<sup>9</sup>
+                    <= A, B <=10<sup>9</sup>).
+                </p>
+
+                <h3>Kết quả đầu ra (Output)</h3>
+                <p>In ra một dòng duy nhất là tổng của A và B.</p>
+
+                <h3>Ví dụ (Sample Test)</h3>
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1 ml-1 font-mono">Input</div>
+                        <pre class="m-0 bg-slate-800 text-slate-300"><code>5 10</code></pre>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 mb-1 ml-1 font-mono">Output</div>
+                        <pre class="m-0 bg-slate-800 text-green-400"><code>15</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Editor & Console -->
+        <div class="w-3/5 flex flex-col gap-2 relative">
+
+            <!-- Code Editor -->
+            <div
+                class="panel flex-1 flex flex-col relative outline outline-2 outline-transparent focus-within:outline-blue-500/30 transition-all rounded-lg">
+                <div class="panel-header gap-4">
+                    <select
+                        class="bg-slate-800 border overflow-hidden border-slate-600 text-slate-300 text-xs rounded px-2 py-1 outline-none appearance-none cursor-pointer hover:border-slate-400 transition-colors">
+                        <option value="cpp">C++ 20 (g++)</option>
+                        <option value="python">Python 3</option>
+                        <option selected value="java">Java 17</option>
+                    </select>
+
+                    <div class="flex gap-2">
+                        <button class="text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-slate-700 transition"
+                            title="Làm mới code">
+                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Real Editor Area -->
+                <div class="flex-1 w-full relative">
+                    <textarea id="main-editor">import java.util.Scanner;
+
+public class Solution {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        long a = sc.nextLong();
+        long b = sc.nextLong();
+        System.out.print(a + b);
+    }
+}</textarea>
+                </div>
+            </div>
+
+            <!-- Console / Execution Result -->
+            <div class="panel h-48 flex flex-col relative transition-all duration-300 group">
+                <!-- Move Handle -->
+                <div
+                    class="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-1 bg-slate-700/50 group-hover:bg-slate-500 rounded-full cursor-ns-resize z-10 transition-colors">
+                </div>
+
+                <div class="panel-header py-2 flex justify-between bg-[#111827]">
+                    <div class="flex gap-4 items-center">
+                        <button class="text-slate-200 font-semibold text-xs border-b border-transparent pb-0.5"
+                            id="btn-testcase">Testcase</button>
+                        <button
+                            class="text-slate-500 hover:text-slate-300 font-semibold text-xs pb-0.5 border-b border-transparent">Result
+                            <span
+                                class="ml-1 w-2 h-2 rounded-full bg-green-500 inline-block indicator hidden"></span></button>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div class="flex gap-2">
+                        <button
+                            class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                            <i class="ph-bold ph-play"></i> Run Code
+                        </button>
+                        <button
+                            class="px-4 py-1 bg-green-600/90 hover:bg-green-500 text-white rounded text-xs font-bold transition-colors shadow-lg shadow-green-600/20">
+                            Submit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Test Case Content -->
+                <div class="panel-content bg-[#020617] flex gap-4 p-0" id="tab-testcase">
+                    <!-- Tab list test cases -->
+                    <div class="w-24 bg-slate-900 border-r border-slate-800 flex flex-col p-2 gap-1 overflow-y-auto">
+                        <button
+                            class="bg-slate-800 px-2 py-1.5 rounded text-xs text-left text-white border border-slate-700 font-mono flex items-center gap-1 relative overflow-hidden">
+                            <span class="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500"></span>
+                            Case 1
+                        </button>
+                        <button
+                            class="hover:bg-slate-800/50 px-2 py-1.5 rounded text-xs text-left text-slate-400 font-mono transition-colors">
+                            Case 2
+                        </button>
+                        <button
+                            class="hover:bg-slate-800/50 px-2 py-1.5 rounded text-xs text-left text-slate-400 font-mono transition-colors">
+                            <i class="ph-bold ph-plus"></i> Thêm
+                        </button>
+                    </div>
+
+                    <!-- Content Test Case -->
+                    <div class="flex-1 right p-3 overflow-y-auto">
+                        <div class="mb-3">
+                            <label class="text-xs text-slate-500 font-medium block mb-1">A, B =</label>
+                            <textarea
+                                class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-300 font-mono resize-none focus:outline-none focus:border-blue-500 transition-colors"
+                                rows="1">5 10</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Khởi tạo CodeMirror
+        var editor = CodeMirror.fromTextArea(document.getElementById("main-editor"), {
+            mode: "text/x-java",
+            theme: "dracula",
+            lineNumbers: true,
+            indentUnit: 4,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            scrollbarStyle: "native"
+        });
+        editor.setSize("100%", "100%");
+    </script>
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>
