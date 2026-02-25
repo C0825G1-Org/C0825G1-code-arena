@@ -37,7 +37,7 @@ export const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="antialiased min-h-screen flex flex-col relative overflow-x-hidden bg-[#0f172a] text-slate-50 font-sans">
+        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-x-clip">
             {/* Background Glows */}
             <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none"></div>
             <div className="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-purple-600/20 blur-[150px] rounded-full pointer-events-none"></div>
