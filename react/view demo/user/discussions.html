@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thảo Luận - Code Arena</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center gap-8">
+            <a href="home.html" class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+                <a href="home.html" class="hover:text-blue-400 transition-colors">Trang chủ</a>
+                <a href="problems.html" class="hover:text-blue-400 transition-colors">Bài tập</a>
+                <a href="contests.html" class="hover:text-blue-400 transition-colors">Cuộc thi</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition-colors">Bảng xếp hạng</a>
+                <a href="discussions.html" class="text-white hover:text-blue-400 transition-colors">Thảo luận</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300">
+                <i class="ph ph-bell text-xl"></i>
+            </button>
+            <a href="profile.html"
+                class="flex items-center gap-3 cursor-pointer group pl-2 border-l border-slate-700 relative hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">nguyenvana
+                    </div>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=3" class="w-10 h-10 rounded-full border-2 border-blue-500">
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1 container mx-auto px-4 py-8 max-w-6xl w-full flex flex-col md:flex-row gap-8">
+
+        <!-- Main Feed -->
+        <div class="w-full md:w-3/4 space-y-6">
+
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Diễn Đàn Thảo Luận</h1>
+                    <p class="text-slate-400">Nơi trao đổi thuật toán, testcase và các thủ thuật giải bài.</p>
+                </div>
+                <button
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-colors">
+                    <i class="ph-bold ph-pencil-simple"></i> Tạo Chủ Đề
+                </button>
+            </div>
+
+            <!-- Tags/Filters -->
+            <div class="glass p-2 rounded-xl flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                <button
+                    class="bg-blue-600/20 text-blue-400 border border-blue-500/50 px-4 py-1.5 rounded-lg text-sm font-medium">Mới
+                    nhất</button>
+                <button
+                    class="hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors">Hot</button>
+                <button
+                    class="hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors">Thông
+                    báo Server</button>
+                <button
+                    class="hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors">Góc
+                    Thủ thuật</button>
+                <button
+                    class="hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors">Bug
+                    & Fixes</button>
+            </div>
+
+            <!-- List Posts -->
+            <div class="space-y-4">
+
+                <!-- Post 1: Sticky/Pin -->
+                <div class="glass p-5 rounded-2xl hover-lift border-l-4 border-yellow-500 flex gap-4">
+                    <!-- Vote column -->
+                    <div class="flex flex-col items-center justify-start text-slate-400 pt-1">
+                        <button class="hover:text-blue-400 transition-colors"><i
+                                class="ph-bold ph-caret-up text-xl"></i></button>
+                        <span class="font-bold text-white text-sm">342</span>
+                        <button class="hover:text-red-400 transition-colors"><i
+                                class="ph-bold ph-caret-down text-xl"></i></button>
+                    </div>
+                    <!-- Content -->
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2 text-xs">
+                            <span
+                                class="bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-2 py-0.5 rounded flex items-center gap-1 font-bold">
+                                <i class="ph-fill ph-push-pin"></i> PINNED
+                            </span>
+                            <span
+                                class="text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded cursor-pointer hover:bg-blue-500/20">Thông
+                                báo Server</span>
+                            <span class="text-slate-500 font-mono">bởi <span
+                                    class="text-slate-300 font-semibold cursor-pointer">admin</span> • 2 ngày
+                                trước</span>
+                        </div>
+                        <a href="discussion_detail.html"
+                            class="block text-lg font-bold text-white mb-2 cursor-pointer hover:text-blue-400 transition-colors">
+                            Bảo trì server định kỳ - Chuẩn bị cho Contest #1</a>
+                        <p class="text-slate-400 text-sm mb-3 line-clamp-2">Hệ thống sẽ tạm ngưng dịch vụ chấm bài
+                            (Judger) trong khoảng thời gian từ 00:00 đến 02:00 sáng ngày mai để nâng cấp server C++ 20.
+                            Các bạn lưu ý Submit bài tập trước giờ G nhé.</p>
+                        <div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+                            <span
+                                class="flex items-center gap-1 hover:text-slate-300 cursor-pointer transition-colors"><i
+                                    class="ph-bold ph-chat-circle text-base"></i> 45 Bình luận</span>
+                            <span
+                                class="flex items-center gap-1 hover:text-slate-300 cursor-pointer transition-colors"><i
+                                    class="ph-bold ph-eye text-base"></i> 1.2k Lượt xem</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post 2 -->
+                <div class="glass p-5 rounded-2xl hover-lift flex gap-4">
+                    <div class="flex flex-col items-center justify-start text-slate-400 pt-1">
+                        <button class="hover:text-blue-400 transition-colors"><i
+                                class="ph-bold ph-caret-up text-xl"></i></button>
+                        <span class="font-bold text-white text-sm">128</span>
+                        <button class="hover:text-red-400 transition-colors"><i
+                                class="ph-bold ph-caret-down text-xl"></i></button>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2 text-xs">
+                            <span
+                                class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded cursor-pointer hover:bg-emerald-500/20 border border-emerald-500/20">Góc
+                                Thủ thuật</span>
+                            <span class="text-slate-500 font-mono">bởi <span
+                                    class="text-slate-300 font-semibold cursor-pointer">coder_pro</span> • 5 giờ
+                                trước</span>
+                        </div>
+                        <h3
+                            class="text-lg font-bold text-white mb-2 cursor-pointer hover:text-blue-400 transition-colors">
+                            Toàn tập về Quy hoạch động (DP) - Từ cơ bản đến nâng cao</h3>
+                        <p class="text-slate-400 text-sm mb-3 line-clamp-2">Mình tổng hợp lại các dạng bài DP thường gặp
+                            trong thi đấu, có kèm code mẫu C++ và giải thích Idea. Phù hợp cho newbie mới cày cuốc. Mọi
+                            người cho xin 1 upvote nha!</p>
+                        <div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+                            <span
+                                class="flex items-center gap-1 hover:text-slate-300 cursor-pointer transition-colors"><i
+                                    class="ph-bold ph-chat-circle text-base"></i> 89 Bình luận</span>
+                            <span
+                                class="flex items-center gap-1 hover:text-slate-300 cursor-pointer transition-colors"><i
+                                    class="ph-bold ph-eye text-base"></i> 500 Lượt xem</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post 3 -->
+                <div class="glass p-5 rounded-2xl hover-lift flex gap-4">
+                    <div class="flex flex-col items-center justify-start text-slate-400 pt-1">
+                        <button class="hover:text-blue-400 transition-colors"><i
+                                class="ph-bold ph-caret-up text-xl text-blue-500"></i></button>
+                        <span class="font-bold text-white text-sm">45</span>
+                        <button class="hover:text-red-400 transition-colors"><i
+                                class="ph-bold ph-caret-down text-xl"></i></button>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2 text-xs">
+                            <span
+                                class="text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded cursor-pointer hover:bg-orange-500/20 border border-orange-500/20">Bug
+                                & Fixes</span>
+                            <span class="text-slate-500 font-mono">bởi <span
+                                    class="text-slate-300 font-semibold cursor-pointer">newbie_102</span> • 1 ngày
+                                trước</span>
+                        </div>
+                        <h3
+                            class="text-lg font-bold text-white mb-2 cursor-pointer hover:text-blue-400 transition-colors">
+                            Bài 3. Tìm đường đi ngắn nhất bị sai Hidden Testcase số 4?</h3>
+                        <p class="text-slate-400 text-sm mb-3 line-clamp-2">Thuật toán Dijkstra của mình chạy AC hết các
+                            test mẫu nhưng bị TLE ở test số 4. Liệu có phải test case dùng đồ thị âm không ạ? Ai xem qua
+                            cho mình xin gợi ý với.</p>
+                        <div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+                            <span
+                                class="flex items-center gap-1 hover:text-slate-300 cursor-pointer transition-colors"><i
+                                    class="ph-bold ph-chat-circle text-base"></i> 12 Bình luận</span>
+                            <span
+                                class="flex items-center gap-1 hover:text-slate-300 cursor-pointer transition-colors"><i
+                                    class="ph-bold ph-eye text-base"></i> 150 Lượt xem</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-center mt-6">
+                <button
+                    class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors text-sm font-medium">Tải
+                    thêm thảo luận...</button>
+            </div>
+
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="w-full md:w-1/4 space-y-6">
+
+            <div class="glass p-5 rounded-xl">
+                <h3 class="font-bold text-white mb-4 border-b border-slate-700 pb-2">Top Người Đóng Góp</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/150?u=1" class="w-8 h-8 rounded-full border border-yellow-500">
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-white">coder_pro</div>
+                            <div class="text-xs text-slate-400">1.2k Upvotes</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/150?u=2" class="w-8 h-8 rounded-full border border-blue-500">
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-white">algo_master</div>
+                            <div class="text-xs text-slate-400">890 Upvotes</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <img src="https://i.pravatar.cc/150?u=5" class="w-8 h-8 rounded-full border border-emerald-500">
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-white">giangvien_tung</div>
+                            <div class="text-xs text-slate-400">500 Upvotes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass p-5 rounded-xl">
+                <h3 class="font-bold text-white mb-4 border-b border-slate-700 pb-2">Quy định cộng đồng</h3>
+                <ul class="text-xs text-slate-400 space-y-2 list-disc pl-4 marker:text-blue-500">
+                    <li>Tìm kiếm trước khi tạo chủ đề mới.</li>
+                    <li>Tôn trọng người học khác, không công kích cá nhân.</li>
+                    <li>Không spam post xin code, không share full code bài tập đang thi đấu.</li>
+                    <li>Dùng markdown để format mã nguồn rõ ràng.</li>
+                </ul>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài Đặt Hồ Sơ - Code Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center gap-8">
+            <a href="home.html" class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+                <a href="home.html" class="hover:text-blue-400 transition-colors">Trang chủ</a>
+                <a href="problems.html" class="hover:text-blue-400 transition-colors">Bài tập</a>
+                <a href="contests.html" class="hover:text-blue-400 transition-colors">Cuộc thi</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition-colors">Bảng xếp hạng</a>
+                <a href="discussions.html" class="hover:text-blue-400 transition-colors">Thảo luận</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="profile.html"
+                class="flex items-center gap-3 cursor-pointer group pl-2 relative hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">nguyenvana
+                    </div>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=3"
+                    class="w-10 h-10 rounded-full border-2 border-slate-600 group-hover:border-blue-500 transition-colors">
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1 container mx-auto px-4 py-8 max-w-6xl w-full flex flex-col md:flex-row gap-8">
+
+        <!-- Sidebar menu -->
+        <aside class="w-full md:w-1/4 space-y-2">
+            <h2 class="text-lg font-bold text-white mb-6 pl-2">Cài Đặt Tài Khoản</h2>
+
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 border border-blue-500/20 rounded-xl font-medium transition-colors">
+                <i class="ph-fill ph-user-circle text-xl"></i> Hồ sơ cá nhân
+            </a>
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 text-slate-400 border border-transparent hover:bg-slate-800/50 hover:text-slate-200 rounded-xl font-medium transition-colors">
+                <i class="ph-fill ph-lock-key text-xl"></i> Mật khẩu & Bảo mật
+            </a>
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 text-slate-400 border border-transparent hover:bg-slate-800/50 hover:text-slate-200 rounded-xl font-medium transition-colors">
+                <i class="ph-fill ph-bell-ringing text-xl"></i> Cài đặt thông báo
+            </a>
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 text-slate-400 border border-transparent hover:bg-slate-800/50 hover:text-slate-200 rounded-xl font-medium transition-colors">
+                <i class="ph-fill ph-monitor-play text-xl"></i> Tùy chỉnh Editor Code
+            </a>
+            <a href="#"
+                class="flex items-center gap-3 px-4 py-3 mt-4 text-red-400 border border-transparent hover:bg-red-500/10 rounded-xl font-medium transition-colors">
+                <i class="ph-fill ph-trash text-xl"></i> Xóa tài khoản
+            </a>
+        </aside>
+
+        <!-- Main settings area -->
+        <div class="w-full md:w-3/4 space-y-6">
+            <div class="glass p-8 rounded-2xl border border-slate-700/50">
+                <h3 class="text-xl font-bold text-white mb-6 border-b border-slate-700/50 pb-4">Thông tin cơ bản</h3>
+
+                <div class="flex flex-col sm:flex-row gap-8 mb-8 items-start">
+                    <!-- Avatar Upload -->
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="relative group cursor-pointer">
+                            <img src="https://i.pravatar.cc/150?u=3"
+                                class="w-32 h-32 rounded-full border-4 border-slate-700 object-cover group-hover:opacity-50 transition-opacity">
+                            <div
+                                class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="ph-bold ph-camera text-3xl text-white"></i>
+                            </div>
+                        </div>
+                        <button class="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors">Tải ảnh
+                            mới</button>
+                    </div>
+
+                    <!-- Form logic -->
+                    <div class="flex-1 w-full space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-300">Tên hiển thị (Tên thật)</label>
+                                <input type="text" value="Nguyễn Văn A"
+                                    class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-slate-300">Tên đăng nhập (Username)</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">@</span>
+                                    <input type="text" value="nguyenvana"
+                                        class="w-full bg-slate-800/50 border border-slate-700 text-slate-400 rounded-lg pl-8 pr-4 py-2.5 outline-none cursor-not-allowed"
+                                        disabled title="Không thể đổi tên đăng nhập">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-300">Email liên hệ</label>
+                            <input type="email" value="vana@gmail.com"
+                                class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-slate-300">Tiểu sử (Bio)</label>
+                            <textarea rows="3"
+                                class="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm">Sinh viên năm 2, đang học cấu trúc dữ liệu và thuật toán.</textarea>
+                            <p class="text-xs text-slate-500 text-right">0/150 ký tự</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <h3 class="text-xl font-bold text-white mb-6 border-b border-slate-700/50 pb-4 pt-4">Liên kết Mạng xã
+                    hội</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded bg-slate-800 flex items-center justify-center border border-slate-700">
+                            <i class="ph-fill ph-github-logo text-xl text-white"></i>
+                        </div>
+                        <input type="text" value="https://github.com/vana" placeholder="Liên kết Github của bạn"
+                            class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition-all">
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded bg-blue-900/50 flex items-center justify-center border border-blue-800">
+                            <i class="ph-fill ph-linkedin-logo text-xl text-blue-500"></i>
+                        </div>
+                        <input type="text" placeholder="Liên kết LinkedIn của bạn"
+                            class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition-all">
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded bg-slate-800 flex items-center justify-center border border-slate-700">
+                            <i class="ph-fill ph-globe text-xl text-slate-300"></i>
+                        </div>
+                        <input type="text" placeholder="Portfolio / Website cá nhân"
+                            class="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-4 py-2 text-white outline-none focus:border-blue-500 transition-all">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-10">
+                    <button
+                        class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium transition-colors border border-slate-600">Hủy
+                        bỏ</button>
+                    <button
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-500/20">Lưu
+                        thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Background Decorative Elements -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[20%] left-[60%] w-[30%] h-[30%] rounded-full bg-blue-600/5 blur-[100px]"></div>
+    </div>
+
+    <!-- Auth Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display (Exact Match Logic Applied)
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout
+                const headerRight = document.querySelector('nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>
