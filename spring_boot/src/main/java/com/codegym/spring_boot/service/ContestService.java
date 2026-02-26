@@ -28,6 +28,7 @@ public class ContestService {
     private final ContestRepository contestRepository;
     private final ContestParticipantRepository participantRepository;
     private final ContestProblemRepository problemRepository;
+    private final IProblemRepository iProblemRepository;
 
     // =============================================
     // 1. MODERATOR/ADMIN: Tạo cuộc thi
@@ -150,23 +151,43 @@ public class ContestService {
         }
 
         for (AddProblemsRequest.ProblemEntry entry : request.getProblems()) {
-            ContestProblemId cpId = new ContestProblemId(contestId, entry.getProblemId());
+            // Kiểm tra problem tồn tại và chưa bị xóa
+            Problem problem = iProblemRepository.findById(entry.getProblemId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Không tìm thấy bài tập với ID: " + entry.getProblemId()));
+
+            if (Boolean.TRUE.equals(problem.getIsDeleted())) {
+                throw new IllegalArgumentException(
+                        "Bài tập ID " + entry.getProblemId() + " đã bị xóa.");
+            }
+
+            // Kiểm tra quyền sở hữu: chỉ được thêm bài của chính mình (ADMIN miễn trừ)
+            if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
+                if (problem.getCreatedBy() == null || !problem.getCreatedBy().getId().equals(currentUser.getId())) {
+                    throw new SecurityException(
+                            "Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + entry.getProblemId() + " không thuộc về bạn.");
+                }
+            }
 
             // Kiểm tra trùng lặp
+            ContestProblemId cpId = new ContestProblemId(contestId, entry.getProblemId());
             if (problemRepository.existsById(cpId)) {
                 throw new IllegalArgumentException(
                         "Bài tập ID " + entry.getProblemId() + " đã tồn tại trong cuộc thi này.");
             }
 
+            // Tạo liên kết contest ↔ problem
             ContestProblem cp = new ContestProblem();
             cp.setId(cpId);
             cp.setContest(contest);
-            // Lấy Problem reference thay vì query full
-            Problem problem = new Problem();
-            problem.setId(entry.getProblemId());
             cp.setProblem(problem);
             cp.setOrderIndex(entry.getOrderIndex());
             problemRepository.save(cp);
+
+            // Lock bài tập ngay khi thêm vào contest
+            problem.setIsLocked(true);
+            iProblemRepository.save(problem);
+            log.info("Problem {} locked (added to contest {})", entry.getProblemId(), contestId);
         }
     }
 
@@ -188,6 +209,16 @@ public class ContestService {
             throw new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này.");
         }
         problemRepository.deleteById(cpId);
+
+        // Unlock problem nếu không còn trong contest ACTIVE/UPCOMING nào khác
+        long activeContestCount = problemRepository.countByIdProblemId(problemId);
+        if (activeContestCount == 0) {
+            iProblemRepository.findById(problemId).ifPresent(problem -> {
+                problem.setIsLocked(false);
+                iProblemRepository.save(problem);
+                log.info("Problem {} unlocked (removed from all contests)", problemId);
+            });
+        }
     }
 
     // =============================================
