@@ -152,6 +152,10 @@ public class ContestService {
         if (realStatus == ContestStatus.finished || realStatus == ContestStatus.cancelled) {
             throw new IllegalStateException("Không thể thêm bài tập vào cuộc thi đã kết thúc hoặc đã hủy.");
         }
+        // Khi ACTIVE, phải Freeze trước mới được sửa danh sách bài
+        if (realStatus == ContestStatus.active && !Boolean.TRUE.equals(contest.getIsFrozen())) {
+            throw new IllegalStateException("Phải đóng băng cuộc thi (Freeze) trước khi thêm/xóa bài tập.");
+        }
 
         for (AddProblemsRequest.ProblemEntry entry : request.getProblems()) {
             // Kiểm tra problem tồn tại và chưa bị xóa
@@ -206,6 +210,10 @@ public class ContestService {
         if (realStatus == ContestStatus.finished || realStatus == ContestStatus.cancelled) {
             throw new IllegalStateException("Không thể xóa bài tập khỏi cuộc thi đã kết thúc hoặc đã hủy.");
         }
+        // Khi ACTIVE, phải Freeze trước mới được sửa danh sách bài
+        if (realStatus == ContestStatus.active && !Boolean.TRUE.equals(contest.getIsFrozen())) {
+            throw new IllegalStateException("Phải đóng băng cuộc thi (Freeze) trước khi thêm/xóa bài tập.");
+        }
 
         ContestProblemId cpId = new ContestProblemId(contestId, problemId);
         if (!problemRepository.existsById(cpId)) {
@@ -225,63 +233,63 @@ public class ContestService {
     }
 
     // =============================================
-    // 6. MODERATOR/ADMIN: Đóng băng bài tập (Freeze)
+    // 6. MODERATOR/ADMIN: Đóng băng cuộc thi (Freeze)
+    //    Mở khóa tất cả problems để moderator sửa
     // =============================================
     @Transactional
-    public void freezeProblem(Integer contestId, Integer problemId, String reason, User currentUser) {
+    public ContestDetailResponse freezeContest(Integer contestId, String reason, User currentUser) {
         Contest contest = findContestOrThrow(contestId);
         checkOwnership(contest, currentUser);
 
         ContestStatus realStatus = computeRealTimeStatus(contest);
         if (realStatus != ContestStatus.active) {
-            throw new IllegalStateException("Chỉ có thể đóng băng bài tập khi cuộc thi đang diễn ra (ACTIVE).");
+            throw new IllegalStateException("Chỉ có thể đóng băng khi cuộc thi đang diễn ra (ACTIVE).");
+        }
+        if (Boolean.TRUE.equals(contest.getIsFrozen())) {
+            throw new IllegalStateException("Cuộc thi đã đang trong trạng thái đóng băng.");
         }
 
-        ContestProblemId cpId = new ContestProblemId(contestId, problemId);
-        ContestProblem cp = problemRepository.findById(cpId)
-                .orElseThrow(() -> new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này."));
+        contest.setIsFrozen(true);
+        contest.setFrozenReason(reason);
+        contest = contestRepository.save(contest);
 
-        if (Boolean.TRUE.equals(cp.getIsFrozen())) {
-            throw new IllegalStateException("Bài tập này đã bị đóng băng trước đó.");
-        }
-
-        cp.setIsFrozen(true);
-        cp.setFrozenReason(reason);
-        problemRepository.save(cp);
-        log.info("Problem {} frozen in contest {} by user {}. Reason: {}", problemId, contestId, currentUser.getUsername(), reason);
+        // Unlock tất cả problems để moderator có thể sửa
+        unlockProblemsOfContest(contestId);
+        log.info("Contest {} frozen by {}. Reason: {}", contestId, currentUser.getUsername(), reason);
+        return mapToDetailResponse(contest, false);
     }
 
     // =============================================
-    // 7. MODERATOR/ADMIN: Mở băng bài tập (Unfreeze)
+    // 7. MODERATOR/ADMIN: Mở băng cuộc thi (Unfreeze)
+    //    Khóa lại tất cả problems, tiếp tục thi
     // =============================================
     @Transactional
-    public void unfreezeProblem(Integer contestId, Integer problemId, boolean triggerRejudge, User currentUser) {
+    public ContestDetailResponse unfreezeContest(Integer contestId, boolean triggerRejudge, User currentUser) {
         Contest contest = findContestOrThrow(contestId);
         checkOwnership(contest, currentUser);
 
         ContestStatus realStatus = computeRealTimeStatus(contest);
         if (realStatus != ContestStatus.active) {
-            throw new IllegalStateException("Chỉ có thể mở băng bài tập khi cuộc thi đang diễn ra (ACTIVE).");
+            throw new IllegalStateException("Chỉ có thể mở băng khi cuộc thi đang diễn ra (ACTIVE).");
+        }
+        if (!Boolean.TRUE.equals(contest.getIsFrozen())) {
+            throw new IllegalStateException("Cuộc thi chưa bị đóng băng.");
         }
 
-        ContestProblemId cpId = new ContestProblemId(contestId, problemId);
-        ContestProblem cp = problemRepository.findById(cpId)
-                .orElseThrow(() -> new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này."));
+        contest.setIsFrozen(false);
+        contest.setFrozenReason(null);
+        contest = contestRepository.save(contest);
 
-        if (!Boolean.TRUE.equals(cp.getIsFrozen())) {
-            throw new IllegalStateException("Bài tập này chưa bị đóng băng.");
-        }
-
-        cp.setIsFrozen(false);
-        cp.setFrozenReason(null);
-        problemRepository.save(cp);
+        // Lock lại tất cả problems
+        lockProblemsOfContest(contestId);
 
         if (triggerRejudge) {
             // TODO: Khi Judge system (Dev 3) sẵn sàng, push submissions vào Redis Queue
-            log.info("Rejudge triggered for problem {} in contest {} by user {}", problemId, contestId, currentUser.getUsername());
+            log.info("Rejudge triggered for contest {} by user {}", contestId, currentUser.getUsername());
         }
 
-        log.info("Problem {} unfrozen in contest {} by user {}", problemId, contestId, currentUser.getUsername());
+        log.info("Contest {} unfrozen by {}", contestId, currentUser.getUsername());
+        return mapToDetailResponse(contest, false);
     }
 
     // =============================================
@@ -539,6 +547,23 @@ public class ContestService {
                     log.info("Problem {} unlocked (contest {} ended/cancelled)", problemId, contestId);
                 });
             }
+        }
+    }
+
+    // =============================================
+    // HELPER: Lock lại problems khi unfreeze contest
+    // =============================================
+    private void lockProblemsOfContest(Integer contestId) {
+        List<ContestProblem> contestProblems = problemRepository
+                .findByIdContestIdOrderByOrderIndexAsc(contestId);
+
+        for (ContestProblem cp : contestProblems) {
+            Integer problemId = cp.getId().getProblemId();
+            iProblemRepository.findById(problemId).ifPresent(problem -> {
+                problem.setIsLocked(true);
+                iProblemRepository.save(problem);
+                log.info("Problem {} locked (contest {} unfrozen)", problemId, contestId);
+            });
         }
     }
 }

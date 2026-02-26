@@ -82,27 +82,23 @@ public class ContestController {
         return ResponseEntity.ok(Map.of("message", "Đã xóa bài tập khỏi cuộc thi thành công."));
     }
 
-    @PatchMapping("/{id}/problems/{problemId}/freeze")
+    @PatchMapping("/{id}/freeze")
     @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
-    public ResponseEntity<Map<String, String>> freezeProblem(
+    public ResponseEntity<ContestDetailResponse> freezeContest(
             @PathVariable Integer id,
-            @PathVariable Integer problemId,
             @Valid @RequestBody FreezeProblemRequest request,
             @AuthenticationPrincipal User currentUser) {
-        contestService.freezeProblem(id, problemId, request.getReason(), currentUser);
-        return ResponseEntity.ok(Map.of("message", "Bài tập đã được đóng băng thành công."));
+        return ResponseEntity.ok(contestService.freezeContest(id, request.getReason(), currentUser));
     }
 
-    @PatchMapping("/{id}/problems/{problemId}/unfreeze")
+    @PatchMapping("/{id}/unfreeze")
     @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
-    public ResponseEntity<Map<String, String>> unfreezeProblem(
+    public ResponseEntity<ContestDetailResponse> unfreezeContest(
             @PathVariable Integer id,
-            @PathVariable Integer problemId,
             @RequestBody(required = false) UnfreezeProblemRequest request,
             @AuthenticationPrincipal User currentUser) {
         boolean triggerRejudge = request != null && request.isTriggerRejudge();
-        contestService.unfreezeProblem(id, problemId, triggerRejudge, currentUser);
-        return ResponseEntity.ok(Map.of("message", "Bài tập đã được mở băng thành công."));
+        return ResponseEntity.ok(contestService.unfreezeContest(id, triggerRejudge, currentUser));
     }
 
     @PatchMapping("/{id}/extend")
