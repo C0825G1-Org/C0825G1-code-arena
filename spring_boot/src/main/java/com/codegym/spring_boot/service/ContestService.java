@@ -135,6 +135,9 @@ public class ContestService {
         contest.setStatus(ContestStatus.cancelled);
         contest.setIsDeleted(true);
         contestRepository.save(contest);
+
+        // Unlock tất cả problems của contest bị hủy
+        unlockProblemsOfContest(id);
     }
 
     // =============================================
@@ -516,5 +519,26 @@ public class ContestService {
     private Contest findContestOrThrow(Integer id) {
         return contestRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc thi với ID: " + id));
+    }
+
+    // =============================================
+    // HELPER: Unlock problems khi contest kết thúc/hủy
+    // =============================================
+    private void unlockProblemsOfContest(Integer contestId) {
+        List<ContestProblem> contestProblems = problemRepository
+                .findByIdContestIdOrderByOrderIndexAsc(contestId);
+
+        for (ContestProblem cp : contestProblems) {
+            Integer problemId = cp.getId().getProblemId();
+            // Chỉ unlock nếu problem không còn trong contest nào khác
+            long otherContestCount = problemRepository.countByIdProblemId(problemId) - 1;
+            if (otherContestCount <= 0) {
+                iProblemRepository.findById(problemId).ifPresent(problem -> {
+                    problem.setIsLocked(false);
+                    iProblemRepository.save(problem);
+                    log.info("Problem {} unlocked (contest {} ended/cancelled)", problemId, contestId);
+                });
+            }
+        }
     }
 }
