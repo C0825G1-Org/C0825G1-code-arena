@@ -21,7 +21,7 @@ public class Contest extends BaseEntity {
     @NotBlank(message = "Tên cuộc thi không được để trống")
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
 
     @NotNull(message = "Thời gian bắt đầu không được để trống")
