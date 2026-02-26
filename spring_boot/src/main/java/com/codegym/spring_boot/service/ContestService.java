@@ -190,11 +190,6 @@ public class ContestService {
             cp.setProblem(problem);
             cp.setOrderIndex(entry.getOrderIndex());
             problemRepository.save(cp);
-
-            // Lock bài tập ngay khi thêm vào contest
-            problem.setIsLocked(true);
-            iProblemRepository.save(problem);
-            log.info("Problem {} locked (added to contest {})", entry.getProblemId(), contestId);
         }
     }
 

@@ -35,12 +35,13 @@ public class ContestScheduler {
     public void updateContestStatuses() {
         LocalDateTime now = LocalDateTime.now();
 
-        // 1. UPCOMING → ACTIVE
+        // 1. UPCOMING → ACTIVE + lock problems
         List<Contest> toActivate = contestRepository
                 .findByStatusAndStartTimeLessThanEqual(ContestStatus.upcoming, now);
         for (Contest contest : toActivate) {
             contest.setStatus(ContestStatus.active);
             log.info("Contest [{}] '{}' chuyển sang ACTIVE", contest.getId(), contest.getTitle());
+            lockProblemsOfContest(contest.getId());
         }
         if (!toActivate.isEmpty()) {
             contestRepository.saveAll(toActivate);
@@ -105,6 +106,23 @@ public class ContestScheduler {
                     log.info("Problem {} unlocked (contest {} finished)", problemId, contestId);
                 });
             }
+        }
+    }
+
+    /**
+     * Lock tất cả problems khi contest chuyển sang ACTIVE.
+     */
+    private void lockProblemsOfContest(Integer contestId) {
+        List<ContestProblem> contestProblems = contestProblemRepository
+                .findByIdContestIdOrderByOrderIndexAsc(contestId);
+
+        for (ContestProblem cp : contestProblems) {
+            Integer problemId = cp.getId().getProblemId();
+            iProblemRepository.findById(problemId).ifPresent(problem -> {
+                problem.setIsLocked(true);
+                iProblemRepository.save(problem);
+                log.info("Problem {} locked (contest {} activated)", problemId, contestId);
+            });
         }
     }
 }
