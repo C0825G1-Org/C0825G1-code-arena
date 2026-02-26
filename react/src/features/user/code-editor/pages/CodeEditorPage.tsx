@@ -8,18 +8,58 @@ import { getSampleTestCases, TestCase } from "../services/problemService";
 import { useSettings } from "../hooks/useSettings";
 import SettingsPopover from "../components/SettingsPopover";
 import { useArena } from "../hooks/useArena";
-import { ArrowCounterClockwise, DotsThreeVertical } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, DotsThreeVertical, Play } from "@phosphor-icons/react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function Home() {
-    const { language, code, setCode, changeLanguage, resetCode } = useArena(1);
+    const problemId = 1; // Assuming problemId 1 for now
+    const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId);
     const { settings, updateSettings } = useSettings();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [testCases, setTestCases] = useState<TestCase[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         // Mock get sample test cases for problem 1
-        getSampleTestCases(1).then(setTestCases).catch(console.error);
+        getSampleTestCases(problemId).then(setTestCases).catch(console.error);
     }, []);
+
+    const handleSubmit = async () => {
+        if (!code.trim()) {
+            toast.warning("Mã nguồn không được để trống!");
+            return;
+        }
+
+        // Map language string to language_id (Assuming: 1=Java, 2=Python, 3=C++)
+        let langId = 1;
+        if (language === 'python') langId = 2;
+        if (language === 'cpp') langId = 3;
+
+        setIsSubmitting(true);
+        try {
+            const token = localStorage.getItem('token'); // Lấy token thật từ Dev 1 nếu có
+
+            const response = await axios.post('http://localhost:8080/api/submissions', {
+                problemId: problemId,
+                languageId: langId,
+                sourceCode: code
+            }, {
+                headers: {
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
+            });
+
+            if (response.status === 200) {
+                toast.success("Đã nộp bài, đang chờ hệ thống chấm...");
+            }
+        } catch (error) {
+            console.error("Lỗi khi nộp bài:", error);
+            toast.error("Có lỗi xảy ra khi nộp bài. Vui lòng thử lại!");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div className="h-screen bg-slate-900 text-slate-300 overflow-hidden">
@@ -32,7 +72,7 @@ export default function Home() {
             >
                 {/* Panel Trái: Problem */}
                 <div className="h-full border-r border-slate-800 overflow-auto">
-                    <ProblemPanel problemId={1} />
+                    <ProblemPanel problemId={problemId} />
                 </div>
 
                 {/* Panel Phải: Editor & Console */}
@@ -61,13 +101,28 @@ export default function Home() {
                                 {/* Cụm chức năng phải */}
                                 <div className="flex items-center gap-3 relative">
                                     <button
+                                        onClick={handleSubmit}
+                                        disabled={isSubmitting}
+                                        className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-medium transition-colors ${isSubmitting
+                                                ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                            }`}
+                                    >
+                                        {isSubmitting ? (
+                                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                        ) : (
+                                            <Play size={16} weight="fill" />
+                                        )}
+                                        {isSubmitting ? 'Đang gửi...' : 'Nộp Code'}
+                                    </button>
+
+                                    <button
                                         onClick={resetCode}
                                         className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors tooltip flex items-center justify-center w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-700"
                                         title="Làm mới code"
                                     >
                                         <ArrowCounterClockwise size={20} weight="bold" />
                                     </button>
-                                    {/* Xoá Fullscreen (ArrowsOut) theo yêu cầu */}
 
                                     <button
                                         id="settings-button"
