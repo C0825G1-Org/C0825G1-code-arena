@@ -80,7 +80,7 @@ export const UserHomePage: React.FC = () => {
                     >
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
-                                {user?.username || 'User'}
+                                {user?.fullName || 'User'}
                             </div>
                             <div className="text-xs text-slate-400 font-mono">
                                 Rating: <span className="text-yellow-400">1550</span>

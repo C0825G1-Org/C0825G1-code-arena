@@ -1,5 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../app/store';
 import { ArrowLeft } from '@phosphor-icons/react';
 
 interface ErrorPageLayoutProps {
@@ -11,14 +13,24 @@ interface ErrorPageLayoutProps {
     homeText?: string;
 }
 
+const getHomeByRole = (user: any): string => {
+    if (!user) return '/';
+    const role = user.role?.replace('ROLE_', '').toUpperCase() || '';
+    if (role === 'ADMIN') return '/admin/dashboard';
+    if (role === 'MODERATOR') return '/moderator/dashboard';
+    return '/home';
+};
+
 export const ErrorPageLayout: React.FC<ErrorPageLayoutProps> = ({
     errorCode,
     title,
     description,
     icon,
-    homeLink = '/',
+    homeLink,
     homeText = 'Back To Home'
 }) => {
+    const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+    const resolvedLink = homeLink ?? getHomeByRole(isAuthenticated ? user : null);
     return (
         <div className="min-h-screen bg-[#070b19] flex items-center justify-center p-4 relative overflow-hidden font-sans">
             {/* Background Glows */}
@@ -42,7 +54,7 @@ export const ErrorPageLayout: React.FC<ErrorPageLayoutProps> = ({
 
                     <div className="pt-8">
                         <Link
-                            to={homeLink}
+                            to={resolvedLink}
                             className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-blue-500/40 text-blue-100 hover:bg-blue-600/20 transition-all duration-300 backdrop-blur-sm group shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.3)]"
                         >
                             <ArrowLeft className="group-hover:-translate-x-1 transition-transform" />
