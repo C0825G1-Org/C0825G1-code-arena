@@ -13,11 +13,11 @@ INSERT INTO languages (name, compiler_option, docker_image, is_active) VALUES
 -- 2. INSERT NGƯỜI DÙNG (Admin, Moderator, Users)
 -- ==========================================
 -- Lưu ý: password_hash ở đây là pass123
-INSERT INTO users (username, email, password_hash, role, global_rating) VALUES 
-('admin_thanh', 'admin@codearena.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'admin', 1500),
-('moderator_dung', 'dung_ra_de@codearena.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'moderator', 1500),
-('user_nguyen', 'nguyen_pro@gmail.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'user', 1850),
-('user_lan', 'lan_coder@gmail.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'user', 1420);
+INSERT INTO users (username, full_name, email, password_hash, role, global_rating) VALUES 
+('admin_thanh', 'Admin', 'admin@codearena.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'admin', 1500),
+('moderator_dung', 'Dũng Mod', 'dung_ra_de@codearena.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'moderator', 1500),
+('user_nguyen', 'Nguyên', 'nguyen_pro@gmail.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'user', 1850),
+('user_lan', 'Lan', 'lan_coder@gmail.com', '$2a$12$q5B6RLyavEk1uPqAkTTa1OOWIMcLExJlpF5ea7XSn7mJ8IPnLLL1a', 'user', 1420);
 
 INSERT INTO profiles (user_id, bio, github_link) VALUES 
 (1, 'System Administrator of Code Arena', 'https://github.com/Tri-Phung'),

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chào mừng bạn gia nhập Code Arena!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid #334155;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: -1px;
+            margin: 0;
+        }
+
+        .logo-blue {
+            color: #60a5fa;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #f8fafc;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        p {
+            color: #cbd5e1;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            font-weight: 600;
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .footer {
+            background-color: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .highlight {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <p class="logo">Code<span class="logo-blue">Arena</span></p>
+        </div>
+        <div class="content">
+            <h1>Xin chào <span class="highlight" th:text="${fullName}">Quý khách</span>,</h1>
+            <p>Chào mừng bạn đã chính thức gia nhập cộng đồng <strong>Code Arena</strong>! Chúng tôi rất vui mừng được
+                đồng hành cùng bạn trên chặng đường rèn luyện và phát triển kỹ năng lập trình.</p>
+            <p>Tại Code Arena, bạn có thể tham gia các bài tập thú vị, cạnh tranh trên bảng xếp hạng và giao lưu học hỏi
+                với cộng đồng lập trình viên đam mê.</p>
+
+            <div class="btn-container">
+                <a href="http://localhost:5173/home" class="btn">Khám phá Code Arena ngay</a>
+            </div>
+
+            <p>Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại trả lời lại email này để được hỗ trợ.</p>
+            <p>Chúc bạn có những giờ phút code thật vui vẻ và hiệu quả!</p>
+            <p style="margin-bottom: 0;">Trân trọng,<br><strong>Đội ngũ Code Arena</strong></p>
+        </div>
+        <div class="footer">
+            <p>© 2026 Code Arena. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

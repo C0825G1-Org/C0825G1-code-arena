@@ -1,11 +1,13 @@
-import './App.css';
-import { CodeEditorPage } from "../features/user/code-editor";
+import { RouterProvider } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { router } from './router';
 
 function App() {
-
   return (
     <>
-      <CodeEditorPage />
+      <RouterProvider router={router} />
+      <ToastContainer position="top-right" theme="dark" />
     </>
   )
 }

@@ -11,12 +11,21 @@
     "server": "json-server --watch src/features/user/code-editor/data/db.json --port 3001"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@monaco-editor/react": "^4.7.0",
     "@phosphor-icons/react": "^2.1.10",
+    "@reduxjs/toolkit": "^2.11.2",
+    "axios": "^1.13.5",
+    "jwt-decode": "^4.0.0",
     "monaco-vim": "^0.4.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-split": "^2.0.14"
+    "react-hook-form": "^7.71.2",
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.13.1",
+    "react-split": "^2.0.14",
+    "react-toastify": "^11.0.5",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
