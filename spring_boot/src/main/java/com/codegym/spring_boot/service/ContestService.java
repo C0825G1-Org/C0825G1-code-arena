@@ -311,7 +311,7 @@ public class ContestService {
     // =============================================
     // 6. USER: Lấy danh sách cuộc thi (Public)
     // =============================================
-    public Page<ContestListResponse> getContests(String statusFilter, Pageable pageable) {
+    public Page<ContestListResponse> getContests(String statusFilter, Pageable pageable, User currentUser) {
         Page<Contest> contests;
 
         if (statusFilter != null && !statusFilter.isBlank()) {
@@ -326,7 +326,14 @@ public class ContestService {
             contests = contestRepository.findByStatusNot(ContestStatus.cancelled, pageable);
         }
 
-        return contests.map(this::mapToListResponse);
+        return contests.map(contest -> {
+            boolean isRegistered = false;
+            if (currentUser != null) {
+                isRegistered = participantRepository.existsById(
+                        new ContestParticipantId(contest.getId(), currentUser.getId()));
+            }
+            return mapToListResponse(contest, isRegistered);
+        });
     }
 
     // =============================================
@@ -469,7 +476,7 @@ public class ContestService {
     // =============================================
     // MAPPER: Contest → ContestListResponse
     // =============================================
-    private ContestListResponse mapToListResponse(Contest contest) {
+    private ContestListResponse mapToListResponse(Contest contest, boolean isRegistered) {
         return ContestListResponse.builder()
                 .id(contest.getId())
                 .title(contest.getTitle())
@@ -478,6 +485,7 @@ public class ContestService {
                 .endTime(contest.getEndTime())
                 .participantCount(participantRepository.countByIdContestId(contest.getId()))
                 .serverTime(LocalDateTime.now())
+                .isRegistered(isRegistered)
                 .build();
     }
 

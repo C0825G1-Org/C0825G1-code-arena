@@ -82,10 +82,18 @@ export const UserHomePage: React.FC = () => {
         }, 10);
     };
 
-    // Phân loại contests
+    // Phân loại contests để hiển thị trên Home
+    // Theo yêu cầu: hiển thị các cuộc thi sắp tới (upcoming)
+    // VÀ chỉ hiển thị cuộc thi đang diễn ra (active) NẾU user đã đăng ký
+    const displayContests = contests.filter(c => {
+        if (c.status === 'upcoming') return true;
+        if (c.status === 'active' && c.isRegistered) return true;
+        return false;
+    }).slice(0, 3);
+
+    // Badge status dùng để hiển thị trên hero (chỉ lấy cuộc thi đang diễn ra, nếu là admin thì kệ, nhưng logic chung cứ lấy active đầu tiên)
     const activeContests = contests.filter(c => c.status === 'active');
     const upcomingContests = contests.filter(c => c.status === 'upcoming');
-    const displayContests = [...activeContests, ...upcomingContests].slice(0, 3);
 
     return (
         <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
@@ -128,11 +136,12 @@ export const UserHomePage: React.FC = () => {
                         className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
                     >
                         <div className="text-right hidden sm:block">
-                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
+                            <div
+                                className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
                                 {user?.fullName || 'User'}
                             </div>
-                            <div className="text-xs text-slate-400 font-mono">
-                                @{user?.username}
+                            <div className="text-xs text-slate-400 font-mono">Rating: <span
+                                className="text-yellow-400">1550</span>
                             </div>
                         </div>
                         <img
@@ -175,7 +184,7 @@ export const UserHomePage: React.FC = () => {
                         ) : null}
 
                         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
-                            Chào, {user?.fullName?.split(' ').pop() || 'Bạn'}! <br />
+                            Chào, {user?.fullName || 'Bạn'}! <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
                                 Sẵn Sàng Thi Đấu?
                             </span>
@@ -239,7 +248,7 @@ export const UserHomePage: React.FC = () => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex justify-between items-end">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
-                                <CalendarStar weight="duotone" className="text-blue-500" /> Cuộc Thi
+                                <CalendarStar weight="duotone" className="text-blue-500" /> Cuộc Thi Sắp Tới
                             </h2>
                             <Link to="/contests" className="text-blue-400 text-sm hover:underline">Xem tất cả</Link>
                         </div>
@@ -284,12 +293,14 @@ export const UserHomePage: React.FC = () => {
                                         </div>
                                         <Link
                                             to={`/contests`}
-                                            className={`px-5 py-2.5 font-medium rounded-lg transition-colors whitespace-nowrap ${isActive
-                                                ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                                                : 'bg-white/5 hover:bg-white/10 text-white border border-white/20'
+                                            className={`px-5 py-2.5 font-medium rounded-lg transition-colors whitespace-nowrap ${isActive && contest.isRegistered
+                                                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                                                : isActive
+                                                    ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20'
+                                                    : 'bg-white/5 hover:bg-white/10 text-white border border-white/20'
                                                 }`}
                                         >
-                                            {isActive ? 'Vào thi ngay' : 'Xem chi tiết'}
+                                            {isActive && contest.isRegistered ? 'Vào thi ngay' : isActive ? 'Đăng ký' : 'Xem chi tiết'}
                                         </Link>
                                     </div>
                                 );

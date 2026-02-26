@@ -8,6 +8,7 @@ export interface ContestListItem {
     endTime: string;
     participantCount: number;
     serverTime: string;
+    isRegistered: boolean;
 }
 
 interface PageResponse<T> {

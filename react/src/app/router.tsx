@@ -6,6 +6,7 @@ import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { UserHomePage } from '../features/user/home/pages/UserHomePage';
 import { ModDashboardPage } from '../features/moderator/dashboard/pages/ModDashboardPage';
+import { ContestManagementPage } from '../features/moderator/contests/pages/ContestManagementPage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
 import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage';
@@ -105,6 +106,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ModDashboardPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/contests',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ContestManagementPage />
             </ProtectedRoute>
         )
     },
