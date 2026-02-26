@@ -8,11 +8,13 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "json-server --watch src/data/user/code-editor/db.json --port 3001"
+    "server": "json-server --watch src/features/user/code-editor/data/db.json --port 3001"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@phosphor-icons/react": "^2.1.10",
+    "lodash": "^4.17.23",
+    "monaco-editor": "^0.55.1",
     "monaco-vim": "^0.4.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -21,6 +23,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.2.1",
+    "@types/lodash": "^4.17.24",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
