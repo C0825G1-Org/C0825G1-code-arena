@@ -117,9 +117,10 @@ public class ContestController {
     @GetMapping
     public ResponseEntity<Page<ContestListResponse>> getContests(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean manage,
             @AuthenticationPrincipal User currentUser,
             @PageableDefault(size = 10, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(contestService.getContests(status, pageable, currentUser));
+        return ResponseEntity.ok(contestService.getContests(status, manage, pageable, currentUser));
     }
 
     @GetMapping("/{id}")

@@ -30,7 +30,7 @@ export const ContestManagementPage = () => {
     const fetchContests = async () => {
         try {
             setLoading(true);
-            const response: any = await axiosClient.get('/contests', { params: { size: 50, sort: 'id,desc' } });
+            const response: any = await axiosClient.get('/contests', { params: { size: 50, sort: 'id,desc', manage: true } });
             setContests(response.content || []);
         } catch (error) {
             console.error('Failed to load contests', error);

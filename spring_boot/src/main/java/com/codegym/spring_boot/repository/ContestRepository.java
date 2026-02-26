@@ -16,6 +16,10 @@ public interface ContestRepository extends JpaRepository<Contest, Integer> {
     // Lấy danh sách contest không bị CANCELLED (cho User thường)
     Page<Contest> findByStatusNot(ContestStatus status, Pageable pageable);
 
+    // Của riêng Admin/Moderator (cho màn hình quản lý)
+    Page<Contest> findByCreatedById(Integer createdById, Pageable pageable);
+    Page<Contest> findByCreatedByIdAndStatus(Integer createdById, ContestStatus status, Pageable pageable);
+
     // Lọc theo status cụ thể
     Page<Contest> findByStatus(ContestStatus status, Pageable pageable);
 

@@ -311,19 +311,43 @@ public class ContestService {
     // =============================================
     // 6. USER: Lấy danh sách cuộc thi (Public)
     // =============================================
-    public Page<ContestListResponse> getContests(String statusFilter, Pageable pageable, User currentUser) {
+    public Page<ContestListResponse> getContests(String statusFilter, Boolean manage, Pageable pageable, User currentUser) {
         Page<Contest> contests;
 
+        ContestStatus status = null;
         if (statusFilter != null && !statusFilter.isBlank()) {
             try {
-                ContestStatus status = ContestStatus.valueOf(statusFilter.toLowerCase());
-                contests = contestRepository.findByStatus(status, pageable);
+                status = ContestStatus.valueOf(statusFilter.toLowerCase());
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Trạng thái lọc không hợp lệ: " + statusFilter);
             }
+        }
+
+        if (Boolean.TRUE.equals(manage) && currentUser != null) {
+            // Request từ Moderator/Admin ở màn hình quản lý
+            if (currentUser.getRole().name().equalsIgnoreCase("admin")) {
+                // Admin thấy tất cả
+                if (status != null) {
+                    contests = contestRepository.findByStatus(status, pageable);
+                } else {
+                    contests = contestRepository.findAll(pageable);
+                }
+            } else {
+                // Moderator chỉ thấy các cuộc thi do mình tạo
+                if (status != null) {
+                    contests = contestRepository.findByCreatedByIdAndStatus(currentUser.getId(), status, pageable);
+                } else {
+                    contests = contestRepository.findByCreatedById(currentUser.getId(), pageable);
+                }
+            }
         } else {
-            // Mặc định: ẩn CANCELLED
-            contests = contestRepository.findByStatusNot(ContestStatus.cancelled, pageable);
+            // Request thông thường ở User Home (Public)
+            if (status != null) {
+                contests = contestRepository.findByStatus(status, pageable);
+            } else {
+                // Mặc định: ẩn CANCELLED
+                contests = contestRepository.findByStatusNot(ContestStatus.cancelled, pageable);
+            }
         }
 
         return contests.map(contest -> {
