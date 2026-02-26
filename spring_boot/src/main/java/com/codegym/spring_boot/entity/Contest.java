@@ -2,16 +2,17 @@ package com.codegym.spring_boot.entity;
 
 import com.codegym.spring_boot.entity.enums.ContestStatus;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "contests")
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class Contest extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +25,6 @@ public class Contest extends BaseEntity {
     private String description;
 
     @NotNull(message = "Thời gian bắt đầu không được để trống")
-    @Future(message = "Thời gian bắt đầu phải ở tương lai")
     @Column(name = "start_time")
     private LocalDateTime startTime;
 

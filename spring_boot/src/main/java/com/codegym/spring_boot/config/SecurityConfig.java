@@ -39,6 +39,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/**", "/api/test/public", "/error",
                                                                 "/login/oauth2/**")
                                                 .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/contests", "/api/contests/**")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .successHandler(oAuth2SuccessHandler))
