@@ -24,4 +24,7 @@ public interface ContestRepository extends JpaRepository<Contest, Integer> {
 
     // Cho Cron Job: tìm contest ACTIVE mà endTime đã qua
     List<Contest> findByStatusAndEndTimeLessThanEqual(ContestStatus status, LocalDateTime time);
+
+    // Cho Hard Delete Scheduler: tìm contest CANCELLED quá hạn
+    List<Contest> findByStatusAndUpdatedAtBefore(ContestStatus status, LocalDateTime cutoffTime);
 }

@@ -60,6 +60,33 @@ public class ContestScheduler {
     }
 
     /**
+     * Hard Delete Scheduler — chạy lúc 2h sáng hằng ngày.
+     * Xóa vĩnh viễn các contest đã bị CANCELLED quá 30 ngày.
+     * updatedAt được dùng làm mốc thời gian "đã hủy".
+     */
+    @Scheduled(cron = "0 0 2 * * *")
+    @Transactional
+    public void hardDeleteExpiredContests() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+
+        List<Contest> expiredContests = contestRepository
+                .findByStatusAndUpdatedAtBefore(ContestStatus.cancelled, cutoff);
+
+        if (expiredContests.isEmpty()) {
+            return;
+        }
+
+        for (Contest contest : expiredContests) {
+            // Xóa contest_problems trước (tránh FK constraint)
+            contestProblemRepository.deleteByIdContestId(contest.getId());
+            log.info("Hard delete: Contest [{}] '{}' (cancelled since {})",
+                    contest.getId(), contest.getTitle(), contest.getUpdatedAt());
+        }
+        contestRepository.deleteAll(expiredContests);
+        log.info("Hard delete: Đã xóa vĩnh viễn {} contest cancelled quá 30 ngày", expiredContests.size());
+    }
+
+    /**
      * Unlock tất cả problems của contest nếu chúng không còn
      * trong contest UPCOMING/ACTIVE nào khác.
      */
