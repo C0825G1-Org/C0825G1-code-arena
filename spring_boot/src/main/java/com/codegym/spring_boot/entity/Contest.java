@@ -34,4 +34,8 @@ public class Contest extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private ContestStatus status = ContestStatus.upcoming;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 }

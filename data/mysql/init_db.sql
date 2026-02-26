@@ -90,7 +90,7 @@ CREATE TABLE contests (
     description TEXT,
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,
-    status ENUM('upcoming', 'active', 'finished') DEFAULT 'upcoming',
+    status ENUM('upcoming', 'active', 'finished', 'cancelled') DEFAULT 'upcoming',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
