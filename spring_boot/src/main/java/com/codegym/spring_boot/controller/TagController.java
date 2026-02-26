@@ -1,12 +1,11 @@
 package com.codegym.spring_boot.controller;
 
-import com.codegym.spring_boot.dto.TagDTO;
+import com.codegym.spring_boot.dto.tag.TagDTO;
 import com.codegym.spring_boot.service.impl.TagService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

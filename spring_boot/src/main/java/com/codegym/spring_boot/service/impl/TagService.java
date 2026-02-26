@@ -1,6 +1,6 @@
 package com.codegym.spring_boot.service.impl;
 
-import com.codegym.spring_boot.dto.TagDTO;
+import com.codegym.spring_boot.dto.tag.TagDTO;
 import com.codegym.spring_boot.entity.Tag;
 import com.codegym.spring_boot.repository.ITagRepository;
 import com.codegym.spring_boot.service.ITagService;

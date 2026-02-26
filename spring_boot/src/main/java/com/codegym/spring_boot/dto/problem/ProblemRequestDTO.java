@@ -1,4 +1,4 @@
-package com.codegym.spring_boot.dto;
+package com.codegym.spring_boot.dto.problem;
 
 import com.codegym.spring_boot.entity.enums.Difficulty;
 import jakarta.validation.constraints.Max;

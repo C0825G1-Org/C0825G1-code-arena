@@ -1,8 +1,8 @@
 package com.codegym.spring_boot.service.impl;
 
-import com.codegym.spring_boot.dto.ProblemRequestDTO;
-import com.codegym.spring_boot.dto.ProblemResponseDTO;
-import com.codegym.spring_boot.dto.TagDTO;
+import com.codegym.spring_boot.dto.problem.ProblemRequestDTO;
+import com.codegym.spring_boot.dto.problem.ProblemResponseDTO;
+import com.codegym.spring_boot.dto.tag.TagDTO;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Tag;
 import com.codegym.spring_boot.entity.User;
@@ -12,7 +12,6 @@ import com.codegym.spring_boot.repository.ITagRepository;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.service.IProblemService;
 import jakarta.persistence.NoResultException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
