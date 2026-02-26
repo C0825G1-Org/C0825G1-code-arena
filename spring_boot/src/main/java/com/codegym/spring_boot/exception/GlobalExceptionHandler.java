@@ -8,6 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -51,6 +52,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(buildError(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập tài nguyên này."));
+    }
+
+    // 400: Sai kiểu dữ liệu path variable (vd: gửi "{4}" thay vì 4)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = "Tham số '" + ex.getName() + "' có giá trị không hợp lệ: " + ex.getValue();
+        return ResponseEntity.badRequest().body(buildError(HttpStatus.BAD_REQUEST, message));
     }
 
     // 422: Validation thất bại (Bean Validation)

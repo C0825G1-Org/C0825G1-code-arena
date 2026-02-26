@@ -2,6 +2,9 @@ package com.codegym.spring_boot.controller;
 
 import com.codegym.spring_boot.dto.contest.request.AddProblemsRequest;
 import com.codegym.spring_boot.dto.contest.request.CreateContestRequest;
+import com.codegym.spring_boot.dto.contest.request.ExtendContestRequest;
+import com.codegym.spring_boot.dto.contest.request.FreezeProblemRequest;
+import com.codegym.spring_boot.dto.contest.request.UnfreezeProblemRequest;
 import com.codegym.spring_boot.dto.contest.request.UpdateContestRequest;
 import com.codegym.spring_boot.dto.contest.response.ContestDetailResponse;
 import com.codegym.spring_boot.dto.contest.response.ContestListResponse;
@@ -77,6 +80,38 @@ public class ContestController {
             @AuthenticationPrincipal User currentUser) {
         contestService.removeProblem(id, problemId, currentUser);
         return ResponseEntity.ok(Map.of("message", "Đã xóa bài tập khỏi cuộc thi thành công."));
+    }
+
+    @PatchMapping("/{id}/problems/{problemId}/freeze")
+    @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> freezeProblem(
+            @PathVariable Integer id,
+            @PathVariable Integer problemId,
+            @Valid @RequestBody FreezeProblemRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        contestService.freezeProblem(id, problemId, request.getReason(), currentUser);
+        return ResponseEntity.ok(Map.of("message", "Bài tập đã được đóng băng thành công."));
+    }
+
+    @PatchMapping("/{id}/problems/{problemId}/unfreeze")
+    @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> unfreezeProblem(
+            @PathVariable Integer id,
+            @PathVariable Integer problemId,
+            @RequestBody(required = false) UnfreezeProblemRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        boolean triggerRejudge = request != null && request.isTriggerRejudge();
+        contestService.unfreezeProblem(id, problemId, triggerRejudge, currentUser);
+        return ResponseEntity.ok(Map.of("message", "Bài tập đã được mở băng thành công."));
+    }
+
+    @PatchMapping("/{id}/extend")
+    @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
+    public ResponseEntity<ContestDetailResponse> extendContest(
+            @PathVariable Integer id,
+            @Valid @RequestBody ExtendContestRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(contestService.extendContest(id, request.getMinutesToAdd(), currentUser));
     }
 
     // =============================================

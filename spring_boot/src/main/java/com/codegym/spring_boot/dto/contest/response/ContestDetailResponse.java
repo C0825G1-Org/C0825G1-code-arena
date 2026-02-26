@@ -35,6 +35,8 @@ public class ContestDetailResponse {
         private Integer orderIndex;
         private String title;
         private String difficulty;
+        private boolean isFrozen;
+        private String frozenReason;
     }
 
     @Data

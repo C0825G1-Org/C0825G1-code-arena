@@ -191,6 +191,87 @@ public class ContestService {
     }
 
     // =============================================
+    // 6. MODERATOR/ADMIN: Đóng băng bài tập (Freeze)
+    // =============================================
+    @Transactional
+    public void freezeProblem(Integer contestId, Integer problemId, String reason, User currentUser) {
+        Contest contest = findContestOrThrow(contestId);
+        checkOwnership(contest, currentUser);
+
+        ContestStatus realStatus = computeRealTimeStatus(contest);
+        if (realStatus != ContestStatus.active) {
+            throw new IllegalStateException("Chỉ có thể đóng băng bài tập khi cuộc thi đang diễn ra (ACTIVE).");
+        }
+
+        ContestProblemId cpId = new ContestProblemId(contestId, problemId);
+        ContestProblem cp = problemRepository.findById(cpId)
+                .orElseThrow(() -> new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này."));
+
+        if (Boolean.TRUE.equals(cp.getIsFrozen())) {
+            throw new IllegalStateException("Bài tập này đã bị đóng băng trước đó.");
+        }
+
+        cp.setIsFrozen(true);
+        cp.setFrozenReason(reason);
+        problemRepository.save(cp);
+        log.info("Problem {} frozen in contest {} by user {}. Reason: {}", problemId, contestId, currentUser.getUsername(), reason);
+    }
+
+    // =============================================
+    // 7. MODERATOR/ADMIN: Mở băng bài tập (Unfreeze)
+    // =============================================
+    @Transactional
+    public void unfreezeProblem(Integer contestId, Integer problemId, boolean triggerRejudge, User currentUser) {
+        Contest contest = findContestOrThrow(contestId);
+        checkOwnership(contest, currentUser);
+
+        ContestStatus realStatus = computeRealTimeStatus(contest);
+        if (realStatus != ContestStatus.active) {
+            throw new IllegalStateException("Chỉ có thể mở băng bài tập khi cuộc thi đang diễn ra (ACTIVE).");
+        }
+
+        ContestProblemId cpId = new ContestProblemId(contestId, problemId);
+        ContestProblem cp = problemRepository.findById(cpId)
+                .orElseThrow(() -> new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này."));
+
+        if (!Boolean.TRUE.equals(cp.getIsFrozen())) {
+            throw new IllegalStateException("Bài tập này chưa bị đóng băng.");
+        }
+
+        cp.setIsFrozen(false);
+        cp.setFrozenReason(null);
+        problemRepository.save(cp);
+
+        if (triggerRejudge) {
+            // TODO: Khi Judge system (Dev 3) sẵn sàng, push submissions vào Redis Queue
+            log.info("Rejudge triggered for problem {} in contest {} by user {}", problemId, contestId, currentUser.getUsername());
+        }
+
+        log.info("Problem {} unfrozen in contest {} by user {}", problemId, contestId, currentUser.getUsername());
+    }
+
+    // =============================================
+    // 8. MODERATOR/ADMIN: Kéo dài thời gian thi (Extend)
+    // =============================================
+    @Transactional
+    public ContestDetailResponse extendContest(Integer contestId, Integer minutesToAdd, User currentUser) {
+        Contest contest = findContestOrThrow(contestId);
+        checkOwnership(contest, currentUser);
+
+        ContestStatus realStatus = computeRealTimeStatus(contest);
+        if (realStatus != ContestStatus.active) {
+            throw new IllegalStateException("Chỉ có thể kéo dài thời gian khi cuộc thi đang diễn ra (ACTIVE).");
+        }
+
+        LocalDateTime newEndTime = contest.getEndTime().plusMinutes(minutesToAdd);
+        contest.setEndTime(newEndTime);
+        contest = contestRepository.save(contest);
+
+        log.info("Contest {} extended by {} minutes. New end time: {}", contestId, minutesToAdd, newEndTime);
+        return mapToDetailResponse(contest, false);
+    }
+
+    // =============================================
     // 6. USER: Lấy danh sách cuộc thi (Public)
     // =============================================
     public Page<ContestListResponse> getContests(String statusFilter, Pageable pageable) {
@@ -295,11 +376,15 @@ public class ContestService {
     // HELPER: Tính status thực tế dựa trên thời gian
     // =============================================
     public ContestStatus computeRealTimeStatus(Contest contest) {
-        // Nếu đã Cancelled, giữ nguyên
+        // Nếu đã Cancelled hoặc Finished trong DB, giữ nguyên
         if (contest.getStatus() == ContestStatus.cancelled) {
             return ContestStatus.cancelled;
         }
+        if (contest.getStatus() == ContestStatus.finished) {
+            return ContestStatus.finished;
+        }
 
+        // Chỉ tính theo thời gian cho upcoming/active
         LocalDateTime now = LocalDateTime.now();
         if (now.isBefore(contest.getStartTime())) {
             return ContestStatus.upcoming;
@@ -370,6 +455,8 @@ public class ContestService {
                         .orderIndex(cp.getOrderIndex())
                         .title(cp.getProblem().getTitle())
                         .difficulty(cp.getProblem().getDifficulty().name())
+                        .isFrozen(Boolean.TRUE.equals(cp.getIsFrozen()))
+                        .frozenReason(cp.getFrozenReason())
                         .build())
                 .collect(Collectors.toList());
     }

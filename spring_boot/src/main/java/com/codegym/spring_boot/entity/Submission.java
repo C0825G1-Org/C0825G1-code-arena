@@ -37,7 +37,7 @@ public class Submission extends BaseEntity {
 
     @NotBlank(message = "Mã nguồn không được để trống")
     @Lob
-    @Column(name = "source_code", nullable = false)
+    @Column(name = "source_code", columnDefinition = "LONGTEXT", nullable = false)
     private String sourceCode;
 
     @Enumerated(EnumType.STRING)
