@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
+import { contestService, ContestListItem } from '../services/contestService';
 import {
     Code,
     Bell,
@@ -15,12 +16,38 @@ import {
     Target,
     Clock,
     Calendar,
-    GearSix,
     ShieldStar,
     FacebookLogo,
     TwitterLogo,
-    GithubLogo
+    GithubLogo,
+    HourglassLow,
+    Trophy,
+    CircleNotch
 } from '@phosphor-icons/react';
+
+// Tính thời gian còn lại
+const getTimeLeft = (targetTime: string, serverTime?: string): string => {
+    const now = serverTime ? new Date(serverTime) : new Date();
+    const target = new Date(targetTime);
+    const diffMs = target.getTime() - now.getTime();
+
+    if (diffMs <= 0) return 'Đã hết';
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) return `${days} ngày ${hours}h nữa`;
+    if (hours > 0) return `${hours}h ${minutes}p nữa`;
+    return `${minutes} phút nữa`;
+};
+
+// Badge theo status
+const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
+    active: { label: 'Đang diễn ra', bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
+    upcoming: { label: 'Sắp tới', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' },
+    finished: { label: 'Đã kết thúc', bg: 'bg-slate-500/20', text: 'text-slate-400', border: 'border-slate-500/30' },
+};
 
 export const UserHomePage: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
@@ -30,12 +57,35 @@ export const UserHomePage: React.FC = () => {
     const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
     const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
+    // Fetch real contests
+    const [contests, setContests] = useState<ContestListItem[]>([]);
+    const [loadingContests, setLoadingContests] = useState(true);
+
+    useEffect(() => {
+        const fetchContests = async () => {
+            try {
+                const data = await contestService.getContests(undefined, 0, 5);
+                setContests(data.content || []);
+            } catch (err) {
+                console.error('Failed to fetch contests:', err);
+            } finally {
+                setLoadingContests(false);
+            }
+        };
+        fetchContests();
+    }, []);
+
     const handleLogout = () => {
         navigate('/');
         setTimeout(() => {
             dispatch(logout());
         }, 10);
     };
+
+    // Phân loại contests
+    const activeContests = contests.filter(c => c.status === 'active');
+    const upcomingContests = contests.filter(c => c.status === 'upcoming');
+    const displayContests = [...activeContests, ...upcomingContests].slice(0, 3);
 
     return (
         <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
@@ -59,7 +109,6 @@ export const UserHomePage: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    {/* Moderator Dashboard Button — chỉ hiển thị nếu role >= MODERATOR */}
                     {isModerator && (
                         <Link
                             to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'}
@@ -83,7 +132,7 @@ export const UserHomePage: React.FC = () => {
                                 {user?.fullName || 'User'}
                             </div>
                             <div className="text-xs text-slate-400 font-mono">
-                                Rating: <span className="text-yellow-400">1550</span>
+                                @{user?.username}
                             </div>
                         </div>
                         <img
@@ -109,19 +158,26 @@ export const UserHomePage: React.FC = () => {
                 {/* Hero Section */}
                 <div className="mb-16 mt-8 flex flex-col md:flex-row items-center justify-between gap-12">
                     <div className="flex-1 space-y-6">
-                        {/* Live Contest Badge */}
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-sm text-blue-400 font-medium">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-                            </span>
-                            Code Arena Weekly #1 đang diễn ra
-                        </div>
+                        {/* Live Contest Badge — từ API thực */}
+                        {activeContests.length > 0 ? (
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-sm text-blue-400 font-medium">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
+                                </span>
+                                {activeContests[0].title} đang diễn ra
+                            </div>
+                        ) : upcomingContests.length > 0 ? (
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-sm text-purple-400 font-medium">
+                                <HourglassLow weight="duotone" className="text-lg" />
+                                {upcomingContests[0].title} sắp bắt đầu
+                            </div>
+                        ) : null}
 
                         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
-                            Nâng Tầm Kỹ Năng <br />
+                            Chào, {user?.fullName?.split(' ').pop() || 'Bạn'}! <br />
                             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
-                                Thuật Toán Của Bạn
+                                Sẵn Sàng Thi Đấu?
                             </span>
                         </h1>
 
@@ -145,32 +201,32 @@ export const UserHomePage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Stats Widget */}
+                    {/* Stats Widget — chưa có API, hiển thị placeholder */}
                     <div className="w-full md:w-[400px] bg-slate-800/40 backdrop-blur-lg p-6 rounded-2xl flex flex-col gap-6 relative overflow-hidden group border border-blue-500/20">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                         <div className="flex justify-between items-center relative z-10">
                             <h3 className="font-semibold text-lg text-white/90">Tiến Độ Của Bạn</h3>
-                            <Link to="/profile" className="text-xs text-blue-400 hover:underline">Chi tiết</Link>
+                            <span className="text-xs text-slate-500 italic">Sắp ra mắt</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 relative z-10">
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                        <div className="grid grid-cols-2 gap-4 relative z-10 opacity-50">
+                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                 <Ranking weight="duotone" className="text-3xl mb-2 text-yellow-400" />
-                                <div className="text-2xl font-bold">1550</div>
+                                <div className="text-2xl font-bold">—</div>
                                 <div className="text-xs text-slate-400">Elo Ranking</div>
                             </div>
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                 <CheckCircle weight="duotone" className="text-3xl mb-2 text-emerald-400" />
-                                <div className="text-2xl font-bold">42<span className="text-sm text-slate-500 font-normal">/120</span></div>
+                                <div className="text-2xl font-bold">—</div>
                                 <div className="text-xs text-slate-400">Bài đã giải</div>
                             </div>
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                 <Target weight="duotone" className="text-3xl mb-2 text-blue-400" />
-                                <div className="text-2xl font-bold">65%</div>
+                                <div className="text-2xl font-bold">—</div>
                                 <div className="text-xs text-slate-400">Tỉ lệ AC</div>
                             </div>
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 hover:bg-slate-800 transition-colors">
+                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
                                 <Fire weight="duotone" className="text-3xl mb-2 text-orange-400" />
-                                <div className="text-2xl font-bold">7 Ngày</div>
+                                <div className="text-2xl font-bold">—</div>
                                 <div className="text-xs text-slate-400">Chuỗi (Streak)</div>
                             </div>
                         </div>
@@ -179,102 +235,83 @@ export const UserHomePage: React.FC = () => {
 
                 {/* Contests + Top Coders Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Contests */}
+                    {/* Contests — DỮ LIỆU THỰC TỪ API */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex justify-between items-end">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
-                                <CalendarStar weight="duotone" className="text-blue-500" /> Cuộc Thi Sắp Tới
+                                <CalendarStar weight="duotone" className="text-blue-500" /> Cuộc Thi
                             </h2>
                             <Link to="/contests" className="text-blue-400 text-sm hover:underline">Xem tất cả</Link>
                         </div>
 
-                        {/* Active Contest */}
-                        <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl p-6 hover:-translate-y-1 hover:shadow-[0_10px_25px_-5px_rgba(59,130,246,0.3)] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden border border-blue-500/20">
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">
-                                        Đang diễn ra
-                                    </span>
-                                    <span className="text-sm text-slate-400 flex items-center gap-1">
-                                        <Clock className="text-sm" /> Còn 2 giờ nữa
-                                    </span>
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-1">Code Arena Weekly #1</h3>
-                                <p className="text-slate-400 text-sm">Cuộc thi hàng tuần dành cho người mới. 2 bài tập.</p>
+                        {loadingContests ? (
+                            <div className="flex items-center justify-center py-12 text-slate-400">
+                                <CircleNotch weight="bold" className="text-2xl animate-spin mr-3" />
+                                Đang tải cuộc thi...
                             </div>
-                            <Link
-                                to="/contests"
-                                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors whitespace-nowrap"
-                            >
-                                Vào thi ngay
-                            </Link>
-                        </div>
-
-                        {/* Upcoming Contest */}
-                        <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl p-6 hover:-translate-y-1 hover:shadow-[0_10px_25px_-5px_rgba(168,85,247,0.15)] transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-700/50">
-                            <div>
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                                        Sắp tới
-                                    </span>
-                                    <span className="text-sm text-slate-400 flex items-center gap-1">
-                                        <Calendar className="text-sm" /> Bắt đầu sau 5 ngày
-                                    </span>
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-1">Algorithm Masters 2024</h3>
-                                <p className="text-slate-400 text-sm">Cuộc thi thuật toán đỉnh cao toàn quốc.</p>
+                        ) : displayContests.length === 0 ? (
+                            <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl p-8 text-center border border-slate-700/50">
+                                <Calendar weight="duotone" className="text-4xl text-slate-500 mx-auto mb-3" />
+                                <p className="text-slate-400">Hiện chưa có cuộc thi nào.</p>
                             </div>
-                            <Link
-                                to="/contests"
-                                className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white font-medium rounded-lg transition-colors whitespace-nowrap border border-white/20"
-                            >
-                                Đăng ký
-                            </Link>
-                        </div>
+                        ) : (
+                            displayContests.map((contest) => {
+                                const cfg = statusConfig[contest.status] || statusConfig.upcoming;
+                                const isActive = contest.status === 'active';
+                                return (
+                                    <div
+                                        key={contest.id}
+                                        className={`bg-slate-800/40 backdrop-blur-lg rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative overflow-hidden border ${isActive ? 'border-blue-500/20 hover:shadow-[0_10px_25px_-5px_rgba(59,130,246,0.3)]' : 'border-slate-700/50 hover:shadow-[0_10px_25px_-5px_rgba(168,85,247,0.15)]'}`}
+                                    >
+                                        {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />}
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <span className={`px-2 py-0.5 rounded text-xs font-bold ${cfg.bg} ${cfg.text} border ${cfg.border}`}>
+                                                    {cfg.label}
+                                                </span>
+                                                <span className="text-sm text-slate-400 flex items-center gap-1">
+                                                    {isActive ? (
+                                                        <><Clock className="text-sm" /> Còn {getTimeLeft(contest.endTime, contest.serverTime)}</>
+                                                    ) : (
+                                                        <><Calendar className="text-sm" /> Bắt đầu sau {getTimeLeft(contest.startTime, contest.serverTime)}</>
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white mb-1">{contest.title}</h3>
+                                            <p className="text-slate-400 text-sm">
+                                                {contest.participantCount} người tham gia
+                                            </p>
+                                        </div>
+                                        <Link
+                                            to={`/contests`}
+                                            className={`px-5 py-2.5 font-medium rounded-lg transition-colors whitespace-nowrap ${isActive
+                                                ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                                                : 'bg-white/5 hover:bg-white/10 text-white border border-white/20'
+                                                }`}
+                                        >
+                                            {isActive ? 'Vào thi ngay' : 'Xem chi tiết'}
+                                        </Link>
+                                    </div>
+                                );
+                            })
+                        )}
                     </div>
 
-                    {/* Top Coders */}
+                    {/* Top Coders — chưa có API, placeholder */}
                     <div className="space-y-6">
                         <h2 className="text-2xl font-bold flex items-center gap-2">
-                            <Fire weight="duotone" className="text-orange-500" /> Top Coders
+                            <Trophy weight="duotone" className="text-orange-500" /> Top Coders
                         </h2>
-                        <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl p-2 border border-slate-700/50">
-                            {[
-                                { rank: 1, name: 'admin', title: 'Legendary Grandmaster', rating: 2000, color: 'text-yellow-400', avatar: 1 },
-                                { rank: 2, name: 'giangvien_tung', title: 'Grandmaster', rating: 1800, color: 'text-blue-400', avatar: 2 },
-                                { rank: 3, name: 'lethic', title: 'Master', rating: 1600, color: 'text-purple-400', avatar: 15 },
-                            ].map((coder) => (
-                                <Link
-                                    key={coder.rank}
-                                    to="/leaderboard"
-                                    className="flex items-center justify-between p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-6 text-center font-bold ${coder.rank === 1 ? 'text-yellow-400' : coder.rank === 2 ? 'text-slate-300' : 'text-orange-400'}`}>
-                                            {coder.rank}
-                                        </div>
-                                        <img
-                                            src={`https://i.pravatar.cc/150?u=${coder.avatar}`}
-                                            alt={coder.name}
-                                            className="w-10 h-10 rounded-full object-cover"
-                                        />
-                                        <div>
-                                            <div className="font-medium text-white group-hover:text-blue-400 transition-colors">
-                                                {coder.name}
-                                            </div>
-                                            <div className="text-xs text-slate-400">{coder.title}</div>
-                                        </div>
-                                    </div>
-                                    <div className={`font-mono font-bold ${coder.color}`}>{coder.rating}</div>
-                                </Link>
-                            ))}
+                        <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl p-6 border border-slate-700/50 text-center">
+                            <Fire weight="duotone" className="text-5xl text-slate-600 mx-auto mb-4" />
+                            <p className="text-slate-400 text-sm mb-1">Bảng xếp hạng sẽ sớm ra mắt</p>
+                            <p className="text-slate-500 text-xs">Hãy bắt đầu giải bài để ghi tên trên bảng!</p>
                         </div>
                     </div>
                 </div>
             </main>
 
-            {/* Footer — no extra margin to prevent gap at bottom */}
+            {/* Footer */}
             <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
                 <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
