@@ -32,7 +32,7 @@ export default function Home() {
             >
                 {/* Panel Trái: Problem */}
                 <div className="h-full border-r border-slate-800 overflow-auto">
-                    <ProblemPanel />
+                    <ProblemPanel problemId={1} />
                 </div>
 
                 {/* Panel Phải: Editor & Console */}
@@ -70,6 +70,7 @@ export default function Home() {
                                     {/* Xoá Fullscreen (ArrowsOut) theo yêu cầu */}
 
                                     <button
+                                        id="settings-button"
                                         onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                                         className={`transition-colors tooltip flex items-center justify-center w-8 h-8 rounded ${isSettingsOpen ? 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                                         title="Tùy chọn khác"
@@ -83,6 +84,7 @@ export default function Home() {
                                             <SettingsPopover
                                                 settings={settings}
                                                 updateSettings={updateSettings}
+                                                onClose={() => setIsSettingsOpen(false)}
                                             />
                                         </div>
                                     )}
