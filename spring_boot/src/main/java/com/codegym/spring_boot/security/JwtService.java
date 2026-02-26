@@ -35,11 +35,33 @@ public class JwtService {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("authorities", userDetails.getAuthorities());
+
+        if (userDetails instanceof com.codegym.spring_boot.entity.User) {
+            com.codegym.spring_boot.entity.User user = (com.codegym.spring_boot.entity.User) userDetails;
+            extraClaims.put("id", user.getId());
+            extraClaims.put("fullName", user.getFullName());
+            extraClaims.put("email", user.getEmail());
+            extraClaims.put("role", user.getRole().name());
+        }
+
         return generateToken(extraClaims, userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return buildToken(extraClaims, userDetails, jwtExpiration);
+    }
+
+    public String generateRegistrationToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "registration");
+        return Jwts
+                .builder()
+                .claims(claims)
+                .subject(email)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 mins
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
+                .compact();
     }
 
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
@@ -55,7 +77,16 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token) && !isRegistrationToken(token);
+    }
+
+    public boolean isRegistrationToken(String token) {
+        try {
+            String type = extractClaim(token, claims -> claims.get("type", String.class));
+            return "registration".equals(type) && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
