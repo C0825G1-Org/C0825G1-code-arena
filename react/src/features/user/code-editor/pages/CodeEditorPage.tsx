@@ -3,6 +3,7 @@ import ProblemPanel from "../components/ProblemPanel";
 import LanguageSelector from "../components/LanguageSelector";
 import Split from "react-split";
 import SampleTestCases from "../components/SampleTestCases";
+import SubmissionHistory from "../components/SubmissionHistory";
 import { useEffect, useState } from "react";
 import { getSampleTestCases, TestCase } from "../services/problemService";
 import { useSettings } from "../hooks/useSettings";
@@ -19,6 +20,7 @@ export default function Home() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [activeTab, setActiveTab] = useState<'problem' | 'submissions'>('problem');
 
     useEffect(() => {
         // Mock get sample test cases for problem 1
@@ -52,6 +54,7 @@ export default function Home() {
 
             if (response.status === 200) {
                 toast.success("Đã nộp bài, đang chờ hệ thống chấm...");
+                setActiveTab('submissions');
             }
         } catch (error) {
             console.error("Lỗi khi nộp bài:", error);
@@ -70,9 +73,26 @@ export default function Home() {
                 gutterSize={6}
                 className="split-horizontal h-full flex"
             >
-                {/* Panel Trái: Problem */}
-                <div className="h-full border-r border-slate-800 overflow-auto">
-                    <ProblemPanel problemId={problemId} />
+                {/* Panel Trái: Problem & Submissions */}
+                <div className="h-full border-r border-slate-800 flex flex-col bg-slate-900">
+                    <div className="flex border-b border-slate-700">
+                        <button
+                            className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'problem' ? 'text-white border-b-2 border-blue-500 bg-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+                            onClick={() => setActiveTab('problem')}
+                        >
+                            Đề bài
+                        </button>
+                        <button
+                            className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'submissions' ? 'text-white border-b-2 border-blue-500 bg-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+                            onClick={() => setActiveTab('submissions')}
+                        >
+                            Lịch sử nộp bài
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                        {activeTab === 'problem' && <ProblemPanel problemId={problemId} />}
+                        {activeTab === 'submissions' && <SubmissionHistory problemId={problemId} />}
+                    </div>
                 </div>
 
                 {/* Panel Phải: Editor & Console */}
@@ -104,8 +124,8 @@ export default function Home() {
                                         onClick={handleSubmit}
                                         disabled={isSubmitting}
                                         className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-medium transition-colors ${isSubmitting
-                                                ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
-                                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                            ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                                            : 'bg-green-600 hover:bg-green-700 text-white'
                                             }`}
                                     >
                                         {isSubmitting ? (
