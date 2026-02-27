@@ -62,6 +62,10 @@ INSERT INTO contests (title, description, start_time, end_time, status) VALUES
 ('Code Arena Opening Cup', 'Kỳ thi khai trương hệ thống, giải thưởng hấp dẫn.', NOW() - INTERVAL 1 HOUR, NOW() + INTERVAL 2 HOUR, 'active'),
 ('Algorithm Training #1', 'Luyện tập giải thuật cơ bản.', NOW() + INTERVAL 1 DAY, NOW() + INTERVAL 2 DAY, 'upcoming');
 
+INSERT INTO contests (id, title, description, start_time, end_time, status)
+VALUES (3, 'Kỳ Thi Khởi Động', 'Thi test API', '2025-01-01 08:00:00', '2026-12-31 23:59:59', 'active');
+
+
 INSERT INTO contest_problems (contest_id, problem_id, order_index) VALUES 
 (1, 1, 1), -- Bài A
 (1, 2, 2); -- Bài B
@@ -69,6 +73,9 @@ INSERT INTO contest_problems (contest_id, problem_id, order_index) VALUES
 INSERT INTO contest_participants (contest_id, user_id, total_score, total_penalty) VALUES 
 (1, 3, 100, 45),
 (1, 4, 0, 0);
+
+INSERT INTO contest_participants (contest_id, user_id, total_score, total_penalty)
+VALUES (2, 6, 0, 0);
 
 -- ==========================================
 -- 7. INSERT SUBMISSIONS (Giả lập quá trình thi)
@@ -90,3 +97,5 @@ INSERT INTO submission_test_results (submission_id, test_case_id, status, execut
 INSERT INTO posts (user_id, title, content) VALUES 
 (3, 'Làm sao để tối ưu bài Two Sum?', 'Mình dùng O(n^2) nhưng bị TLE, ai giúp với?'),
 (2, 'Hướng dẫn sử dụng hệ thống', 'Chào mừng các bạn đến với Code Arena, hãy đọc kỹ quy định.');
+
+
