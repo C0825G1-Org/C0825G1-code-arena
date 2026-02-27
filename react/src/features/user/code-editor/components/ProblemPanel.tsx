@@ -18,8 +18,11 @@ export default function ProblemPanel({ problemId, contestId }: Props) {
             try {
                 const data = await getProblem(problemId);
                 if (isMounted) setProblem(data);
-            } catch {
-                if (isMounted) setError("Failed to load problem.");
+            } catch (err: any) {
+                if (isMounted) {
+                    console.error("Lỗi getProblem:", err);
+                    setError(`Failed to load problem. Detail: ${err.message || JSON.stringify(err)}`);
+                }
             } finally {
                 if (isMounted) setLoading(false);
             }
@@ -33,7 +36,7 @@ export default function ProblemPanel({ problemId, contestId }: Props) {
     }, [problemId]);
 
     if (loading) return <p>Loading problem...</p>;
-    if (error) return <p className="text-red-400">{error}</p>;
+    if (error) return <p className="text-red-400 p-4 font-mono text-sm bg-red-500/10 border border-red-500/20 rounded-lg whitespace-pre-wrap">{error}</p>;
     if (!problem) return null;
 
     return (

@@ -224,7 +224,7 @@ export const UserContestsPage = () => {
         if (contest.status === 'active') {
             return (
                 <button
-                    onClick={() => toast.success('Đang chuyển hướng vào phòng thi... (Coming soon)')}
+                    onClick={() => navigate('/code-editor/1')}
                     className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2"
                 >
                     Vào Thi <ArrowRight weight="bold" />

@@ -15,7 +15,10 @@ export async function getProblem(id: number): Promise<Problem> {
             ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
     });
-    if (!res.ok) throw new Error("Failed to load problem");
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
     return res.json();
 }
 
@@ -29,11 +32,14 @@ export type TestCase = {
 
 export async function getSampleTestCases(problemId: number): Promise<TestCase[]> {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:8080/api/problems/${problemId}/test-cases`, {
+    const res = await fetch(`http://localhost:8080/api/problems/${problemId}/testcases`, {
         headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
     }); // Mock or real endpoint if backend supports
-    if (!res.ok) throw new Error("Failed to load sample test cases");
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
     return res.json();
 }
