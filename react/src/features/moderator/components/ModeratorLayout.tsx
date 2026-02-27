@@ -13,9 +13,12 @@ export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login');
+    const handleLogout = (e: React.MouseEvent) => {
+        e.preventDefault();
+        navigate('/');
+        setTimeout(() => {
+            dispatch(logout());
+        }, 10);
     };
 
     return (

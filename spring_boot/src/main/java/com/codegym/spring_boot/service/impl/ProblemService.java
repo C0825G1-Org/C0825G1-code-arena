@@ -170,6 +170,10 @@ public class ProblemService implements IProblemService {
         response.setMemoryLimit(problem.getMemoryLimit());
         response.setTestcaseStatus(problem.getTestcaseStatus());
 
+        if (problem.getCreatedBy() != null) {
+            response.setAuthorId(problem.getCreatedBy().getId());
+        }
+
         if (problem.getTags() != null) {
             Set<TagDTO> tagDTOs = problem.getTags().stream()
                     .map(tag -> new TagDTO(tag.getId(), tag.getName()))
