@@ -58,11 +58,17 @@ function CodeEditor({ language, value, onChange, settings }: Props) {
 
         return () => {
             if (vimModeRef.current) {
-                vimModeRef.current.dispose();
+                try {
+                    vimModeRef.current.dispose();
+                } catch (e) {
+                    console.warn("Failed to dispose vim/emacs mode safely", e);
+                }
+                vimModeRef.current = null;
             }
-            editorRef.current?.dispose();
+            // Không được dispose editorRef của Monaco ở Component unmount, thư viện @monaco-editor/react sẽ tự hook và làm điều này.
+            // Nếu gọi thủ công sẽ bắn lỗi "Cannot read properties of null (reading 'getFullModelRange')".
         }
-    }, [settings.editorMode]);
+    }, [settings.editorMode, applyEditorMode]);
 
     useEffect(() => {
         if (editorRef.current) {

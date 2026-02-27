@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSocket } from '../../../../shared/hooks/useSocket';
 import { CheckCircle, Clock, WarningCircle, XCircle } from '@phosphor-icons/react';
+import SubmissionDetailPanel from './SubmissionDetailPanel';
 
 const SubmissionHistory = ({ problemId }) => {
     const [submissions, setSubmissions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
 
     // Initial load
     useEffect(() => {
@@ -89,7 +91,11 @@ const SubmissionHistory = ({ problemId }) => {
             ) : (
                 <div className="flex flex-col gap-3">
                     {submissions.map((sub, index) => (
-                        <div key={sub.id || index} className="p-3 bg-slate-800 rounded border border-slate-700 hover:border-slate-600 transition-colors">
+                        <div
+                            key={sub.id || index}
+                            className="p-3 bg-slate-800 rounded border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors"
+                            onClick={() => setSelectedSubmissionId(sub.id || sub.submissionId)}
+                        >
                             <div className="flex justify-between items-center mb-2">
                                 <span className="font-medium">{getStatusUI(sub.status)}</span>
                                 <span className="text-xs text-slate-500">
@@ -107,6 +113,12 @@ const SubmissionHistory = ({ problemId }) => {
                     ))}
                 </div>
             )}
+
+            {/* Hiển thị Slider Panel chi tiết bài nộp khi click */}
+            <SubmissionDetailPanel
+                submissionId={selectedSubmissionId}
+                onClose={() => setSelectedSubmissionId(null)}
+            />
         </div>
     );
 };
