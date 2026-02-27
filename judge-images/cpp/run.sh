@@ -14,13 +14,12 @@ TESTCASE_DIR="/testcases"
 FOUND_TESTCASES=false
 
 # Duyệt qua các file input*.txt
-for input_file in ${TESTCASE_DIR}/input*.txt; do
+for input_file in ${TESTCASE_DIR}/*.in; do
   [ -e "$input_file" ] || continue
   FOUND_TESTCASES=true
   
   test_filename=$(basename "$input_file")
-  test_id=${test_filename#input}
-  test_id=${test_id%.txt}
+  test_id=${test_filename%.in}
   
   # Log báo hiệu đang chạy testcase nào
   echo "--- TESTCASE ${test_id} ---"

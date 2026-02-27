@@ -22,13 +22,12 @@ fi
 # ====== RUN ALL TESTCASES ======
 FOUND_TESTCASES=false
 
-for input_file in ${TESTCASE_DIR}/input*.txt; do
+for input_file in ${TESTCASE_DIR}/*.in; do
   [ -e "$input_file" ] || continue
   FOUND_TESTCASES=true
   
   test_filename=$(basename "$input_file")
-  test_id=${test_filename#input}
-  test_id=${test_id%.txt}
+  test_id=${test_filename%.in}
   
   echo "--- TESTCASE ${test_id} ---"
   
