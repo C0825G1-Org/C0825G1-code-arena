@@ -1,0 +1,10 @@
+# IDE files
+.idea/
+*.iml
+
+# Redundant directories
+backend/
+temp-submissions/
+build/
+out/
+.gradle/
