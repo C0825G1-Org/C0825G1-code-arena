@@ -19,6 +19,13 @@ logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 # Server Port
 server.port=8080
 
+# Storage Config
+storage.testcases.path=./data/testcases
+
+# File Upload Limit (50MB)
+spring.servlet.multipart.max-file-size=50MB
+spring.servlet.multipart.max-request-size=50MB
+
 # JWT Token Configuration
 # Generate your own secret string using `openssl rand -base64 32` or similar. Default 1 day expiration
 application.security.jwt.secret-key=YOUR_SUPER_SECRET_JWT_KEY

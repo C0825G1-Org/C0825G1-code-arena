@@ -1,0 +1,193 @@
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { ModeratorLayout } from '../components/ModeratorLayout';
+import { problemApi, ProblemResponseDTO } from '../services/problemApi';
+
+export const ListPage = () => {
+    const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [difficulty, setDifficulty] = useState('');
+    const [difficulties, setDifficulties] = useState<string[]>([]);
+    const [problems, setProblems] = useState<ProblemResponseDTO[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [problemsData, difficultiesData] = await Promise.all([
+                    problemApi.getProblems(),
+                    problemApi.getDifficulties()
+                ]);
+                setProblems(problemsData);
+                setDifficulties(difficultiesData);
+            } catch (err: any) {
+                setError('Lỗi khi tải dữ liệu. Vui lòng thử lại sau.');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    const getDifficultyClass = (level: string) => {
+        switch (level) {
+            case 'easy': return 'bg-green-500/10 text-green-400 border-green-500/20';
+            case 'medium': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+            case 'hard': return 'bg-red-500/10 text-red-400 border-red-500/20';
+            default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+        }
+    };
+
+    return (
+        <ModeratorLayout>
+            {/* Header Title inside Content Area replacing the generic header */}
+            <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
+                
+                <div className="flex justify-between items-center mb-6">
+                    {/* Search & Filter */}
+                    <div className="flex gap-4">
+                        <div className="relative w-72">
+                            <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên diễn đạt, ID..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-all"
+                            />
+                        </div>
+                        <select
+                            value={difficulty}
+                            onChange={(e) => setDifficulty(e.target.value)}
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                        >
+                            <option value="">Tất cả độ khó</option>
+                            {difficulties.map(d => (
+                                <option key={d} value={d}>
+                                    {d.charAt(0).toUpperCase() + d.slice(1)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={() => navigate('/moderator/problems/create')}
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                    >
+                        <i className="ph-bold ph-plus"></i> Soạn bài mới
+                    </button>
+                </div>
+
+                {/* Table Card */}
+                <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl overflow-hidden border border-slate-700/50">
+                    <table className="w-full text-sm text-left text-slate-400">
+                        <thead className="text-xs uppercase bg-[#1e293b] text-slate-300">
+                            <tr>
+                                <th className="px-6 py-4 font-semibold">ID</th>
+                                <th className="px-6 py-4 font-semibold">Tên bài toán</th>
+                                <th className="px-6 py-4 font-semibold">Độ khó</th>
+                                <th className="px-6 py-4 font-semibold text-center">Trạng thái Test Cases</th>
+                                <th className="px-6 py-4 font-semibold text-center">Submissions</th>
+                                <th className="px-6 py-4 font-semibold text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading && (
+                                <tr>
+                                    <td colSpan={6} className="text-center py-8 text-slate-400">Đang tải dữ liệu...</td>
+                                </tr>
+                            )}
+                            {error && (
+                                <tr>
+                                    <td colSpan={6} className="text-center py-8 text-red-500">{error}</td>
+                                </tr>
+                            )}
+                            {!loading && !error && problems.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="text-center py-8 text-slate-400">Không có bài tập nào.</td>
+                                </tr>
+                            )}
+                            {!loading && problems.map((prob) => (
+                                <tr key={prob.id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
+                                    <td className="px-6 py-4 font-mono">#{prob.id}</td>
+                                    <td className="px-6 py-4 font-medium text-white">{prob.title}</td>
+                                    <td className="px-6 py-4">
+                                        <span className={`${getDifficultyClass(prob.difficulty)} border px-2 py-1 rounded text-xs font-semibold`}>
+                                            {prob.difficulty}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center font-mono">
+                                        {prob.testcaseStatus === 'ready' ? (
+                                            <span className="text-green-400">Đã upload testcase</span>
+                                        ) : (
+                                            <>
+                                                <span className="text-slate-500">Chưa upload testcase</span>
+                                                <i className="ph-fill ph-warning-circle text-yellow-500 inline ml-1" title="Chưa có testcase"></i>
+                                            </>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 text-center font-mono text-slate-500">N/A</td>
+                                    <td className="px-6 py-4 text-right space-x-2">
+                                        <button
+                                            className="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 relative tooltip"
+                                            title="Chỉnh sửa Tests"
+                                        >
+                                            <i className="ph-bold ph-flask"></i>
+                                            {prob.testcaseStatus === 'not_uploaded' && (
+                                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                                                </span>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => navigate(`/moderator/problems/edit/${prob.id}`)}
+                                            className="inline-block p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
+                                            title="Chỉnh sửa Đề"
+                                        >
+                                            <i className="ph-bold ph-pencil-simple"></i>
+                                        </button>
+                                        <button
+                                            className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20 tooltip"
+                                            title="Xóa"
+                                            onClick={async () => {
+                                                if (window.confirm(`Bạn có chắc muốn xóa bài toán #${prob.id} - ${prob.title}?`)) {
+                                                    try {
+                                                        await problemApi.deleteProblem(prob.id);
+                                                        setProblems(problems.filter(p => p.id !== prob.id));
+                                                    } catch (e) {
+                                                        alert('Lỗi khi xóa bài tập!');
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            <i className="ph-bold ph-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {/* Pagination */}
+                    <div className="px-6 py-4 border-t border-[#1e293b] flex justify-between items-center bg-slate-900/30">
+                        <span className="text-sm text-slate-400">
+                            Hiển thị <span className="font-medium text-white">1-3</span> trong số <span className="font-medium text-white">12</span> bài tập
+                        </span>
+                        <div className="flex gap-1">
+                            <button className="px-3 py-1 border border-[#334155] bg-[#1e293b] text-slate-400 rounded hover:bg-[#334155] transition text-sm">Trang trước</button>
+                            <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium">1</button>
+                            <button className="px-3 py-1 border border-[#334155] bg-[#1e293b] text-white rounded hover:bg-[#334155] transition text-sm">2</button>
+                            <button className="px-3 py-1 border border-[#334155] bg-[#1e293b] text-white rounded hover:bg-[#334155] transition text-sm">Trang sau</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </ModeratorLayout>
+    );
+};

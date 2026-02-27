@@ -7,6 +7,9 @@ import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { UserHomePage } from '../features/user/home/pages/UserHomePage';
 import { ModDashboardPage } from '../features/moderator/dashboard/pages/ModDashboardPage';
 import { ContestManagementPage } from '../features/moderator/contests/pages/ContestManagementPage';
+import { ListPage as ModeratorProblemListPage } from '../features/moderator/problem/ListPage';
+import { CreatePage as ModeratorProblemCreatePage } from '../features/moderator/problem/CreatePage';
+import { EditPage as ModeratorProblemEditPage } from '../features/moderator/problem/EditPage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -137,39 +140,62 @@ export const router = createBrowserRouter([
         )
     },
     {
+        path: '/moderator/problems',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorProblemListPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+<<<<<<< HEAD
         path: '/moderator/contests/:id/results',
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ContestResultsPage />
-            </ProtectedRoute>
-        )
-    },
-    {
-        path: '/admin/dashboard',
+=======
+        path: '/moderator/problems/create',
         element: (
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminDashboardPage />
-            </ProtectedRoute>
-        )
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                    <ModeratorProblemCreatePage />
+                </ProtectedRoute>
+                )
     },
-    {
-        path: '/code-editor',
-        element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
+                {
+                    path: '/moderator/problems/edit/:id',
+                element: (
+                <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                    <ModeratorProblemEditPage />
+>>>>>>> origin/minh
+                </ProtectedRoute>
+                )
     },
-    {
-        path: '/err/400',
-        element: <Error400Page />
+                {
+                    path: '/admin/dashboard',
+                element: (
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <AdminDashboardPage />
+                </ProtectedRoute>
+                )
     },
-    {
-        path: '/err/403',
-        element: <Error403Page />
+                {
+                    path: '/code-editor',
+                element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
     },
-    {
-        path: '/err/500',
-        element: <Error500Page />
+                {
+                    path: '/err/400',
+                element: <Error400Page />
     },
-    {
-        path: '*',
-        element: <Error404Page />
+                {
+                    path: '/err/403',
+                element: <Error403Page />
+    },
+                {
+                    path: '/err/500',
+                element: <Error500Page />
+    },
+                {
+                    path: '*',
+                element: <Error404Page />
     }
-]);
+                ]);
