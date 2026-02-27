@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
-import { ModeratorLayout } from '../../layouts/ModeratorLayout';
+import { ModeratorLayout } from '../../components/ModeratorLayout';
 import {
     Users,
     CalendarStar,

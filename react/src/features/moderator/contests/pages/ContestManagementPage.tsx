@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ModeratorLayout } from '../../layouts/ModeratorLayout';
+import { ModeratorLayout } from '../../components/ModeratorLayout';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { Link } from 'react-router-dom';
 import { DeleteContestModal } from '../components/DeleteContestModal';

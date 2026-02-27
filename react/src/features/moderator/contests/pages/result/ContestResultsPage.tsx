@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ModeratorLayout } from '../../../layouts/ModeratorLayout';
+import { ModeratorLayout } from '../../../components/ModeratorLayout';
 import {
     ArrowLeft,
     Trophy,
@@ -224,8 +224,8 @@ export const ContestResultsPage = () => {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <span className={`px-2 py-1 rounded text-xs font-medium ${prob.difficulty === 'EASY' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                        prob.difficulty === 'MEDIUM' ? 'bg-yellow-500/10 text-yellow-400' :
-                                                            'bg-red-500/10 text-red-400'
+                                                    prob.difficulty === 'MEDIUM' ? 'bg-yellow-500/10 text-yellow-400' :
+                                                        'bg-red-500/10 text-red-400'
                                                     }`}>
                                                     {prob.difficulty}
                                                 </span>
