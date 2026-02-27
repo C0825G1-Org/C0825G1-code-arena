@@ -9,14 +9,19 @@ import java.util.List;
 
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Integer> {
-    List<Submission> findByUserIdAndProblemIdOrderByIdDesc(Integer userId, Integer problemId);
+        // List submissions for practice mode (outside contest)
+        List<Submission> findByUserIdAndProblemIdAndContestIsNullOrderByIdDesc(Integer userId, Integer problemId);
 
-    // Kiem tra thu da bao gio user AC bai nay trong ky thi nay chua
-    boolean existsByUserIdAndProblemIdAndContestIdAndStatus(Integer userId, Integer problemId, Integer contestId,
-            SubmissionStatus status);
+        // List submissions for contest mode
+        List<Submission> findByUserIdAndProblemIdAndContestIdOrderByIdDesc(Integer userId, Integer problemId,
+                        Integer contestId);
 
-    // Đếm số lần Failed (Status NOT AC) trước cái Submission ID hiện tại của kỳ thi
-    // đó
-    int countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(Integer userId, Integer problemId,
-            Integer contestId, Integer id, SubmissionStatus status);
+        // Kiem tra thu da bao gio user AC bai nay trong ky thi nay chua
+        boolean existsByUserIdAndProblemIdAndContestIdAndStatus(Integer userId, Integer problemId, Integer contestId,
+                        SubmissionStatus status);
+
+        // Đếm số lần Failed (Status NOT AC) trước cái Submission ID hiện tại của kỳ thi
+        // đó
+        int countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(Integer userId, Integer problemId,
+                        Integer contestId, Integer id, SubmissionStatus status);
 }

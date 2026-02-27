@@ -16,4 +16,7 @@ public class SubmitRequestDTO {
     @NotBlank(message = "Source code is required")
     @Size(max = 50000, message = "Source code must be less than 50KB")
     private String sourceCode;
+
+    // Optional: Only provided when submitting inside a contest
+    private Integer contestId;
 }

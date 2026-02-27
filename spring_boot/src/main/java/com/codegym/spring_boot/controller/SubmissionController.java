@@ -37,8 +37,9 @@ public class SubmissionController {
 
     @GetMapping("/me")
     public ResponseEntity<List<SubmissionHistoryDTO>> getMySubmissions(
-            @RequestParam(name = "problemId") Integer problemId) {
-        List<SubmissionHistoryDTO> history = submissionService.getHistoryByProblem(problemId);
+            @RequestParam(name = "problemId") Integer problemId,
+            @RequestParam(name = "contestId", required = false) Integer contestId) {
+        List<SubmissionHistoryDTO> history = submissionService.getHistoryByProblem(problemId, contestId);
         return ResponseEntity.ok(history);
     }
 }

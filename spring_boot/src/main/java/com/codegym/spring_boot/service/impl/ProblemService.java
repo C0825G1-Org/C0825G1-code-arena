@@ -1,8 +1,8 @@
 package com.codegym.spring_boot.service.impl;
 
-import com.codegym.spring_boot.dto.ProblemRequestDTO;
-import com.codegym.spring_boot.dto.ProblemResponseDTO;
-import com.codegym.spring_boot.dto.TagDTO;
+import com.codegym.spring_boot.dto.problem.ProblemRequestDTO;
+import com.codegym.spring_boot.dto.problem.ProblemResponseDTO;
+import com.codegym.spring_boot.dto.tag.TagDTO;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Tag;
 import com.codegym.spring_boot.entity.User;
@@ -12,7 +12,6 @@ import com.codegym.spring_boot.repository.ITagRepository;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.service.IProblemService;
 import jakarta.persistence.NoResultException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,18 @@ public class ProblemService implements IProblemService {
     }
 
     @Override
-    public List<ProblemResponseDTO> getAllProblems() {
+    public List<ProblemResponseDTO> getAllProblems(Boolean manage) {
+        if (manage != null && manage) {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername).orElse(null);
+            
+            if (currentUser != null && currentUser.getRole() == UserRole.moderator) {
+                return problemRepository.findAllByCreatedByAndIsDeletedFalse(currentUser).stream()
+                        .map(this::mapToResponseDTO)
+                        .collect(Collectors.toList());
+            }
+        }
+        
         return problemRepository.findAllByIsDeletedFalse().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
@@ -73,6 +83,11 @@ public class ProblemService implements IProblemService {
 
         checkModifyPermission(problem);
 
+        if (Boolean.TRUE.equals(problem.getIsLocked())) {
+            throw new IllegalStateException(
+                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
+        }
+
         if (!problem.getSlug().equals(requestDTO.getSlug()) && problemRepository.existsBySlug(requestDTO.getSlug())) {
             throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
         }
@@ -91,6 +106,11 @@ public class ProblemService implements IProblemService {
         }
 
         checkModifyPermission(problem);
+
+        if (Boolean.TRUE.equals(problem.getIsLocked())) {
+            throw new IllegalStateException(
+                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
+        }
 
         problem.setIsDeleted(true);
         problemRepository.save(problem);

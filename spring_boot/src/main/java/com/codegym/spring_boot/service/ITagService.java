@@ -1,6 +1,6 @@
 package com.codegym.spring_boot.service;
 
-import com.codegym.spring_boot.dto.TagDTO;
+import com.codegym.spring_boot.dto.tag.TagDTO;
 
 import java.util.List;
 

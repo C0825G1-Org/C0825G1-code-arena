@@ -1,4 +1,4 @@
-package com.codegym.spring_boot.dto;
+package com.codegym.spring_boot.dto.tag;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

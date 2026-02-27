@@ -79,10 +79,17 @@ public class SubmissionService implements ISubmissionService {
                 Language languageReference = new Language();
                 languageReference.setId(submitRequestDTO.getLanguageId());
 
+                Contest contestReference = null;
+                if (submitRequestDTO.getContestId() != null) {
+                        contestReference = new Contest();
+                        contestReference.setId(submitRequestDTO.getContestId());
+                }
+
                 // 3. Save Submission to DB with PENDING status
                 Submission newSubmission = Submission.builder()
                                 .user(user)
                                 .problem(problemReference)
+                                .contest(contestReference)
                                 .language(languageReference)
                                 .sourceCode(submitRequestDTO.getSourceCode())
                                 .status(SubmissionStatus.pending)
@@ -224,7 +231,7 @@ public class SubmissionService implements ISubmissionService {
 
         @Override
         @Transactional(readOnly = true)
-        public java.util.List<SubmissionHistoryDTO> getHistoryByProblem(Integer problemId) {
+        public java.util.List<SubmissionHistoryDTO> getHistoryByProblem(Integer problemId, Integer contestId) {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 User user = null;
                 if (authentication != null && authentication.isAuthenticated()
@@ -238,8 +245,15 @@ public class SubmissionService implements ISubmissionService {
                         return java.util.Collections.emptyList();
                 }
 
-                java.util.List<Submission> submissions = submissionRepository
-                                .findByUserIdAndProblemIdOrderByIdDesc(user.getId(), problemId);
+                java.util.List<Submission> submissions;
+
+                if (contestId != null) {
+                        submissions = submissionRepository.findByUserIdAndProblemIdAndContestIdOrderByIdDesc(
+                                        user.getId(), problemId, contestId);
+                } else {
+                        submissions = submissionRepository
+                                        .findByUserIdAndProblemIdAndContestIsNullOrderByIdDesc(user.getId(), problemId);
+                }
 
                 return submissions.stream().map(sub -> SubmissionHistoryDTO.builder()
                                 .id(sub.getId())

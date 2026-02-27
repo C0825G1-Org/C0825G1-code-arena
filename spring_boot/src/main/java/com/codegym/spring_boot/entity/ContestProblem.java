@@ -22,4 +22,10 @@ public class ContestProblem {
 
     @Column(name = "order_index")
     private Integer orderIndex = 0;
+
+    @Column(name = "is_frozen")
+    private Boolean isFrozen = false;
+
+    @Column(name = "frozen_reason", length = 500)
+    private String frozenReason;
 }

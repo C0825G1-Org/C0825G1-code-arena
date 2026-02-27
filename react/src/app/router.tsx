@@ -6,12 +6,19 @@ import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { UserHomePage } from '../features/user/home/pages/UserHomePage';
 import { ModDashboardPage } from '../features/moderator/dashboard/pages/ModDashboardPage';
+import { ContestManagementPage } from '../features/moderator/contests/pages/ContestManagementPage';
+import { ListPage as ModeratorProblemListPage } from '../features/moderator/problem/ListPage';
+import { CreatePage as ModeratorProblemCreatePage } from '../features/moderator/problem/CreatePage';
+import { EditPage as ModeratorProblemEditPage } from '../features/moderator/problem/EditPage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
+import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
 import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage';
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { LandingPage } from '../features/landing/pages/LandingPage';
 import { CodeEditorPage } from '../features/user/code-editor';
+import { UserContestsPage } from '../features/user/contests/pages/UserContestsPage';
+import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -101,10 +108,66 @@ export const router = createBrowserRouter([
         )
     },
     {
+        path: '/contests',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserContestsPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/contests/:id',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserContestDetailPage />
+            </ProtectedRoute>
+        )
+    },
+    {
         path: '/moderator/dashboard',
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ModDashboardPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/contests',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ContestManagementPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/problems',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorProblemListPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/contests/:id/results',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ContestResultsPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/problems/create',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorProblemCreatePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/problems/edit/:id',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorProblemEditPage />
             </ProtectedRoute>
         )
     },
