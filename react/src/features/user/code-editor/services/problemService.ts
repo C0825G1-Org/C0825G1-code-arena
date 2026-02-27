@@ -2,12 +2,19 @@ export type Problem = {
     id: number;
     title: string;
     description: string;
-    sampleInput: string;
-    sampleOutput: string;
+    difficulty: string;
+    timeLimit: number;
+    memoryLimit: number;
+    // Tags etc can be added later
 };
 
 export async function getProblem(id: number): Promise<Problem> {
-    const res = await fetch(`http://localhost:3001/problems/${id}`);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:8080/api/problems/${id}`, {
+        headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+    });
     if (!res.ok) throw new Error("Failed to load problem");
     return res.json();
 }
@@ -21,7 +28,12 @@ export type TestCase = {
 };
 
 export async function getSampleTestCases(problemId: number): Promise<TestCase[]> {
-    const res = await fetch(`http://localhost:3001/test_cases?problemId=${problemId}&is_sample=true`);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:8080/api/problems/${problemId}/test-cases`, {
+        headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+    }); // Mock or real endpoint if backend supports
     if (!res.ok) throw new Error("Failed to load sample test cases");
     return res.json();
 }

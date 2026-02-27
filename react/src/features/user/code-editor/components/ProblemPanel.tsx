@@ -45,25 +45,6 @@ export default function ProblemPanel({ problemId }: Props) {
                 {problem.description}
             </p>
 
-            <div className="space-y-6">
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                        Sample Input
-                    </h4>
-                    <pre className="bg-slate-800 p-4 rounded-md border border-slate-700 text-slate-300 font-mono text-sm overflow-x-auto">
-                        {problem.sampleInput}
-                    </pre>
-                </div>
-
-                <div>
-                    <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                        Sample Output
-                    </h4>
-                    <pre className="bg-slate-800 p-4 rounded-md border border-slate-700 text-slate-300 font-mono text-sm overflow-x-auto">
-                        {problem.sampleOutput}
-                    </pre>
-                </div>
-            </div>
         </div>
     );
 }

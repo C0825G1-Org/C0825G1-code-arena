@@ -1,3 +1,4 @@
+import { useParams } from "react-router-dom";
 import CodeEditor from "../components/CodeEditor";
 import ProblemPanel from "../components/ProblemPanel";
 import LanguageSelector from "../components/LanguageSelector";
@@ -14,7 +15,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function Home() {
-    const problemId = 1; // Assuming problemId 1 for now
+    const { id } = useParams<{ id: string }>();
+    const problemId = id ? parseInt(id, 10) : 1; // Fallback to 1 if no param
     const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId);
     const { settings, updateSettings } = useSettings();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);

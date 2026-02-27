@@ -117,7 +117,7 @@ export const router = createBrowserRouter([
         )
     },
     {
-        path: '/code-editor',
+        path: '/code-editor/:problemId',
         element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
     },
     {
