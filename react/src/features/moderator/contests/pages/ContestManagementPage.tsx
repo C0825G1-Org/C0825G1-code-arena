@@ -83,6 +83,38 @@ export const ContestManagementPage = () => {
         }
     };
 
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setStatusFilter('');
+        setStartTime('');
+        setEndTime('');
+        if (page === 0) {
+            // Need a slight delay to allow state updates to queue, or just let the user click search after reset, 
+            // but better to fetch immediately. Because state updates are async, 
+            // the safest way is to fetch after states are cleared, but since fetch reads from state, 
+            // it's tricky without a useEffect dependency. 
+            // Let's just reset the states, and the user can see them clear, then we trigger a fetch 
+            // using the empty values directly to bypass the async state delay.
+            fetchWithEmptyFilters();
+        } else {
+            setPage(0); // This will trigger useEffect, but might race with state updates.
+        }
+    };
+
+    const fetchWithEmptyFilters = async () => {
+        try {
+            setLoading(true);
+            const params: any = { size: 5, page: 0, sort: 'startTime,desc', manage: true };
+            const response: any = await axiosClient.get('/contests', { params });
+            setContests(response.content || []);
+            setTotalPages(response.totalPages || 0);
+        } catch (error) {
+            console.error('Failed to load contests', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('vi-VN', {
@@ -162,12 +194,21 @@ export const ContestManagementPage = () => {
                                 title="Thời gian kết thúc (đến)"
                             />
                         </div>
-                        <button
-                            onClick={handleSearchClick}
-                            className="bg-[#1e293b] hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-[#334155]"
-                        >
-                            <i className="ph-bold ph-funnel"></i> Lọc kết quả
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleResetFilters}
+                                className="bg-[#1e293b] hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-[#334155]"
+                                title="Làm mới bộ lọc"
+                            >
+                                <i className="ph-bold ph-arrows-clockwise"></i> Làm mới
+                            </button>
+                            <button
+                                onClick={handleSearchClick}
+                                className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                            >
+                                <i className="ph-bold ph-funnel"></i> Lọc kết quả
+                            </button>
+                        </div>
                     </div>
                 </div>
 
