@@ -90,13 +90,25 @@ export const UserContestsPage = () => {
         else setPage(0);
     };
 
-    const handleResetFilters = () => {
+    const handleResetFilters = async () => {
         setSearchTerm('');
         setFilterStatus('');
         setStartTime('');
         setEndTime('');
         setPage(0);
-        setTimeout(() => fetchContests(), 0);
+
+        try {
+            setLoading(true);
+            const data = await contestService.getContests({ size: 6, page: 0, sort: 'startTime,desc' });
+            setContests(data.content || []);
+            setTotalPages(data.totalPages || 0);
+            setTotalElements(data.totalElements || 0);
+        } catch (err) {
+            console.error('Failed to reset contests:', err);
+            // toast is already imported and used elsewhere
+        } finally {
+            setLoading(false);
+        }
     };
 
     const renderPageNumbers = () => {
@@ -108,8 +120,8 @@ export const UserContestsPage = () => {
                     key={i}
                     onClick={() => setPage(i)}
                     className={`min-w-[44px] h-[44px] flex items-center justify-center rounded-xl font-bold transition-all duration-300 mx-1 ${page === i
-                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/40 text-white transform -translate-y-1'
-                            : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
+                        ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/40 text-white transform -translate-y-1'
+                        : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
                         }`}
                 >
                     {i + 1}
@@ -268,101 +280,107 @@ export const UserContestsPage = () => {
                 {/* Header Section */}
                 <div className="flex flex-col mb-10">
                     <div className="mb-8 text-center sm:text-left">
-                        <h1 className="text-5xl font-black tracking-tight mb-4 flex items-center justify-center sm:justify-start gap-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
-                            <CalendarStar weight="duotone" className="text-blue-500" />
-                            Danh sách Cuộc thi
+                        <h1 className="text-5xl font-black tracking-tight flex items-center justify-center sm:justify-start gap-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 pb-2 leading-tight">
+                            <CalendarStar weight="duotone" className="text-blue-500 shrink-0" />
+                            Danh sách cuộc thi
                         </h1>
-                        <p className="text-slate-400 max-w-2xl text-lg mx-auto sm:mx-0 font-medium">
+                        <p className="text-slate-400 max-w-2xl text-lg mx-auto sm:mx-0 font-medium mt-2">
                             Tham gia các kỳ thi lập trình để cọ xát kỹ năng thuật toán, tích lũy điểm thưởng và vươn lên trên bảng xếp hạng (Leaderboard) nhanh chóng.
                         </p>
                     </div>
 
                     {/* Filters & Search - Vibrant and Youthful */}
-                    <div className="w-full flex flex-col xl:flex-row gap-4 bg-slate-800/40 p-5 md:p-6 rounded-3xl border border-white/5 backdrop-blur-xl shadow-[0_20px_40px_-15px_rgba(79,70,229,0.15)] relative overflow-hidden">
+                    <div className="w-full relative bg-slate-800/40 p-5 md:p-6 rounded-3xl border border-white/5 backdrop-blur-xl shadow-[0_20px_40px_-15px_rgba(79,70,229,0.15)] flex flex-col gap-6">
 
                         {/* Shimmer Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none rounded-3xl overflow-hidden"></div>
 
-                        {/* Search Bar */}
-                        <div className="flex-1 relative group z-10">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <i className="ph-bold ph-magnifying-glass text-xl text-blue-400 group-focus-within:text-purple-400 transition-colors"></i>
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Bạn muốn tìm cuộc thi nào?..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearchClick()}
-                                className="w-full h-[52px] bg-slate-900/60 border border-slate-700/50 text-white text-sm rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 block pl-12 pr-4 transition-all placeholder-slate-500 shadow-inner shadow-black/20"
-                            />
-                        </div>
-
-                        {/* Date Filters */}
-                        <div className="flex gap-4 flex-col sm:flex-row z-10">
-                            <div className="relative group md:w-44 lg:w-48">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i className="ph-duotone ph-calendar-plus text-lg text-emerald-400"></i>
+                        {/* Top Row: Search & Dates */}
+                        <div className="flex flex-col lg:flex-row gap-5 z-10 w-full">
+                            {/* Search Bar */}
+                            <div className="flex-1 relative group bg-slate-900/60 rounded-2xl border border-slate-700/50 flex items-center h-[56px] shadow-inner overflow-hidden">
+                                <div className="absolute left-0 pl-5 flex items-center pointer-events-none">
+                                    <i className="ph-bold ph-magnifying-glass text-xl text-blue-400 group-focus-within:text-purple-400 transition-colors"></i>
                                 </div>
                                 <input
-                                    type="date"
-                                    value={startTime}
-                                    title="Từ ngày"
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    className="w-full h-[52px] bg-slate-900/60 border border-slate-700/50 text-slate-300 text-sm rounded-2xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 block pl-12 pr-3 transition-all cursor-text appearance-none"
+                                    type="text"
+                                    placeholder="Tìm tên cuộc thi (VD: Contest Module 1)..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearchClick()}
+                                    className="w-full h-full bg-transparent text-white text-[15px] focus:ring-2 focus:ring-purple-500/50 block pl-14 pr-5 transition-all outline-none placeholder-slate-500"
                                 />
                             </div>
-                            <div className="relative group md:w-44 lg:w-48">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <i className="ph-duotone ph-calendar-check text-lg text-rose-400"></i>
+
+                            {/* Date Filters */}
+                            <div className="flex gap-4 flex-col sm:flex-row lg:w-auto overflow-visible">
+                                <div className="relative group sm:w-48 xl:w-56 bg-slate-900/60 rounded-2xl border border-slate-700/50 flex items-center h-[56px] shadow-inner overflow-hidden">
+                                    <div className="absolute left-0 pl-4 flex items-center pointer-events-none text-emerald-400 bg-slate-900/60 lg:bg-transparent h-full z-10">
+                                        <i className="ph-duotone ph-calendar-plus text-[22px]"></i>
+                                    </div>
+                                    <input
+                                        type="date"
+                                        value={startTime}
+                                        title="Từ ngày"
+                                        onChange={(e) => setStartTime(e.target.value)}
+                                        className="w-full h-full bg-transparent text-slate-300 text-[15px] focus:ring-2 focus:ring-emerald-500/50 block pl-[3.4rem] pr-3 outline-none cursor-text appearance-none transition-all"
+                                    />
                                 </div>
-                                <input
-                                    type="date"
-                                    value={endTime}
-                                    title="Đến ngày"
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    className="w-full h-[52px] bg-slate-900/60 border border-slate-700/50 text-slate-300 text-sm rounded-2xl focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 block pl-12 pr-3 transition-all cursor-text appearance-none"
-                                />
+                                <div className="relative group sm:w-48 xl:w-56 bg-slate-900/60 rounded-2xl border border-slate-700/50 flex items-center h-[56px] shadow-inner overflow-hidden">
+                                    <div className="absolute left-0 pl-4 flex items-center pointer-events-none text-rose-400 bg-slate-900/60 lg:bg-transparent h-full z-10">
+                                        <i className="ph-duotone ph-calendar-check text-[22px]"></i>
+                                    </div>
+                                    <input
+                                        type="date"
+                                        value={endTime}
+                                        title="Đến ngày"
+                                        onChange={(e) => setEndTime(e.target.value)}
+                                        className="w-full h-full bg-transparent text-slate-300 text-[15px] focus:ring-2 focus:ring-rose-500/50 block pl-[3.4rem] pr-3 outline-none cursor-text appearance-none transition-all"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Status Pills */}
-                        <div className="flex items-center gap-2 overflow-x-auto pb-2 xl:pb-0 scrollbar-hide z-10">
-                            {[
-                                { val: '', label: '⚡ Tất cả' },
-                                { val: 'active', label: '🔥 Đang mở' },
-                                { val: 'upcoming', label: '⏳ Sắp tới' },
-                                { val: 'finished', label: '🏁 Đã xong' }
-                            ].map(st => (
-                                <button
-                                    key={st.val}
-                                    onClick={() => { setFilterStatus(st.val); setPage(0); }}
-                                    className={`h-[52px] px-5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap border ${filterStatus === st.val
-                                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-indigo-500/50 text-white shadow-[0_8px_16px_rgba(79,70,229,0.3)] transform -translate-y-0.5'
+                        {/* Bottom Row: Status & Actions */}
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-5 z-10 w-full mt-2">
+                            {/* Status Pills */}
+                            <div className="flex items-center gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide w-full lg:w-auto">
+                                {[
+                                    { val: '', label: '⚡ Tất cả' },
+                                    { val: 'active', label: '🔥 Đang mở' },
+                                    { val: 'upcoming', label: '⏳ Sắp tới' },
+                                    { val: 'finished', label: '🏁 Đã xong' }
+                                ].map(st => (
+                                    <button
+                                        key={st.val}
+                                        onClick={() => { setFilterStatus(st.val); setPage(0); }}
+                                        className={`h-[48px] px-6 rounded-xl text-[15px] font-bold transition-all whitespace-nowrap border ${filterStatus === st.val
+                                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-indigo-500/50 text-white shadow-[0_4px_16px_rgba(79,70,229,0.3)] transform -translate-y-[2px]'
                                             : 'bg-slate-900/40 text-slate-400 border-slate-700/50 hover:border-slate-500 hover:text-slate-200 hover:bg-slate-800'
-                                        }`}
-                                >
-                                    {st.label}
-                                </button>
-                            ))}
-                        </div>
+                                            }`}
+                                    >
+                                        {st.label}
+                                    </button>
+                                ))}
+                            </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-3 h-[52px] z-10">
-                            <button
-                                onClick={handleResetFilters}
-                                className="h-full px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center justify-center group shrink-0 shadow-lg shadow-black/20 hover:shadow-slate-700/50"
-                                title="Làm mới bộ lọc"
-                            >
-                                <i className="ph-bold ph-arrows-counter-clockwise text-xl group-hover:-rotate-180 transition-transform duration-700"></i>
-                            </button>
-                            <button
-                                onClick={handleSearchClick}
-                                className="h-full px-6 md:px-8 rounded-2xl font-black bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transform hover:-translate-y-0.5 flex-1 xl:flex-none uppercase tracking-wide"
-                            >
-                                <i className="ph-bold ph-paper-plane-right text-lg"></i>
-                                <span className="hidden sm:block">Lọc</span>
-                            </button>
+                            {/* Action Buttons */}
+                            <div className="flex gap-4 w-full lg:w-auto">
+                                <button
+                                    onClick={handleResetFilters}
+                                    className="h-[48px] px-6 lg:w-[60px] lg:px-0 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center justify-center group shrink-0 shadow-md hover:shadow-lg w-full sm:w-auto"
+                                    title="Làm mới bộ lọc"
+                                >
+                                    <i className="ph-bold ph-arrows-counter-clockwise text-[22px] group-hover:-rotate-180 transition-transform duration-700"></i>
+                                </button>
+                                <button
+                                    onClick={handleSearchClick}
+                                    className="h-[48px] px-8 rounded-xl font-black bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transform hover:-translate-y-[2px] w-full sm:flex-1 lg:w-auto tracking-wide"
+                                >
+                                    <i className="ph-bold ph-paper-plane-right text-xl"></i>
+                                    <span>TÌM KIẾM</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
