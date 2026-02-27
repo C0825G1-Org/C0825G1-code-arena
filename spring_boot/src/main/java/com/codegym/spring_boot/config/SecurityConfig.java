@@ -2,7 +2,7 @@ package com.codegym.spring_boot.config;
 
 import com.codegym.spring_boot.security.JwtAuthenticationFilter;
 import com.codegym.spring_boot.security.OAuth2SuccessHandler;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +42,7 @@ public class SecurityConfig {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/auth/**", "/api/test/public", "/error",
-                                                                "/login/oauth2/**","/api/submissions/**")
+                                                                "/login/oauth2/**", "/api/submissions/**")
                                                 .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/contests", "/api/contests/**")

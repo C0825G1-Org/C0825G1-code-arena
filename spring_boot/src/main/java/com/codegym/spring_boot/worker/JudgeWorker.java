@@ -31,14 +31,15 @@ public class JudgeWorker {
     @Scheduled(fixedDelay = 1000) // Kiểm tra hàng đợi mỗi giây
     public void consumeQueue() {
         Object ticketObj = redisTemplate.opsForList().rightPop(QUEUE_NAME);
-        if (ticketObj == null) return;
+        if (ticketObj == null)
+            return;
 
         try {
             JudgeTicket ticket = objectMapper.convertValue(ticketObj, JudgeTicket.class);
             log.info("Processing ticket for submission ID: {}", ticket.submissionId());
-            
+
             processSubmission(ticket);
-            
+
         } catch (Exception e) {
             log.error("Error processing judge ticket", e);
         }
@@ -54,35 +55,35 @@ public class JudgeWorker {
             SubmissionResult result = dockerJudgeService.judge(
                     submission.getLanguage().getName(),
                     submission.getSourceCode(),
-                    submission.getProblem().getId().toString()
-            );
+                    submission.getProblem().getId().toString());
 
-            // 2. Cập nhật kết quả vào Database
-            submission.setStatus(mapStatus(result.getStatus()));
-            submission.setExecutionTime((int) result.getExecutionTimeMs());
-            submission.setMemoryUsed((int) result.getMemoryUsedKb());
-            // TODO: Tính điểm thực tế dựa trên số testcase pass (thường là 100/total * passed)
-            submission.setScore(result.getStatus().equals("ACCEPTED") ? 100 : 0);
-
-            submissionRepository.save(submission);
-            log.info("Submission {} updated to {}", submission.getId(), submission.getStatus());
-
-            // 3. Gửi thông báo qua Redis Channel để Client nhận qua Socket.io
+            // 2. Gửi thông báo qua Redis Channel để Client nhận qua Socket.io và Server xử
+            // lý lưu DB
             JudgeResultMessage message = JudgeResultMessage.builder()
                     .userId(submission.getUser().getId().longValue())
                     .submissionId((long) submission.getId())
-                    .status(submission.getStatus().name())
-                    .executionTime((long) submission.getExecutionTime())
-                    .memoryUsed((long) submission.getMemoryUsed())
-                    .score(submission.getScore())
+                    .status(result.getStatus())
+                    .executionTime(result.getExecutionTimeMs())
+                    .memoryUsed(result.getMemoryUsedKb())
+                    .compileMessage(result.getMessage())
+                    .testCaseResults(result.getTestCases())
                     .build();
 
             redisTemplate.convertAndSend(RESULT_CHANNEL, objectMapper.writeValueAsString(message));
+            log.info("Finished docker judge and sent full result to Redis for submission {}", ticket.submissionId());
 
         } catch (Exception e) {
             log.error("Critical error in JudgeWorker for submission {}", ticket.submissionId(), e);
-            submission.setStatus(SubmissionStatus.RE);
-            submissionRepository.save(submission);
+            JudgeResultMessage errorMessage = JudgeResultMessage.builder()
+                    .userId(submission.getUser().getId().longValue())
+                    .submissionId((long) submission.getId())
+                    .status("RUNTIME_ERROR")
+                    .compileMessage(e.getMessage())
+                    .build();
+            try {
+                redisTemplate.convertAndSend(RESULT_CHANNEL, objectMapper.writeValueAsString(errorMessage));
+            } catch (Exception ex) {
+            }
         }
     }
 

@@ -9,7 +9,6 @@ import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.entity.Contest;
 import java.time.Duration;
 import com.codegym.spring_boot.service.ITestCaseService;
-import com.codegym.spring_boot.service.judge.JudgeCoreProcessor;
 import com.codegym.spring_boot.service.NotificationService;
 import com.codegym.spring_boot.entity.SubmissionTestResult;
 
@@ -42,8 +41,6 @@ public class SubmissionService implements ISubmissionService {
         private final JudgeQueueService judgeQueueService;
         private final UserRepository userRepository;
         private final ITestCaseRepository testCaseRepository;
-        private final ITestCaseService testCaseService;
-        private final JudgeCoreProcessor judgeCoreProcessor;
         private final ISubmissionTestResultRepository submissionTestResultRepository;
         private final ContestParticipantRepository contestParticipantRepository;
         private final NotificationService notificationService;
@@ -123,110 +120,136 @@ public class SubmissionService implements ISubmissionService {
                         return;
                 }
 
-                TestCase testCase = null;
-                if (msg.getTestCaseId() != null && msg.getTestCaseId() > 0) {
-                        testCase = testCaseRepository.findById(msg.getTestCaseId().intValue()).orElse(null);
+                SubmissionStatus finalStatus = mapDockerStatusToSubmissionStatus(msg.getStatus());
+
+                // Kiểm tra trước khi lưu để xác định Penalty
+                boolean alreadyAC = false;
+                if (submission.getContest() != null) {
+                        alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
+                                        submission.getUser().getId(), submission.getProblem().getId(),
+                                        submission.getContest().getId(), SubmissionStatus.AC);
                 }
 
-                // 1. So khớp kết quả
-                JudgeCoreProcessor.ProcessedResult result;
-                if (testCase != null) {
-                        String expectedOutput = testCaseService.getExpectedOutput(testCase.getId());
-                        result = judgeCoreProcessor.processTestCase(msg, expectedOutput);
-                } else {
-                        // CE hoặc RE không có test case id
-                        result = judgeCoreProcessor.processTestCase(msg, "");
+                // 1. Lưu TestResult chi tiết
+                if (msg.getTestCaseResults() != null) {
+                        for (com.codegym.spring_boot.dto.TestCaseResult tcResult : msg.getTestCaseResults()) {
+                                TestCase testCase = testCaseRepository.findById(tcResult.getTestCaseNumber())
+                                                .orElse(null);
+                                if (testCase != null) {
+                                        SubmissionTestResult testResult = SubmissionTestResult.builder()
+                                                        .submission(submission)
+                                                        .testCase(testCase)
+                                                        .status(tcResult.isPassed() ? SubmissionStatus.AC
+                                                                        : mapDockerStatusToSubmissionStatus(
+                                                                                        tcResult.getMessage()))
+                                                        .executionTime(0) // Chi tiết test case hiện tại chưa tracking
+                                                                          // time
+                                                        .memoryUsed(0)
+                                                        .errorMessage(tcResult.isPassed() ? null
+                                                                        : tcResult.getMessage())
+                                                        .build();
+                                        submissionTestResultRepository.save(testResult);
+                                }
+                        }
                 }
 
-                // 2. Lưu TestResult
-                if (testCase != null) {
-                        SubmissionTestResult testResult = SubmissionTestResult.builder()
+                // 2. Cập nhật DB trạng thái tổng cục
+                submission.setExecutionTime(msg.getExecutionTime() != null ? msg.getExecutionTime().intValue() : 0);
+                submission.setMemoryUsed(msg.getMemoryUsed() != null ? msg.getMemoryUsed().intValue() : 0);
+
+                int score = 0;
+                if (finalStatus == SubmissionStatus.AC) {
+                        score = 100;
+                } else if (msg.getTestCaseResults() != null && !msg.getTestCaseResults().isEmpty()) {
+                        long passedCount = msg.getTestCaseResults().stream()
+                                        .filter(com.codegym.spring_boot.dto.TestCaseResult::isPassed).count();
+                        score = (int) ((passedCount * 100) / msg.getTestCaseResults().size());
+                }
+                submission.setScore(score);
+                submission.setStatus(finalStatus);
+
+                // Lưu error runtime hoặc compiler nếu có
+                if (msg.getCompileMessage() != null && !msg.getCompileMessage().trim().isEmpty()
+                                && finalStatus != SubmissionStatus.AC) {
+                        SubmissionTestResult compileErrorLog = SubmissionTestResult.builder()
                                         .submission(submission)
-                                        .testCase(testCase)
-                                        .status(result.status())
-                                        .executionTime(msg.getExecutionTime() != null
-                                                        ? msg.getExecutionTime().intValue()
-                                                        : 0)
-                                        .memoryUsed(msg.getMemoryUsed() != null ? msg.getMemoryUsed().intValue() : 0)
-                                        .userOutput(msg.getStdout())
-                                        .errorMessage(result.errorMessage())
+                                        .status(finalStatus)
+                                        .errorMessage(msg.getCompileMessage())
                                         .build();
-                        submissionTestResultRepository.save(testResult);
+                        submissionTestResultRepository.save(compileErrorLog);
                 }
 
-                // 3. Fail-fast: Cập nhật DB trạng thái tổng
-                int currentMaxTime = submission.getExecutionTime() != null ? submission.getExecutionTime() : 0;
-                int currentMaxMemory = submission.getMemoryUsed() != null ? submission.getMemoryUsed() : 0;
-                int newTime = msg.getExecutionTime() != null ? msg.getExecutionTime().intValue() : 0;
-                int newMemory = msg.getMemoryUsed() != null ? msg.getMemoryUsed().intValue() : 0;
-
-                submission.setExecutionTime(Math.max(currentMaxTime, newTime));
-                submission.setMemoryUsed(Math.max(currentMaxMemory, newMemory));
-
-                // Note: Logic thật sẽ có biến đếm test case AC, nếu count == total => AC toàn
-                // bài.
-                // Ở đây tạm set luôn status để báo UI
-                submission.setStatus(result.status());
                 submissionRepository.save(submission);
 
-                // --- 4. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC và nằm trong Contest) ---
-                if (result.status() == SubmissionStatus.AC && submission.getContest() != null) {
+                // --- 3. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC và nằm trong Contest) ---
+                if (finalStatus == SubmissionStatus.AC && submission.getContest() != null) {
                         Integer contestId = submission.getContest().getId();
                         Integer userId = submission.getUser().getId();
                         Integer problemId = submission.getProblem().getId();
 
-                        // 4.1: Kiểm tra xem User đã từng AC bài này xưa kia chưa? Nếu chưa thì tính
-                        // điểm.
-                        boolean alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
-                                        userId, problemId, contestId, SubmissionStatus.AC);
-
                         // Chỉ cập nhật Penalty nếu đây là lần ĐẦU TIÊN User AC bài này trong kỳ thi.
                         if (!alreadyAC) {
-
-                                Integer currentSubId = submission.getId();
-                                // Giả lập logic: Gọi repo tìm xem CÓ BÀI NÀO AC TRƯỚC ĐÓ HAY CHƯA.
-                                // Để đơn giản (trong demo này):
-                                // Tính Penalty nếu đây là lần AC đầu tiên.
-                                // TODO: Update exist query to check "id < currentSubId".
-                                // Logic Penalty nháp:
                                 Contest contest = submission.getContest();
                                 if (contest.getStartTime() != null && submission.getCreatedAt() != null) {
-                                        // Tính Penalty 1: Thời gian từ lúc bắt đầu thi đến khi nộp AC (tính bằng giây)
                                         long minutesFromStart = Duration
                                                         .between(contest.getStartTime(), submission.getCreatedAt())
                                                         .toMinutes();
 
-                                        // Đếm số lần nộp sai trước đó (mỗi lần sai + 20 phút)
                                         int failedAttempts = submissionRepository
                                                         .countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(
-                                                                        userId, problemId, contestId, currentSubId,
+                                                                        userId, problemId, contestId,
+                                                                        submission.getId(),
                                                                         SubmissionStatus.AC);
 
                                         long penaltyMinutes = minutesFromStart + (failedAttempts * 20L);
 
-                                        // Cập nhật Participant
                                         contestParticipantRepository.findByContestIdAndUserId(contestId, userId)
                                                         .ifPresent(p -> {
                                                                 p.setTotalScore(p.getTotalScore() + 1);
                                                                 p.setTotalPenalty(p.getTotalPenalty()
                                                                                 + (int) penaltyMinutes);
                                                                 contestParticipantRepository.save(p);
-                                                                log.info("Cập nhật Penalty ICPC User {} - Tăng {} điểm, Penalty: {} phút",
-                                                                                userId, 1, penaltyMinutes);
+                                                                log.info("Cập nhật Penalty ICPC User {} - Tăng 1 điểm, Penalty: {} phút",
+                                                                                userId, penaltyMinutes);
                                                         });
                                 }
                         }
                 }
 
-                // 5. Gửi Socket về ReactJS
+                // 4. Gửi Socket về ReactJS realtime
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                 .submissionId(msg.getSubmissionId())
-                                .status(result.status().name())
+                                .status(finalStatus.name())
                                 .executionTime(submission.getExecutionTime().longValue())
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
                                 .build();
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
+        }
+
+        private SubmissionStatus mapDockerStatusToSubmissionStatus(String dockerStatus) {
+                if (dockerStatus == null)
+                        return SubmissionStatus.RE;
+                switch (dockerStatus) {
+                        case "ACCEPTED":
+                        case "SUCCESS":
+                                return SubmissionStatus.AC;
+                        case "RUNTIME_ERROR":
+                                return SubmissionStatus.RE;
+                        case "COMPILE_ERROR":
+                                return SubmissionStatus.CE;
+                        case "TIME_LIMIT_EXCEEDED":
+                        case "TLE":
+                                return SubmissionStatus.TLE;
+                        case "MEMORY_LIMIT_EXCEEDED":
+                        case "MLE":
+                                return SubmissionStatus.MLE;
+                        case "WRONG_ANSWER":
+                        case "WA":
+                                return SubmissionStatus.WA;
+                        default:
+                                return SubmissionStatus.RE;
+                }
         }
 
         @Override

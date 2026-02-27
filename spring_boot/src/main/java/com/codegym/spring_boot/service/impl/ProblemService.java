@@ -15,6 +15,7 @@ import jakarta.persistence.NoResultException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,12 +23,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ProblemService implements IProblemService {
     private final IProblemRepository problemRepository;
     private final ITagRepository tagRepository;
     private final UserRepository userRepository;
 
-    public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository, com.codegym.spring_boot.repository.UserRepository userRepository) {
+    public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository,
+            com.codegym.spring_boot.repository.UserRepository userRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
@@ -38,14 +41,14 @@ public class ProblemService implements IProblemService {
         if (manage != null && manage) {
             String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
             User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername).orElse(null);
-            
+
             if (currentUser != null && currentUser.getRole() == UserRole.moderator) {
                 return problemRepository.findAllByCreatedByAndIsDeletedFalse(currentUser).stream()
                         .map(this::mapToResponseDTO)
                         .collect(Collectors.toList());
             }
         }
-        
+
         return problemRepository.findAllByIsDeletedFalse().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
@@ -54,7 +57,7 @@ public class ProblemService implements IProblemService {
     @Override
     public ProblemResponseDTO getProblemById(Integer id) {
         Problem problem = problemRepository.findById(id)
-                .filter(p -> !p.getIsDeleted())
+                .filter(p -> !Boolean.TRUE.equals(p.getIsDeleted()))
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
         return mapToResponseDTO(problem);
     }
@@ -79,7 +82,8 @@ public class ProblemService implements IProblemService {
 
     @Override
     public ProblemResponseDTO updateProblem(Integer id, ProblemRequestDTO requestDTO) {
-        Problem problem = problemRepository.findById(id).orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
+        Problem problem = problemRepository.findById(id)
+                .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
 
         checkModifyPermission(problem);
 
@@ -157,7 +161,6 @@ public class ProblemService implements IProblemService {
             problem.setTags(new HashSet<>());
         }
     }
-
 
     private ProblemResponseDTO mapToResponseDTO(Problem problem) {
         ProblemResponseDTO response = new ProblemResponseDTO();

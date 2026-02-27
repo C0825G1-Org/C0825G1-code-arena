@@ -27,14 +27,16 @@ public class DockerJudgeService {
     @Autowired
     private DockerClient dockerClient;
 
+    @org.springframework.beans.factory.annotation.Value("${storage.testcases.path:./data/testcases}")
+    private String testcaseStoragePath;
+
     /**
      * Chấm bài bằng Docker container
      */
     public SubmissionResult judge(
             String language,
             String sourceCode,
-            String problemId
-    ) {
+            String problemId) {
         String submissionId = UUID.randomUUID().toString();
         String submissionDir = "temp-submissions/" + submissionId;
         String containerId = null;
@@ -57,22 +59,20 @@ public class DockerJudgeService {
                     .withBinds(
                             new Bind(new File(submissionDir).getAbsolutePath(), appVolume, AccessMode.rw),
                             new Bind(
-                                    new File("problems/" + problemId).getAbsolutePath(),
+                                    new File(testcaseStoragePath + "/problem_" + problemId).getAbsolutePath(),
                                     testcaseVolume,
-                                    AccessMode.ro
-                            )
-                    )
+                                    AccessMode.ro))
                     .withMemory(256 * 1024 * 1024L) // 256MB
                     .withMemorySwap(256 * 1024 * 1024L)
                     .withCpuCount(1L)
-                    .withNetworkMode("none") 
+                    .withNetworkMode("none")
                     .withAutoRemove(false);
 
             // 4. Tạo và chạy container
             CreateContainerResponse container = dockerClient.createContainerCmd(imageName)
-                            .withHostConfig(hostConfig)
-                            .withTty(false)
-                            .exec();
+                    .withHostConfig(hostConfig)
+                    .withTty(false)
+                    .exec();
 
             containerId = container.getId();
             dockerClient.startContainerCmd(containerId).exec();
@@ -89,7 +89,8 @@ public class DockerJudgeService {
                     .toString();
 
             // 6. Phân tích kết quả
-            List<TestCaseResult> testResults = JudgeUtils.parseTestResults(logs, "problems/" + problemId);
+            List<TestCaseResult> testResults = JudgeUtils.parseTestResults(logs,
+                    testcaseStoragePath + "/problem_" + problemId);
 
             String finalStatus = "ACCEPTED";
             for (TestCaseResult tr : testResults) {
@@ -98,7 +99,7 @@ public class DockerJudgeService {
                     break;
                 }
             }
-            
+
             if (testResults.isEmpty() && logs.contains("COMPILE_ERROR")) {
                 finalStatus = "COMPILE_ERROR";
             } else if (testResults.isEmpty()) {
@@ -109,8 +110,7 @@ public class DockerJudgeService {
                     finalStatus,
                     finalStatus.equals("COMPILE_ERROR") ? logs : "Judging completed",
                     testResults,
-                    0, 0
-            );
+                    0, 0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -120,18 +120,20 @@ public class DockerJudgeService {
             if (containerId != null) {
                 try {
                     dockerClient.removeContainerCmd(containerId).withForce(true).exec();
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
-            
+
             try {
                 Path path = Path.of(submissionDir);
                 if (Files.exists(path)) {
                     Files.walk(path)
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
+                            .sorted(Comparator.reverseOrder())
+                            .map(Path::toFile)
+                            .forEach(File::delete);
                 }
-            } catch (IOException e) {}
+            } catch (IOException e) {
+            }
         }
     }
 }

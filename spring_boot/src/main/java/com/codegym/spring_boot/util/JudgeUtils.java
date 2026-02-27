@@ -29,7 +29,7 @@ public class JudgeUtils {
      */
     public static List<TestCaseResult> parseTestResults(String logs, String problemPath) {
         List<TestCaseResult> results = new ArrayList<>();
-        
+
         // Regex để tách từng khối TESTCASE
         String regex = "--- TESTCASE (\\d+) ---\\n(.*?)(?=\\n--- TESTCASE|\\n--- ALL_DONE ---|$)";
         Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
@@ -38,20 +38,21 @@ public class JudgeUtils {
         while (matcher.find()) {
             int testId = Integer.parseInt(matcher.group(1));
             String content = matcher.group(2);
-            
+
             boolean passed = false;
             String status = "UNKNOWN";
-            
+
             if (content.contains("STATUS: SUCCESS")) {
                 status = "SUCCESS";
                 // Tách output thực tế
                 String outputRegex = "ACTUAL_OUTPUT_START\\n(.*?)\\nACTUAL_OUTPUT_END";
                 Matcher outputMatcher = Pattern.compile(outputRegex, Pattern.DOTALL).matcher(content);
-                
+
                 if (outputMatcher.find()) {
                     String actualOutput = outputMatcher.group(1).trim();
                     passed = compareWithExpected(actualOutput, problemPath, testId);
-                    if (!passed) status = "WA";
+                    if (!passed)
+                        status = "WA";
                 }
             } else if (content.contains("STATUS: TLE")) {
                 status = "TLE";
@@ -61,15 +62,16 @@ public class JudgeUtils {
 
             results.add(new TestCaseResult(testId, passed, status));
         }
-        
+
         return results;
     }
 
     private static boolean compareWithExpected(String actual, String problemPath, int testId) {
         try {
-            Path expectedPath = Path.of(problemPath, "output" + testId + ".txt");
-            if (!Files.exists(expectedPath)) return false;
-            
+            Path expectedPath = Path.of(problemPath, testId + ".out");
+            if (!Files.exists(expectedPath))
+                return false;
+
             String expected = Files.readString(expectedPath).trim();
             // So sánh bỏ qua khoảng trắng thừa ở cuối dòng/cuối file
             return expected.equals(actual);
@@ -81,15 +83,12 @@ public class JudgeUtils {
     public static class LogContainerResultCallback extends ResultCallback.Adapter<Frame> {
         protected final StringBuilder sb = new StringBuilder();
 
-
         @Override
         public void onNext(Frame frame) {
             if (frame != null) {
                 sb.append(new String(frame.getPayload()));
             }
         }
-
-
 
         @Override
         public String toString() {
