@@ -69,6 +69,7 @@ export const ContestManagementPage = () => {
             const response: any = await axiosClient.get('/contests', { params });
             setContests(response.content || []);
             setTotalPages(response.totalPages || 0);
+            setTotalElements(response.totalElements || 0);
         } catch (error) {
             console.error('Failed to load contests', error);
         } finally {
@@ -153,7 +154,7 @@ export const ContestManagementPage = () => {
 
     return (
         <ModeratorLayout>
-            <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a] animate-fade-in-up">
+            <div className="flex-1 overflow-y-auto p-6 bg-[#0f172a] animate-fade-in-up">
                 {/* Header */}
                 <div className="mb-6">
                     <div>
@@ -218,7 +219,7 @@ export const ContestManagementPage = () => {
                                 onClick={handleSearchClick}
                                 className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
                             >
-                                <i className="ph-bold ph-funnel"></i> Lọc kết quả
+                                <i className="ph-bold ph-magnifying-glass"></i> Tìm kiếm
                             </button>
                         </div>
                     </div>
@@ -232,62 +233,62 @@ export const ContestManagementPage = () => {
                 </div>
 
                 {/* Table Container */}
-                <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl overflow-hidden border border-slate-700/50">
+                <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl overflow-hidden border border-slate-700/50 shadow-xl shadow-black/20">
                     <table className="w-full text-sm text-left text-slate-400">
                         <thead className="text-xs uppercase bg-[#1e293b] text-slate-300">
                             <tr>
-                                <th className="px-6 py-4 font-semibold">ID</th>
-                                <th className="px-6 py-4 font-semibold">Tên Cuộc Thi</th>
-                                <th className="px-6 py-4 font-semibold">Trạng Thái</th>
-                                <th className="px-6 py-4 font-semibold">Thời Gian Bắt Đầu / Kết Thúc</th>
-                                <th className="px-6 py-4 font-semibold">Số Người Tham Gia</th>
-                                <th className="px-6 py-4 font-semibold text-right">Thao Tác</th>
+                                <th className="px-6 py-3.5 font-semibold">ID</th>
+                                <th className="px-6 py-3.5 font-semibold">Tên Cuộc Thi</th>
+                                <th className="px-6 py-3.5 font-semibold">Trạng Thái</th>
+                                <th className="px-6 py-3.5 font-semibold">Thời Gian</th>
+                                <th className="px-6 py-3.5 font-semibold">Tham Gia</th>
+                                <th className="px-6 py-3.5 font-semibold text-right">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-8 text-slate-400">
+                                    <td colSpan={6} className="text-center py-6 text-slate-400">
                                         <i className="ph-bold ph-circle-notch text-3xl animate-spin mx-auto mb-3 text-purple-400 block"></i>
                                         Đang tải dữ liệu...
                                     </td>
                                 </tr>
                             ) : contests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-8 text-slate-400">Chưa có cuộc thi nào trong hệ thống.</td>
+                                    <td colSpan={6} className="text-center py-6 text-slate-400">Chưa có cuộc thi nào trong hệ thống.</td>
                                 </tr>
                             ) : (
                                 contests.map((contest) => (
                                     <tr key={contest.id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
-                                        <td className="px-6 py-4 font-mono">#{contest.id}</td>
-                                        <td className="px-6 py-4 font-medium text-white">{contest.title}</td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-3 font-mono">#{contest.id}</td>
+                                        <td className="px-6 py-3 font-medium text-white">{contest.title}</td>
+                                        <td className="px-6 py-3">
                                             <span className={`px-2 py-1 text-xs font-semibold rounded border ${getStatusStyles(contest.status)}`}>
                                                 {contest.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-slate-300">
-                                            <div className="flex flex-col gap-1">
-                                                <span className="text-emerald-400/90">{formatDate(contest.startTime)}</span>
-                                                <span className="text-red-400/90">{formatDate(contest.endTime)}</span>
+                                        <td className="px-6 py-3 text-xs text-slate-300">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-emerald-400/90 whitespace-nowrap">{formatDate(contest.startTime)}</span>
+                                                <span className="text-red-400/90 whitespace-nowrap">{formatDate(contest.endTime)}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-300 font-mono">
-                                            {contest.participantCount} <span className="text-slate-500 font-sans text-sm">thí sinh</span>
+                                        <td className="px-6 py-3 text-slate-300 font-mono">
+                                            {contest.participantCount} <span className="text-slate-500 font-sans text-xs">thí sinh</span>
                                         </td>
-                                        <td className="px-6 py-4 text-right space-x-2">
+                                        <td className="px-6 py-3 text-right space-x-1 whitespace-nowrap">
                                             {contest.status === 'active' && (
-                                                <button className="p-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors border border-emerald-500/20 tooltip" title="Monitor (Theo dõi diễn biến)">
-                                                    <i className="ph-duotone ph-chart-line-up"></i>
+                                                <button className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors border border-emerald-500/20 tooltip" title="Monitor (Theo dõi diễn biến)">
+                                                    <i className="ph-duotone ph-chart-line-up text-base"></i>
                                                 </button>
                                             )}
                                             {contest.status === 'finished' && (
                                                 <Link
                                                     to={`/moderator/contests/${contest.id}/results`}
-                                                    className="inline-block p-2 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20 tooltip"
+                                                    className="inline-block p-1.5 bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20 tooltip"
                                                     title="Thống kê kết quả"
                                                 >
-                                                    <i className="ph-duotone ph-chart-pie-slice"></i>
+                                                    <i className="ph-duotone ph-chart-pie-slice text-base"></i>
                                                 </Link>
                                             )}
                                             <button
@@ -295,30 +296,30 @@ export const ContestManagementPage = () => {
                                                     setSelectedContest({ id: contest.id, title: contest.title });
                                                     setManageProblemModalOpen(true);
                                                 }}
-                                                className="inline-block p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 tooltip"
+                                                className="inline-block p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 tooltip"
                                                 title="Quản lý bài tập"
                                             >
-                                                <i className="ph-duotone ph-list-magnifying-glass"></i>
+                                                <i className="ph-duotone ph-list-magnifying-glass text-base"></i>
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setSelectedContest({ id: contest.id, title: contest.title });
                                                     setEditModalOpen(true);
                                                 }}
-                                                className="inline-block p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
+                                                className="inline-block p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
                                                 title="Chỉnh sửa"
                                             >
-                                                <i className="ph-bold ph-pencil-simple"></i>
+                                                <i className="ph-bold ph-pencil-simple text-base"></i>
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setSelectedContest({ id: contest.id, title: contest.title });
                                                     setDeleteModalOpen(true);
                                                 }}
-                                                className="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20 tooltip"
+                                                className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20 tooltip"
                                                 title="Xóa cuộc thi"
                                             >
-                                                <i className="ph-bold ph-trash"></i>
+                                                <i className="ph-bold ph-trash text-base"></i>
                                             </button>
                                         </td>
                                     </tr>
