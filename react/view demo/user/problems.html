@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Bài Tập - Code Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .table-row-hover:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center gap-8">
+            <a href="home.html" class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+                <a href="home.html" class="hover:text-blue-400 transition-colors">Trang chủ</a>
+                <a href="problems.html" class="text-white hover:text-blue-400 transition-colors">Bài tập</a>
+                <a href="contests.html" class="hover:text-blue-400 transition-colors">Cuộc thi</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition-colors">Bảng xếp hạng</a>
+                <a href="discussions.html" class="hover:text-blue-400 transition-colors">Thảo luận</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="profile.html"
+                class="flex items-center gap-3 cursor-pointer group pl-2 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">nguyenvana
+                    </div>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=3" class="w-10 h-10 rounded-full border-2 border-blue-500/50">
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+        <div class="flex justify-between items-end mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2">Kho Bài Tập</h1>
+                <p class="text-slate-400">Rèn luyện kỹ năng qua hàng trăm thử thách thuật toán.</p>
+            </div>
+            <div class="flex gap-2 text-sm text-slate-400">
+                <div class="glass px-4 py-2 rounded-lg border-green-500/30">
+                    <span class="text-green-400 font-bold">1/3</span> đã giải
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="glass p-4 rounded-xl mb-6 flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex gap-4 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" placeholder="Tìm tên bài, ID..."
+                        class="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-all">
+                </div>
+                <select
+                    class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-32">
+                    <option value="">Độ khó</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <select
+                    class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-32 hidden sm:block">
+                    <option value="">Trạng thái</option>
+                    <option value="solved">Đã giải</option>
+                    <option value="unsolved">Chưa giải</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button
+                    class="px-4 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">DP</button>
+                <button
+                    class="px-4 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">Math</button>
+                <button
+                    class="px-4 py-2 border border-slate-700 hover:bg-slate-800 rounded-lg text-sm font-medium transition-colors">Graph</button>
+            </div>
+        </div>
+
+        <!-- Problems Table -->
+        <div class="glass rounded-xl overflow-hidden border border-slate-700/50 shadow-xl">
+            <table class="w-full text-sm text-left text-slate-400">
+                <thead class="text-xs uppercase bg-slate-800/50 text-slate-300 border-b border-slate-700">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 w-16 text-center">Trạng thái</th>
+                        <th scope="col" class="px-6 py-4">Tên bài</th>
+                        <th scope="col" class="px-6 py-4 w-32">Độ khó</th>
+                        <th scope="col" class="px-6 py-4 hidden md:table-cell">Tags</th>
+                        <th scope="col" class="px-6 py-4 text-center w-32">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Problem 1 (Solved) -->
+                    <tr class="table-row-hover border-b border-slate-800 transition-colors">
+                        <td class="px-6 py-4 text-center text-green-500 text-lg">
+                            <i class="ph-fill ph-check-circle"></i>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-white">
+                            <a href="workspace.html" class="hover:text-blue-400 hover:underline">1. Tổng hai số</a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-green-400 font-medium">Easy</span>
+                        </td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            <span
+                                class="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full whitespace-nowrap">Math</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="workspace.html"
+                                class="inline-block px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-md transition-colors text-xs font-medium border border-slate-600">Làm
+                                lại</a>
+                        </td>
+                    </tr>
+                    <!-- Problem 2 -->
+                    <tr class="table-row-hover border-b border-slate-800 transition-colors">
+                        <td class="px-6 py-4 text-center text-slate-600 text-lg">
+                            <i class="ph-bold ph-minus"></i>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-white">
+                            <a href="workspace.html" class="hover:text-blue-400 hover:underline">2. Số Fibonacci thứ
+                                N</a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-yellow-400 font-medium">Medium</span>
+                        </td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            <span
+                                class="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full whitespace-nowrap">DP</span>
+                            <span
+                                class="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full whitespace-nowrap">Math</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="workspace.html"
+                                class="inline-block px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors text-xs font-medium shadow-lg shadow-blue-500/20">Giải
+                                bài</a>
+                        </td>
+                    </tr>
+                    <!-- Problem 3 -->
+                    <tr class="table-row-hover transition-colors">
+                        <td class="px-6 py-4 text-center text-slate-600 text-lg">
+                            <i class="ph-bold ph-minus"></i>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-white">
+                            <a href="workspace.html" class="hover:text-blue-400 hover:underline">3. Tìm đường đi ngắn
+                                nhất</a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-red-400 font-medium">Hard</span>
+                        </td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            <span
+                                class="bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full whitespace-nowrap">Graph</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="workspace.html"
+                                class="inline-block px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors text-xs font-medium shadow-lg shadow-blue-500/20">Giải
+                                bài</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between mt-6">
+            <span class="text-sm text-slate-400">Hiển thị <span class="font-semibold text-white">1</span> đến <span
+                    class="font-semibold text-white">3</span> trên <span class="font-semibold text-white">3</span>
+                bài</span>
+            <div class="inline-flex">
+                <button class="px-3 py-1 bg-slate-800 text-slate-400 rounded-l cursor-not-allowed">Trang trước</button>
+                <button class="px-3 py-1 bg-blue-600 text-white">1</button>
+                <button class="px-3 py-1 bg-slate-800 text-slate-400 rounded-r cursor-not-allowed">Trang sau</button>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

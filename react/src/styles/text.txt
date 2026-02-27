@@ -1,0 +1,1 @@
+﻿Chứa các file CSS/SCSS global, biến màu sắc, font chữ

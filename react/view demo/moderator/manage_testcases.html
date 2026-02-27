@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Bộ Test (Test Cases) - Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: '#0f172a', card: '#1e293b' }, fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] } }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+            font-medium;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+
+        .card-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar cho text area */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar Moderator -->
+    <aside class="w-64 bg-[#0b1120] border-r border-[#1e293b] flex flex-col pt-6 pb-4 z-20 shrink-0">
+        <div class="px-6 mb-8 mt-2 text-xl font-bold tracking-tight flex items-center gap-2">
+            <div
+                class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                <i class="ph-bold ph-shield text-white text-lg"></i>
+            </div>
+            <span class="text-white">Moderator<span class="text-indigo-400">Panel</span></span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2">
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="ph-duotone ph-squares-four text-xl"></i> Tổng quan
+            </a>
+            <a href="manage_problems.html" class="sidebar-link">
+                <i class="ph-duotone ph-book-open-text text-xl"></i> Ngân hàng bài tập
+            </a>
+            <a href="manage_testcases.html" class="sidebar-link active">
+                <i class="ph-duotone ph-flask text-xl"></i> Kho Test Cases
+            </a>
+            <a href="manage_contests.html" class="sidebar-link">
+                <i class="ph-duotone ph-trophy text-xl"></i> Quản lý Kỳ thi
+            </a>
+            <a href="manage_submissions.html" class="sidebar-link">
+                <i class="ph-duotone ph-list-dashes text-xl"></i> Lịch sử Chấm bài
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- HeaderBar -->
+        <header
+            class="h-16 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+            <h1 class="text-xl font-semibold text-white">Quản lý Bộ Test Data</h1>
+            <div class="flex items-center gap-4">
+                <div class="h-6 w-px bg-[#1e293b] hidden sm:block"></div>
+                <!-- Profile -->
+                <div
+                    class="relative flex items-center gap-3 cursor-pointer hover:bg-[#1e293b] p-2 rounded-lg transition">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm font-semibold text-white leading-tight">Giảng viên Tùng</div>
+                        <div class="text-xs text-slate-400 font-mono">Mod ID: 2</div>
+                    </div>
+                    <img src="https://i.pravatar.cc/150?u=2"
+                        class="w-10 h-10 rounded-full border border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-8 bg-[#0f172a] flex flex-col lg:flex-row gap-8">
+
+            <!-- LIST OF TEST CASES (TRÁI) -->
+            <div class="w-full lg:w-1/3 flex flex-col">
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Đang thiết lập Test cho bài
+                        toán:</label>
+                    <select
+                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none shadow-sm transition-all font-semibold">
+                        <option value="1">#1024 - Tìm đường đi ngắn nhất (Dijkstra)</option>
+                        <option value="2">#1025 - Bài toán cái túi (Knapsack)</option>
+                        <option value="3">#1101 - Tổng của hai số lớn</option>
+                    </select>
+                </div>
+
+                <div class="card-glass rounded-xl flex-1 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b border-[#334155] flex justify-between items-center bg-[#1e293b]/50">
+                        <h3 class="font-bold text-white">Danh sách 12 Tests</h3>
+                        <button class="bg-indigo-600 hover:bg-indigo-500 text-white rounded p-1.5 tooltip transition"
+                            title="Auto-Generate Output cho các Test chưa có">
+                            <i class="ph-bold ph-magic-wand text-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                        <!-- Item Active -->
+                        <div class="bg-blue-600/20 border border-blue-500/50 rounded-lg p-3 cursor-pointer group">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white font-mono font-bold text-sm">Test #1</span>
+                                <span
+                                    class="bg-indigo-500/20 text-indigo-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded border border-indigo-500/30">Mẫu
+                                    (Sample)</span>
+                            </div>
+                            <div class="text-xs text-slate-400 mt-2 truncate w-full">Input: `3 5\n1 2 3`</div>
+                        </div>
+
+                        <!-- Item Normal -->
+                        <div
+                            class="hover:bg-[#1e293b] border border-transparent hover:border-[#334155] rounded-lg p-3 cursor-pointer transition group">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-mono font-semibold text-sm">Test #2</span>
+                                <span
+                                    class="bg-slate-700 text-slate-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded">Ẩn
+                                    (Hidden)</span>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-2 truncate w-full">Input: `100 99\n5 1 2...`</div>
+                        </div>
+
+                        <div
+                            class="hover:bg-[#1e293b] border border-transparent hover:border-[#334155] rounded-lg p-3 cursor-pointer transition group">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-mono font-semibold text-sm">Test #3</span>
+                                <span
+                                    class="bg-slate-700 text-slate-400 text-[10px] uppercase font-bold px-2 py-0.5 rounded">Ẩn
+                                    (Hidden)</span>
+                            </div>
+                            <div class="text-xs text-red-400 mt-2 truncate w-full italic">-- Chưa có Output --</div>
+                        </div>
+
+                    </div>
+
+                    <div class="p-4 border-t border-[#334155] bg-[#1e293b]/50">
+                        <button
+                            class="w-full border border-dashed border-slate-500 hover:border-blue-500 text-slate-400 hover:text-white py-2 rounded-lg transition text-sm flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-plus"></i> Thêm Test Mới
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- EDITOR TEST CASES (PHẢI) -->
+            <div class="w-full lg:w-2/3 flex flex-col card-glass rounded-xl p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                            Chi tiết Test <span class="text-blue-400 font-mono">#1</span>
+                        </h2>
+                        <p class="text-sm text-slate-400 mt-1">Sửa nội dung đầu vào (Input) và đầu ra mong muốn
+                            (Expected Output).</p>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" value="" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-slate-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                            </div>
+                            <span class="ml-3 text-sm font-medium text-slate-300">Test Mẫu (Public)</span>
+                        </label>
+                        <button
+                            class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-lg transition flex items-center gap-2">
+                            <i class="ph-bold ph-floppy-disk text-lg"></i> Lưu Test
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input area -->
+                <div class="flex-1 flex flex-col gap-6">
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-semibold text-white uppercase tracking-wider">Standard Input
+                                (stdin)</label>
+                            <span class="text-xs text-slate-500 border border-slate-700 px-2 py-0.5 rounded-sm">Kích
+                                thước: 14 bytes</span>
+                        </div>
+                        <textarea
+                            class="flex-1 bg-[#1e293b] border border-[#334155] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none rounded-lg p-4 font-mono text-sm text-slate-300 resize-none h-48"
+                            placeholder="Nhập data đầu vào...">3 5
+1 2 3</textarea>
+                    </div>
+
+                    <div class="flex items-center justify-center">
+                        <i class="ph-bold ph-arrow-down text-2xl text-slate-600"></i>
+                    </div>
+
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-semibold text-emerald-400 uppercase tracking-wider">Expected
+                                Output (stdout)</label>
+                            <span class="text-xs text-slate-500 border border-slate-700 px-2 py-0.5 rounded-sm">Kích
+                                thước: 2 bytes</span>
+                        </div>
+                        <textarea
+                            class="flex-1 bg-[#1e293b] border border-emerald-500/30 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none rounded-lg p-4 font-mono text-sm text-slate-300 resize-none h-48"
+                            placeholder="Chạy Auto-Generate hoặc nhập kết quả mong muốn ở đây...">9</textarea>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

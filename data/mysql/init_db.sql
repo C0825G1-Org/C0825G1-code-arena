@@ -9,6 +9,7 @@ USE code_arena;
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
+    full_name VARCHAR(100),
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'moderator', 'admin') DEFAULT 'user',
@@ -90,7 +91,7 @@ CREATE TABLE contests (
     description TEXT,
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,
-    status ENUM('upcoming', 'active', 'finished') DEFAULT 'upcoming',
+    status ENUM('upcoming', 'active', 'finished', 'cancelled') DEFAULT 'upcoming',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

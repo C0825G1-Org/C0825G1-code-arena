@@ -33,17 +33,24 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'com.corundumstudio.socketio:netty-socketio:2.0.12'
 
     // Docker Java API (Sử dụng bundle tổng hợp để đảm bảo đầy đủ class)
     implementation 'com.github.docker-java:docker-java:3.4.0'
     implementation 'com.github.docker-java:docker-java-transport-httpclient5:3.4.0'
+
+    // JWT Configuration
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-    
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

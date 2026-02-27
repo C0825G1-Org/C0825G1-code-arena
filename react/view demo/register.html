@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - Code Arena</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)',
+                        primary: '#3b82f6',
+                        accent: '#10b981'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex items-center justify-center relative overflow-hidden py-10">
+    <!-- Background Glow -->
+    <div
+        class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none">
+    </div>
+    <div
+        class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none">
+    </div>
+
+    <div class="glass p-10 rounded-3xl w-full max-w-lg relative z-10 shadow-2xl shadow-blue-900/20">
+        <div class="text-center mb-8">
+            <a href="index.html"
+                class="inline-flex items-center gap-2 text-3xl font-bold tracking-tighter mb-2 hover:opacity-80 transition-opacity">
+                <i class="ph-fill ph-code text-blue-500 text-4xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+            <h2 class="text-xl font-semibold mt-2">Tạo tài khoản mới</h2>
+            <p class="text-slate-400 text-sm mt-1">Tham gia cộng đồng lập trình lớn nhất Việt Nam</p>
+        </div>
+
+        <form id="registerForm" class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Họ và tên</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ph-duotone ph-user-circle text-slate-400 text-lg"></i>
+                        </div>
+                        <input type="text" required
+                            class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-colors"
+                            placeholder="Nguyễn Văn A">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Tên đăng nhập</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ph-duotone ph-user text-slate-400 text-lg"></i>
+                        </div>
+                        <input type="text" required
+                            class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-colors"
+                            placeholder="nguyenvana">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-envelope text-slate-400 text-lg"></i>
+                    </div>
+                    <input type="email" required
+                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-colors"
+                        placeholder="name@company.com">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Mật khẩu</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-lock-key text-slate-400 text-lg"></i>
+                    </div>
+                    <input type="password" required
+                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-colors"
+                        placeholder="••••••••">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Nhập lại mật khẩu</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="ph-duotone ph-check-shield text-slate-400 text-lg"></i>
+                    </div>
+                    <input type="password" required
+                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-colors"
+                        placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                    <input id="terms" type="checkbox" value=""
+                        class="w-4 h-4 rounded bg-[#1e293b] border-[#334155] text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        required>
+                </div>
+                <label for="terms" class="ml-2 text-sm font-medium text-slate-300 cursor-pointer">Tôi đồng ý với <a
+                        href="#" class="text-blue-400 hover:underline">Điều khoản dịch vụ</a> và <a href="#"
+                        class="text-blue-400 hover:underline">Chính sách bảo mật</a></label>
+            </div>
+
+            <button type="submit"
+                class="w-full text-white bg-blue-600 hover:bg-blue-500 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg px-5 py-3 text-center transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
+                Tạo Tài Khoản <i class="ph-bold ph-arrow-right"></i>
+            </button>
+
+            <!-- Social Login -->
+            <div class="relative flex items-center gap-4 py-2 mt-2">
+                <div class="flex-1 border-t border-slate-700"></div>
+                <div class="text-xs text-slate-400 font-medium whitespace-nowrap">HOẶC ĐĂNG KÝ VỚI</div>
+                <div class="flex-1 border-t border-slate-700"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-2">
+                <button type="button" onclick="alert('Tính năng đang phát triển!')"
+                    class="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-lg text-white font-medium transition-colors">
+                    <i class="ph-fill ph-google-logo text-xl text-red-500"></i> Google
+                </button>
+                <button type="button" onclick="alert('Tính năng đang phát triển!')"
+                    class="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-lg text-white font-medium transition-colors">
+                    <i class="ph-fill ph-github-logo text-xl"></i> GitHub
+                </button>
+            </div>
+
+            <div class="mt-6 text-center text-sm font-medium text-slate-300">
+                Đã có tài khoản?
+                <a href="login.html" class="text-blue-400 hover:text-blue-300 transition-colors hover:underline">Đăng
+                    nhập ngay</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            // Just for UI demo
+            alert('Đăng ký thành công! Đang chuyển hướng đến trang đăng nhập...');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+
+</html>
