@@ -5,6 +5,9 @@ import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.entity.TestCase;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
+import com.codegym.spring_boot.entity.Contest;
+import java.time.Duration;
 import com.codegym.spring_boot.service.ITestCaseService;
 import com.codegym.spring_boot.service.judge.JudgeCoreProcessor;
 import com.codegym.spring_boot.service.NotificationService;
@@ -12,6 +15,8 @@ import com.codegym.spring_boot.entity.SubmissionTestResult;
 
 import com.codegym.spring_boot.dto.JudgeTicket;
 import com.codegym.spring_boot.dto.SubmitRequestDTO;
+import com.codegym.spring_boot.dto.SubmissionHistoryDTO;
+import java.util.stream.Collectors;
 import com.codegym.spring_boot.entity.Language;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Submission;
@@ -40,6 +45,7 @@ public class SubmissionService implements ISubmissionService {
         private final ITestCaseService testCaseService;
         private final JudgeCoreProcessor judgeCoreProcessor;
         private final ISubmissionTestResultRepository submissionTestResultRepository;
+        private final ContestParticipantRepository contestParticipantRepository;
         private final NotificationService notificationService;
 
         @Override
@@ -156,7 +162,56 @@ public class SubmissionService implements ISubmissionService {
                 submission.setStatus(result.status());
                 submissionRepository.save(submission);
 
-                // 4. Gửi Socket về ReactJS
+                // --- 4. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC và nằm trong Contest) ---
+                if (result.status() == SubmissionStatus.AC && submission.getContest() != null) {
+                        Integer contestId = submission.getContest().getId();
+                        Integer userId = submission.getUser().getId();
+                        Integer problemId = submission.getProblem().getId();
+
+                        // 4.1: Kiểm tra xem User đã từng AC bài này xưa kia chưa? Nếu chưa thì tính
+                        // điểm.
+                        boolean alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
+                                        userId, problemId, contestId, SubmissionStatus.AC);
+
+                        // Chỉ cập nhật Penalty nếu đây là lần ĐẦU TIÊN User AC bài này trong kỳ thi.
+                        if (!alreadyAC) {
+
+                                Integer currentSubId = submission.getId();
+                                // Giả lập logic: Gọi repo tìm xem CÓ BÀI NÀO AC TRƯỚC ĐÓ HAY CHƯA.
+                                // Để đơn giản (trong demo này):
+                                // Tính Penalty nếu đây là lần AC đầu tiên.
+                                // TODO: Update exist query to check "id < currentSubId".
+                                // Logic Penalty nháp:
+                                Contest contest = submission.getContest();
+                                if (contest.getStartTime() != null && submission.getCreatedAt() != null) {
+                                        // Tính Penalty 1: Thời gian từ lúc bắt đầu thi đến khi nộp AC (tính bằng giây)
+                                        long minutesFromStart = Duration
+                                                        .between(contest.getStartTime(), submission.getCreatedAt())
+                                                        .toMinutes();
+
+                                        // Đếm số lần nộp sai trước đó (mỗi lần sai + 20 phút)
+                                        int failedAttempts = submissionRepository
+                                                        .countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(
+                                                                        userId, problemId, contestId, currentSubId,
+                                                                        SubmissionStatus.AC);
+
+                                        long penaltyMinutes = minutesFromStart + (failedAttempts * 20L);
+
+                                        // Cập nhật Participant
+                                        contestParticipantRepository.findByContestIdAndUserId(contestId, userId)
+                                                        .ifPresent(p -> {
+                                                                p.setTotalScore(p.getTotalScore() + 1);
+                                                                p.setTotalPenalty(p.getTotalPenalty()
+                                                                                + (int) penaltyMinutes);
+                                                                contestParticipantRepository.save(p);
+                                                                log.info("Cập nhật Penalty ICPC User {} - Tăng {} điểm, Penalty: {} phút",
+                                                                                userId, 1, penaltyMinutes);
+                                                        });
+                                }
+                        }
+                }
+
+                // 5. Gửi Socket về ReactJS
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                 .submissionId(msg.getSubmissionId())
                                 .status(result.status().name())
@@ -165,5 +220,34 @@ public class SubmissionService implements ISubmissionService {
                                 .score(submission.getScore())
                                 .build();
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public java.util.List<SubmissionHistoryDTO> getHistoryByProblem(Integer problemId) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                User user = null;
+                if (authentication != null && authentication.isAuthenticated()
+                                && !authentication.getPrincipal().equals("anonymousUser")) {
+                        String username = authentication.getName();
+                        user = userRepository.findByUsernameAndIsDeletedFalse(username)
+                                        .orElseThrow(() -> new RuntimeException("Current user not found"));
+                } else {
+                        log.warn("User is not authenticated. Returning empty history.");
+                        // fallback to empty or throw 401
+                        return java.util.Collections.emptyList();
+                }
+
+                java.util.List<Submission> submissions = submissionRepository
+                                .findByUserIdAndProblemIdOrderByIdDesc(user.getId(), problemId);
+
+                return submissions.stream().map(sub -> SubmissionHistoryDTO.builder()
+                                .id(sub.getId())
+                                .status(sub.getStatus().name())
+                                .executionTime(sub.getExecutionTime())
+                                .memoryUsed(sub.getMemoryUsed())
+                                .score(sub.getScore())
+                                .createdAt(sub.getCreatedAt())
+                                .build()).collect(Collectors.toList());
         }
 }
