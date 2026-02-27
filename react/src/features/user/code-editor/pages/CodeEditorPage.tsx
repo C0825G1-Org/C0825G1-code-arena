@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import CodeEditor from "../components/CodeEditor";
 import ProblemPanel from "../components/ProblemPanel";
 import LanguageSelector from "../components/LanguageSelector";
@@ -15,8 +15,8 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 export default function Home() {
-    const { id } = useParams<{ id: string }>();
-    const problemId = id ? parseInt(id, 10) : 1; // Fallback to 1 if no param
+    const { problemId: problemIdStr } = useParams<{ problemId: string }>();
+    const problemId = problemIdStr ? parseInt(problemIdStr, 10) : 1; // Fallback to 1 if no param
     const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId);
     const { settings, updateSettings } = useSettings();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -24,10 +24,49 @@ export default function Home() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState<'problem' | 'submissions'>('problem');
 
+    const [searchParams] = useSearchParams();
+    const contestId = searchParams.get('contestId');
+    const isExamMode = !!contestId;
+
     useEffect(() => {
         // Mock get sample test cases for problem 1
         getSampleTestCases(problemId).then(setTestCases).catch(console.error);
-    }, []);
+
+        // Anti-cheat mechanisms
+        if (isExamMode) {
+            const handleVisibilityChange = () => {
+                if (document.hidden) {
+                    toast.error("CẢNH BÁO: BẠN VỪA RỜI KHỎI MÀN HÌNH THI!", {
+                        position: "top-center",
+                        autoClose: false,
+                        style: { fontWeight: 'bold', fontSize: '1.2rem', padding: '1rem' }
+                    });
+                    // Todo: Call API to log warning for user
+                }
+            };
+
+            const handlePreventCopyPaste = (e: ClipboardEvent) => {
+                e.preventDefault();
+                toast.warning("Hành động bị cấm trong kỳ thi!");
+            };
+
+            const handleContextMenu = (e: MouseEvent) => {
+                e.preventDefault();
+            };
+
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            document.addEventListener('copy', handlePreventCopyPaste);
+            document.addEventListener('paste', handlePreventCopyPaste);
+            document.addEventListener('contextmenu', handleContextMenu);
+
+            return () => {
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
+                document.removeEventListener('copy', handlePreventCopyPaste);
+                document.removeEventListener('paste', handlePreventCopyPaste);
+                document.removeEventListener('contextmenu', handleContextMenu);
+            };
+        }
+    }, [isExamMode, problemId]);
 
     const handleSubmit = async () => {
         if (!code.trim()) {
@@ -47,7 +86,8 @@ export default function Home() {
             const response = await axios.post('http://localhost:8080/api/submissions', {
                 problemId: problemId,
                 languageId: langId,
-                sourceCode: code
+                sourceCode: code,
+                ...(isExamMode ? { contestId: parseInt(contestId) } : {})
             }, {
                 headers: {
                     ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -92,8 +132,8 @@ export default function Home() {
                         </button>
                     </div>
                     <div className="flex-1 overflow-hidden">
-                        {activeTab === 'problem' && <ProblemPanel problemId={problemId} />}
-                        {activeTab === 'submissions' && <SubmissionHistory problemId={problemId} />}
+                        {activeTab === 'problem' && <ProblemPanel problemId={problemId} contestId={contestId} />}
+                        {activeTab === 'submissions' && <SubmissionHistory problemId={problemId} contestId={contestId} />}
                     </div>
                 </div>
 

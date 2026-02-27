@@ -4,8 +4,8 @@ import { useSocket } from '../../../../shared/hooks/useSocket';
 import { CheckCircle, Clock, WarningCircle, XCircle } from '@phosphor-icons/react';
 import SubmissionDetailPanel from './SubmissionDetailPanel';
 
-const SubmissionHistory = ({ problemId }) => {
-    const [submissions, setSubmissions] = useState([]);
+const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contestId?: string | null }) => {
+    const [submissions, setSubmissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
 
@@ -14,8 +14,13 @@ const SubmissionHistory = ({ problemId }) => {
         const fetchSubmissions = async () => {
             try {
                 const token = localStorage.getItem('token');
-                // Assume endpoint /api/v1/submissions/me?problemId=...
-                const response = await axios.get(`http://localhost:8080/api/v1/submissions/me?problemId=${problemId}`, {
+
+                let apiUrl = `http://localhost:8080/api/submissions/me?problemId=${problemId}`;
+                if (contestId) {
+                    apiUrl += `&contestId=${contestId}`;
+                }
+
+                const response = await axios.get(apiUrl, {
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
                 if (response.data && response.data.content) {
@@ -47,7 +52,12 @@ const SubmissionHistory = ({ problemId }) => {
             }
         }
 
-        setSubmissions((prev) => {
+        setSubmissions((prev: any[]) => {
+            // Filter out updates not meant for this contest view
+            if (contestId && data.contestId !== Number(contestId)) {
+                return prev;
+            }
+
             // Check if submission already exists in list (update it)
             const existsIndex = prev.findIndex(s => s.id === data.submissionId || s.submissionId === data.submissionId);
             if (existsIndex >= 0) {
