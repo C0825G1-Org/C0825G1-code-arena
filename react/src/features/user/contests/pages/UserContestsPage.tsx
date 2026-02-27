@@ -45,14 +45,34 @@ export const UserContestsPage = () => {
     const [loading, setLoading] = useState(true);
     const [registeringId, setRegisteringId] = useState<number | null>(null);
 
+    // Filter & Pagination States
+    const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
     const fetchContests = async () => {
         try {
             setLoading(true);
-            const data = await contestService.getContests(filterStatus || undefined, 0, 50);
-            // Sort by ID descending implicitly by API
+            const params: any = { size: 6, page: page, sort: 'startTime,desc' };
+            if (filterStatus) params.status = filterStatus;
+            if (searchTerm) params.title = searchTerm;
+            if (startTime) params.startTime = new Date(startTime).toISOString();
+            if (endTime) {
+                const end = new Date(endTime);
+                end.setHours(23, 59, 59, 999);
+                if (!isNaN(end.getTime())) {
+                    params.endTime = end.toISOString();
+                }
+            }
+
+            const data = await contestService.getContests(params);
             setContests(data.content || []);
+            setTotalPages(data.totalPages || 0);
+            setTotalElements(data.totalElements || 0);
         } catch (err) {
             console.error('Failed to fetch contests:', err);
             toast.error('Không thể tải danh sách cuộc thi');
@@ -63,7 +83,64 @@ export const UserContestsPage = () => {
 
     useEffect(() => {
         fetchContests();
-    }, [filterStatus]);
+    }, [filterStatus, page]);
+
+    const handleSearchClick = () => {
+        if (page === 0) fetchContests();
+        else setPage(0);
+    };
+
+    const handleResetFilters = () => {
+        setSearchTerm('');
+        setFilterStatus('');
+        setStartTime('');
+        setEndTime('');
+        setPage(0);
+        setTimeout(() => fetchContests(), 0);
+    };
+
+    const renderPageNumbers = () => {
+        if (totalPages <= 1) return null;
+        const pages = [];
+        for (let i = 0; i < totalPages; i++) {
+            pages.push(
+                <button
+                    key={i}
+                    onClick={() => setPage(i)}
+                    className={`min-w-[44px] h-[44px] flex items-center justify-center rounded-xl font-bold transition-all duration-300 mx-1 ${page === i
+                            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/40 text-white transform -translate-y-1'
+                            : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/20'
+                        }`}
+                >
+                    {i + 1}
+                </button>
+            );
+        }
+        return (
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-12 mb-8 gap-6 max-w-4xl mx-auto w-full bg-slate-800/30 p-4 rounded-3xl border border-white/5 backdrop-blur-sm">
+                <div className="text-slate-400 font-medium px-4">
+                    Hiển thị <span className="text-white font-bold">{contests.length}</span> / <span className="text-blue-400 font-bold">{totalElements}</span> cuộc thi
+                </div>
+                <div className="flex items-center flex-wrap justify-center gap-y-3">
+                    <button
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                        className="h-[44px] px-4 rounded-xl flex items-center justify-center font-bold text-slate-400 bg-slate-800/80 hover:bg-slate-700 hover:text-white border border-slate-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all mr-2"
+                    >
+                        Trang trước
+                    </button>
+                    {pages}
+                    <button
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                        className="h-[44px] px-4 rounded-xl flex items-center justify-center font-bold text-slate-400 bg-slate-800/80 hover:bg-slate-700 hover:text-white border border-slate-700/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all ml-2"
+                    >
+                        Trang sau
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     const handleLogout = () => {
         navigate('/');
@@ -189,31 +266,104 @@ export const UserContestsPage = () => {
             <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 sm:py-12 z-10 max-w-7xl">
 
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
-                    <div>
-                        <h1 className="text-4xl font-extrabold tracking-tight mb-3 flex items-center gap-3">
-                            <CalendarStar weight="duotone" className="text-purple-400" />
+                <div className="flex flex-col mb-10">
+                    <div className="mb-8 text-center sm:text-left">
+                        <h1 className="text-5xl font-black tracking-tight mb-4 flex items-center justify-center sm:justify-start gap-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">
+                            <CalendarStar weight="duotone" className="text-blue-500" />
                             Danh sách Cuộc thi
                         </h1>
-                        <p className="text-slate-400 max-w-2xl text-lg">
-                            Tham gia các kỳ thi lập trình để cọ xát kỹ năng thuật toán, tích lũy điểm thưởng và vươn lên trên bảng xếp hạng (Leaderboard).
+                        <p className="text-slate-400 max-w-2xl text-lg mx-auto sm:mx-0 font-medium">
+                            Tham gia các kỳ thi lập trình để cọ xát kỹ năng thuật toán, tích lũy điểm thưởng và vươn lên trên bảng xếp hạng (Leaderboard) nhanh chóng.
                         </p>
                     </div>
 
-                    {/* Filters */}
-                    <div className="flex gap-2 w-full md:w-auto bg-slate-800/50 p-1.5 rounded-xl border border-slate-700/50 backdrop-blur-md">
-                        {['', 'active', 'upcoming', 'finished'].map(status => (
+                    {/* Filters & Search - Vibrant and Youthful */}
+                    <div className="w-full flex flex-col xl:flex-row gap-4 bg-slate-800/40 p-5 md:p-6 rounded-3xl border border-white/5 backdrop-blur-xl shadow-[0_20px_40px_-15px_rgba(79,70,229,0.15)] relative overflow-hidden">
+
+                        {/* Shimmer Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none"></div>
+
+                        {/* Search Bar */}
+                        <div className="flex-1 relative group z-10">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i className="ph-bold ph-magnifying-glass text-xl text-blue-400 group-focus-within:text-purple-400 transition-colors"></i>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Bạn muốn tìm cuộc thi nào?..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearchClick()}
+                                className="w-full h-[52px] bg-slate-900/60 border border-slate-700/50 text-white text-sm rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 block pl-12 pr-4 transition-all placeholder-slate-500 shadow-inner shadow-black/20"
+                            />
+                        </div>
+
+                        {/* Date Filters */}
+                        <div className="flex gap-4 flex-col sm:flex-row z-10">
+                            <div className="relative group md:w-44 lg:w-48">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i className="ph-duotone ph-calendar-plus text-lg text-emerald-400"></i>
+                                </div>
+                                <input
+                                    type="date"
+                                    value={startTime}
+                                    title="Từ ngày"
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    className="w-full h-[52px] bg-slate-900/60 border border-slate-700/50 text-slate-300 text-sm rounded-2xl focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 block pl-12 pr-3 transition-all cursor-text appearance-none"
+                                />
+                            </div>
+                            <div className="relative group md:w-44 lg:w-48">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i className="ph-duotone ph-calendar-check text-lg text-rose-400"></i>
+                                </div>
+                                <input
+                                    type="date"
+                                    value={endTime}
+                                    title="Đến ngày"
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    className="w-full h-[52px] bg-slate-900/60 border border-slate-700/50 text-slate-300 text-sm rounded-2xl focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 block pl-12 pr-3 transition-all cursor-text appearance-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Status Pills */}
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 xl:pb-0 scrollbar-hide z-10">
+                            {[
+                                { val: '', label: '⚡ Tất cả' },
+                                { val: 'active', label: '🔥 Đang mở' },
+                                { val: 'upcoming', label: '⏳ Sắp tới' },
+                                { val: 'finished', label: '🏁 Đã xong' }
+                            ].map(st => (
+                                <button
+                                    key={st.val}
+                                    onClick={() => { setFilterStatus(st.val); setPage(0); }}
+                                    className={`h-[52px] px-5 rounded-2xl text-sm font-bold transition-all whitespace-nowrap border ${filterStatus === st.val
+                                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-indigo-500/50 text-white shadow-[0_8px_16px_rgba(79,70,229,0.3)] transform -translate-y-0.5'
+                                            : 'bg-slate-900/40 text-slate-400 border-slate-700/50 hover:border-slate-500 hover:text-slate-200 hover:bg-slate-800'
+                                        }`}
+                                >
+                                    {st.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3 h-[52px] z-10">
                             <button
-                                key={status}
-                                onClick={() => setFilterStatus(status)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex-1 md:flex-none ${filterStatus === status
-                                    ? 'bg-purple-600 text-white shadow-md'
-                                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-                                    }`}
+                                onClick={handleResetFilters}
+                                className="h-full px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700 flex items-center justify-center group shrink-0 shadow-lg shadow-black/20 hover:shadow-slate-700/50"
+                                title="Làm mới bộ lọc"
                             >
-                                {status === '' ? 'Tất cả' : status === 'active' ? 'Đang diễn ra' : status === 'upcoming' ? 'Sắp tới' : 'Đã xong'}
+                                <i className="ph-bold ph-arrows-counter-clockwise text-xl group-hover:-rotate-180 transition-transform duration-700"></i>
                             </button>
-                        ))}
+                            <button
+                                onClick={handleSearchClick}
+                                className="h-full px-6 md:px-8 rounded-2xl font-black bg-white text-slate-900 hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transform hover:-translate-y-0.5 flex-1 xl:flex-none uppercase tracking-wide"
+                            >
+                                <i className="ph-bold ph-paper-plane-right text-lg"></i>
+                                <span className="hidden sm:block">Lọc</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -230,73 +380,76 @@ export const UserContestsPage = () => {
                         <p className="text-slate-400 mt-2">Hãy thử thay đổi bộ lọc hoặc quay lại sau nhé.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-5">
-                        {contests.map((contest) => {
-                            const badge = statusConfig[contest.status] || statusConfig.finished;
+                    <div className="flex flex-col gap-6">
+                        <div className="grid grid-cols-1 gap-5">
+                            {contests.map((contest) => {
+                                const badge = statusConfig[contest.status] || statusConfig.finished;
 
-                            return (
-                                <div
-                                    key={contest.id}
-                                    className={`relative overflow-hidden group bg-slate-800/40 backdrop-blur-md rounded-2xl p-5 sm:p-6 transition-all duration-300
-                                                border ${contest.status === 'active' ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)]' : 'border-slate-700/50 hover:border-purple-500/30 hover:bg-slate-800/60'}
-                                    `}
-                                >
-                                    {/* Subtle active glow */}
-                                    {contest.status === 'active' && (
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 shadow-[0_0_20px_#3b82f6]"></div>
-                                    )}
+                                return (
+                                    <div
+                                        key={contest.id}
+                                        className={`relative overflow-hidden group bg-slate-800/40 backdrop-blur-md rounded-2xl p-5 sm:p-6 transition-all duration-300
+                                                    border ${contest.status === 'active' ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)]' : 'border-slate-700/50 hover:border-purple-500/30 hover:bg-slate-800/60'}
+                                        `}
+                                    >
+                                        {/* Subtle active glow */}
+                                        {contest.status === 'active' && (
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 shadow-[0_0_20px_#3b82f6]"></div>
+                                        )}
 
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pl-2">
+                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pl-2">
 
-                                        {/* Info Section */}
-                                        <div className="flex-1 space-y-3 p-1">
-                                            <div className="flex items-center gap-3">
-                                                <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider border ${badge.bg} ${badge.text} ${badge.border}`}>
-                                                    {badge.label}
-                                                </span>
-                                                {contest.isRegistered && (
-                                                    <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                                        Đã đăng ký
+                                            {/* Info Section */}
+                                            <div className="flex-1 space-y-3 p-1">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider border ${badge.bg} ${badge.text} ${badge.border}`}>
+                                                        {badge.label}
                                                     </span>
-                                                )}
+                                                    {contest.isRegistered && (
+                                                        <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                                                            🌟 Đã tham gia
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <Link to={`/contests/${contest.id}`}>
+                                                    <h3 className="text-2xl font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
+                                                        {contest.title}
+                                                    </h3>
+                                                </Link>
+
+                                                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-400 font-medium">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Clock weight="duotone" className="text-lg text-slate-500" />
+                                                        {new Date(contest.startTime).toLocaleString('vi-VN')}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Users weight="duotone" className="text-lg text-slate-500" />
+                                                        {contest.participantCount} người tham gia
+                                                    </div>
+                                                    {contest.status === 'upcoming' && (
+                                                        <div className="flex items-center gap-1.5 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+                                                            Bắt đầu sau: {getTimeLeft(contest.startTime, contest.serverTime)}
+                                                        </div>
+                                                    )}
+                                                    {contest.status === 'active' && (
+                                                        <div className="flex items-center gap-1.5 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 font-bold animate-pulse">
+                                                            <Trophy weight="duotone" /> Đang cạnh tranh
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
 
-                                            <Link to={`/contests/${contest.id}`}>
-                                                <h3 className="text-2xl font-bold text-slate-100 group-hover:text-purple-300 transition-colors">
-                                                    {contest.title}
-                                                </h3>
-                                            </Link>
-
-                                            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-400 font-medium">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Clock weight="duotone" className="text-lg text-slate-500" />
-                                                    {new Date(contest.startTime).toLocaleString('vi-VN')}
-                                                </div>
-                                                <div className="flex items-center gap-1.5">
-                                                    <Users weight="duotone" className="text-lg text-slate-500" />
-                                                    {contest.participantCount} người tham gia
-                                                </div>
-                                                {contest.status === 'upcoming' && (
-                                                    <div className="flex items-center gap-1.5 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
-                                                        Bắt đầu sau: {getTimeLeft(contest.startTime, contest.serverTime)}
-                                                    </div>
-                                                )}
-                                                {contest.status === 'active' && (
-                                                    <div className="flex items-center gap-1.5 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-                                                        <Trophy weight="duotone" /> Đang cạnh tranh
-                                                    </div>
-                                                )}
+                                            {/* Action Button */}
+                                            <div className="md:w-[220px] flex justify-end shrink-0 z-10 relative">
+                                                {renderActionButton(contest)}
                                             </div>
-                                        </div>
-
-                                        {/* Action Button */}
-                                        <div className="md:w-[220px] flex justify-end shrink-0">
-                                            {renderActionButton(contest)}
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
+                        {renderPageNumbers()}
                     </div>
                 )}
             </main>

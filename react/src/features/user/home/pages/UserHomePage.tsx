@@ -64,7 +64,7 @@ export const UserHomePage: React.FC = () => {
 
     const fetchContests = async () => {
         try {
-            const data = await contestService.getContests(undefined, 0, 5);
+            const data = await contestService.getContests({ page: 0, size: 5 });
             setContests(data.content || []);
         } catch (err) {
             console.error('Failed to fetch contests:', err);

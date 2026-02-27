@@ -19,10 +19,8 @@ interface PageResponse<T> {
 }
 
 export const contestService = {
-    getContests: async (status?: string, page = 0, size = 5): Promise<PageResponse<ContestListItem>> => {
-        const params: any = { page, size };
-        if (status) params.status = status;
-        return axiosClient.get('/contests', { params });
+    getContests: async (params?: any): Promise<PageResponse<ContestListItem>> => {
+        return axiosClient.get('/contests', { params: params || {} });
     },
     registerForContest: async (id: number): Promise<any> => {
         return axiosClient.post(`/contests/${id}/register`);
