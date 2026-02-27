@@ -9,6 +9,7 @@ import { ModDashboardPage } from '../features/moderator/dashboard/pages/ModDashb
 import { ListPage as ModeratorProblemListPage } from '../features/moderator/problem/ListPage';
 import { CreatePage as ModeratorProblemCreatePage } from '../features/moderator/problem/CreatePage';
 import { EditPage as ModeratorProblemEditPage } from '../features/moderator/problem/EditPage';
+import { CreatePage as ModeratorTestcaseCreatePage } from '../features/moderator/testcase/CreatePage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
 import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage';
@@ -132,6 +133,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ModeratorProblemEditPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/testcases',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorTestcaseCreatePage />
             </ProtectedRoute>
         )
     },

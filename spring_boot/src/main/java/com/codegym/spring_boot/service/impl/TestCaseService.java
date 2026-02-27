@@ -5,6 +5,7 @@ import com.codegym.spring_boot.dto.testcase.TestCaseResponseDTO;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.TestCase;
 import com.codegym.spring_boot.entity.User;
+import com.codegym.spring_boot.entity.enums.TestCaseStatus;
 import com.codegym.spring_boot.entity.enums.UserRole;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
@@ -67,13 +68,12 @@ public class TestCaseService implements ITestCaseService {
         testCase.setIsSample(requestDTO.getIsSample());
         testCase.setScoreWeight(requestDTO.getScoreWeight());
 
-        if (requestDTO.getIsSample()) {
-            testCase.setSampleInput(requestDTO.getInputContent());
-            testCase.setSampleOutput(requestDTO.getOutputContent());
-        }
+        testCase.setSampleInput(requestDTO.getInputContent());
+        testCase.setSampleOutput(requestDTO.getOutputContent());
 
         // --- TÍNH TOÁN TÊN FILE (Thực hiện TRƯỚC khi save data mới) ---
-        TestCase lastTestCase = testCaseRepository.findLastTestCaseByProblemId(problemId);
+        // TestCase lastTestCase = testCaseRepository.findLastTestCaseByProblemId(problemId);
+        TestCase lastTestCase = testCaseRepository.findFirstByProblemIdOrderByIdDesc(problemId);
         int nextNumber = 1;
         
         if (lastTestCase != null && lastTestCase.getInputFilename() != null) {
@@ -113,6 +113,12 @@ public class TestCaseService implements ITestCaseService {
 
             savedTestCase = testCaseRepository.save(savedTestCase);
 
+            // 6. Cập nhật trạng thái testcaseStatus của Problem thành ready
+            if (problem.getTestcaseStatus() == TestCaseStatus.not_uploaded || problem.getTestcaseStatus() == null) {
+                problem.setTestcaseStatus(TestCaseStatus.ready);
+                problemRepository.save(problem);
+            }
+
             return mapToResponseDTO(savedTestCase);
         } catch (IOException e) {
             throw new RuntimeException("Lỗi trong quá trình ghi file test case vật lý", e);
@@ -144,13 +150,8 @@ public class TestCaseService implements ITestCaseService {
         testCase.setIsSample(requestDTO.getIsSample());
         testCase.setScoreWeight(requestDTO.getScoreWeight());
 
-        if (requestDTO.getIsSample()) {
-            testCase.setSampleInput(requestDTO.getInputContent());
-            testCase.setSampleOutput(requestDTO.getOutputContent());
-        } else {
-            testCase.setSampleInput(null);
-            testCase.setSampleOutput(null);
-        }
+        testCase.setSampleInput(requestDTO.getInputContent());
+        testCase.setSampleOutput(requestDTO.getOutputContent());
 
         testCase = testCaseRepository.save(testCase);
 
@@ -166,6 +167,11 @@ public class TestCaseService implements ITestCaseService {
             // Nếu vì lý do nào đó trong DB bị null, fallback về ID
             String inFileName = testCase.getInputFilename() != null ? testCase.getInputFilename() : testCase.getId() + ".in";
             String outFileName = testCase.getOutputFilename() != null ? testCase.getOutputFilename() : testCase.getId() + ".out";
+
+            // Tạo thư mục nếu chưa tồn tại (trường hợp DB có Testcase nhưng xóa mât folder vật lý)
+            if (!Files.exists(problemDir)) {
+                Files.createDirectories(problemDir);
+            }
 
             Files.writeString(problemDir.resolve(inFileName), requestDTO.getInputContent());
             Files.writeString(problemDir.resolve(outFileName), requestDTO.getOutputContent());
@@ -221,6 +227,13 @@ public class TestCaseService implements ITestCaseService {
         }
 
         testCaseRepository.delete(testCase);
+
+        // 4. Nếu không còn testcase nào, cập nhật problem status về not_uploaded
+        long count = testCaseRepository.countByProblemId(problemId);
+        if (count == 0) {
+            problem.setTestcaseStatus(TestCaseStatus.not_uploaded);
+            problemRepository.save(problem);
+        }
     }
 
     private void checkModifyPermission(Problem problem) {
