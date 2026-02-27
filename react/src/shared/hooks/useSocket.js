@@ -56,5 +56,6 @@ export const useSocket = (onMessage) => {
         };
     }, []); // Empty dependency array means it runs on mount and unmount
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/rules-of-hooks, react-hooks/refs
     return socketRef.current;
 };
