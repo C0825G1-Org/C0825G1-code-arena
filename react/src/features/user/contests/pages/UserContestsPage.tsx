@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../../home/services/contestService';
+import { useContestWebSocket } from '../hooks/useContestWebSocket';
 import { toast } from 'react-hot-toast';
 import {
     Code, Bell, SignOut, ShieldStar,
@@ -54,7 +55,7 @@ export const UserContestsPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
 
-    const fetchContests = async () => {
+    const fetchContests = useCallback(async () => {
         try {
             setLoading(true);
             const params: any = { size: 6, page: page, sort: 'startTime,desc' };
@@ -79,11 +80,56 @@ export const UserContestsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, filterStatus, searchTerm, startTime, endTime]);
+
+    // Keep latest fetchContests for websocket callbacks (avoid stale closure).
+    const fetchContestsRef = useRef(fetchContests);
+    useEffect(() => {
+        fetchContestsRef.current = fetchContests;
+    }, [fetchContests]);
 
     useEffect(() => {
         fetchContests();
     }, [filterStatus, page]);
+
+    // WebSocket real-time updates for contest status
+    const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
+        // Refetch to ensure status badges/buttons update without full page reload.
+        fetchContestsRef.current();
+    }, []);
+
+    useContestWebSocket(handleContestStatusUpdate);
+
+    // Fallback realtime: when local time passes contest start/end, refetch once.
+    useEffect(() => {
+        if (!contests.length) return;
+
+        const timer = setInterval(() => {
+            const now = Date.now();
+            let shouldRefresh = false;
+
+            for (const contest of contests) {
+                const start = new Date(contest.startTime).getTime();
+                const end = new Date(contest.endTime).getTime();
+                if (Number.isNaN(start) || Number.isNaN(end)) continue;
+
+                if (contest.status === 'upcoming' && now >= start) {
+                    shouldRefresh = true;
+                    break;
+                }
+                if (contest.status === 'active' && now >= end) {
+                    shouldRefresh = true;
+                    break;
+                }
+            }
+
+            if (shouldRefresh) {
+                fetchContestsRef.current();
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [contests]);
 
     const handleSearchClick = () => {
         if (page === 0) fetchContests();

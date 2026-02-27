@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../services/contestService';
+import { useContestWebSocket } from '../../contests/hooks/useContestWebSocket';
 import {
     Code,
     Bell,
@@ -62,7 +63,7 @@ export const UserHomePage: React.FC = () => {
     const [loadingContests, setLoadingContests] = useState(true);
     const [registeringId, setRegisteringId] = useState<number | null>(null);
 
-    const fetchContests = async () => {
+    const fetchContests = useCallback(async () => {
         try {
             const data = await contestService.getContests({ page: 0, size: 5 });
             setContests(data.content || []);
@@ -71,11 +72,56 @@ export const UserHomePage: React.FC = () => {
         } finally {
             setLoadingContests(false);
         }
-    };
+    }, []);
+
+    // Keep latest fetchContests for websocket callbacks (avoid stale closure).
+    const fetchContestsRef = useRef(fetchContests);
+    useEffect(() => {
+        fetchContestsRef.current = fetchContests;
+    }, [fetchContests]);
 
     useEffect(() => {
         fetchContests();
     }, []);
+
+    // WebSocket real-time updates for contest status
+    const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
+        // Refetch to ensure status badges/buttons update without full page reload.
+        fetchContestsRef.current();
+    }, []);
+
+    useContestWebSocket(handleContestStatusUpdate);
+
+    // Fallback realtime: when local time passes contest start/end, refetch once.
+    useEffect(() => {
+        if (!contests.length) return;
+
+        const timer = setInterval(() => {
+            const now = Date.now();
+            let shouldRefresh = false;
+
+            for (const contest of contests) {
+                const start = new Date(contest.startTime).getTime();
+                const end = new Date(contest.endTime).getTime();
+                if (Number.isNaN(start) || Number.isNaN(end)) continue;
+
+                if (contest.status === 'upcoming' && now >= start) {
+                    shouldRefresh = true;
+                    break;
+                }
+                if (contest.status === 'active' && now >= end) {
+                    shouldRefresh = true;
+                    break;
+                }
+            }
+
+            if (shouldRefresh) {
+                fetchContestsRef.current();
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [contests]);
 
     const handleLogout = () => {
         navigate('/');
