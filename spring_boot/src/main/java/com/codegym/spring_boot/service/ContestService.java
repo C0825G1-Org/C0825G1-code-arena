@@ -17,8 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
 
 @Service
 @RequiredArgsConstructor
@@ -326,9 +329,10 @@ public class ContestService {
     // 6. USER: Lấy danh sách cuộc thi (Public)
     // =============================================
     @Transactional(readOnly = true)
-    public Page<ContestListResponse> getContests(String statusFilter, Boolean manage, Pageable pageable, User currentUser) {
-        Page<Contest> contests;
-
+    public Page<ContestListResponse> getContests(
+            String title, String statusFilter, LocalDateTime startTime, LocalDateTime endTime, 
+            Boolean manage, Pageable pageable, User currentUser) {
+        
         ContestStatus status = null;
         if (statusFilter != null && !statusFilter.isBlank()) {
             try {
@@ -337,33 +341,42 @@ public class ContestService {
                 throw new IllegalArgumentException("Trạng thái lọc không hợp lệ: " + statusFilter);
             }
         }
+        
+        final ContestStatus finalStatus = status;
 
-        if (Boolean.TRUE.equals(manage) && currentUser != null) {
-            // Request từ Moderator/Admin ở màn hình quản lý
-            if (currentUser.getRole().name().equalsIgnoreCase("admin")) {
-                // Admin thấy tất cả
-                if (status != null) {
-                    contests = contestRepository.findByStatus(status, pageable);
-                } else {
-                    contests = contestRepository.findAll(pageable);
+        Specification<Contest> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (title != null && !title.isBlank()) {
+                predicates.add(cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
+            }
+
+            if (finalStatus != null) {
+                predicates.add(cb.equal(root.get("status"), finalStatus));
+            }
+
+            if (startTime != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("startTime"), startTime));
+            }
+
+            if (endTime != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("endTime"), endTime));
+            }
+
+            if (Boolean.TRUE.equals(manage) && currentUser != null) {
+                if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
+                    predicates.add(cb.equal(root.get("createdBy").get("id"), currentUser.getId()));
                 }
             } else {
-                // Moderator chỉ thấy các cuộc thi do mình tạo
-                if (status != null) {
-                    contests = contestRepository.findByCreatedByIdAndStatus(currentUser.getId(), status, pageable);
-                } else {
-                    contests = contestRepository.findByCreatedById(currentUser.getId(), pageable);
+                if (finalStatus == null) {
+                    predicates.add(cb.notEqual(root.get("status"), ContestStatus.cancelled));
                 }
             }
-        } else {
-            // Request thông thường ở User Home (Public)
-            if (status != null) {
-                contests = contestRepository.findByStatus(status, pageable);
-            } else {
-                // Mặc định: ẩn CANCELLED
-                contests = contestRepository.findByStatusNot(ContestStatus.cancelled, pageable);
-            }
-        }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Contest> contests = contestRepository.findAll(spec, pageable);
 
         return contests.map(contest -> {
             boolean isRegistered = false;

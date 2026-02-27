@@ -20,6 +20,16 @@ export const ContestManagementPage = () => {
     const [contests, setContests] = useState<Contest[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Filter States
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
+
+    // Pagination States
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
     // Modal States
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -29,17 +39,47 @@ export const ContestManagementPage = () => {
 
     useEffect(() => {
         fetchContests();
-    }, []);
+    }, [page]); // Re-fetch only when page changes
 
     const fetchContests = async () => {
         try {
             setLoading(true);
-            const response: any = await axiosClient.get('/contests', { params: { size: 50, sort: 'id,desc', manage: true } });
+            const params: any = {
+                size: 5,
+                page: page,
+                sort: 'startTime,desc',
+                manage: true
+            };
+
+            if (searchTerm) params.title = searchTerm;
+            if (statusFilter) params.status = statusFilter;
+
+            // Append time range if provided (format should be ISO-compatible or matched to backend DateTimeFormat)
+            if (startTime) {
+                params.startTime = new Date(startTime).toISOString();
+            }
+            if (endTime) {
+                // To include the whole day, set to 23:59:59 if it's just a date
+                const end = new Date(endTime);
+                end.setHours(23, 59, 59, 999);
+                params.endTime = end.toISOString();
+            }
+
+            const response: any = await axiosClient.get('/contests', { params });
             setContests(response.content || []);
+            setTotalPages(response.totalPages || 0);
         } catch (error) {
             console.error('Failed to load contests', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSearchClick = () => {
+        if (page === 0) {
+            fetchContests();
+        } else {
+            setPage(0); // This will trigger useEffect to fetch
         }
     };
 
@@ -68,7 +108,7 @@ export const ContestManagementPage = () => {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-                            <i className="ph-duotone ph-calendar-star text-purple-400 text-3xl"></i> Quản Lý Cuộc Thi
+                            <i className="ph-duotone ph-calendar-star text-purple-400 text-3xl"></i> Quản lý cuộc thi
                         </h1>
                         <p className="text-slate-400 text-sm mt-1">Quản lý danh sách, thêm mới và tùy chỉnh các cuộc thi.</p>
                     </div>
@@ -78,6 +118,57 @@ export const ContestManagementPage = () => {
                     >
                         <i className="ph-bold ph-plus"></i> Thêm Cuộc Thi Mới
                     </button>
+                </div>
+
+                {/* Filters container matching Minh's ListPage */}
+                <div className="flex justify-between items-center mb-6">
+                    {/* Search & Filter */}
+                    <div className="flex gap-4 items-center flex-wrap">
+                        <div className="relative w-64">
+                            <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên cuộc thi..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-all"
+                            />
+                        </div>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                        >
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="UPCOMING">Sắp diễn ra</option>
+                            <option value="ACTIVE">Đang diễn ra</option>
+                            <option value="FINISHED">Đã kết thúc</option>
+                            <option value="CANCELLED">Đã hủy</option>
+                        </select>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="date"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                                className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                                title="Thời gian bắt đầu (từ)"
+                            />
+                            <span className="text-slate-500">-</span>
+                            <input
+                                type="date"
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                                className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                                title="Thời gian kết thúc (đến)"
+                            />
+                        </div>
+                        <button
+                            onClick={handleSearchClick}
+                            className="bg-[#1e293b] hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-[#334155]"
+                        >
+                            <i className="ph-bold ph-funnel"></i> Lọc kết quả
+                        </button>
+                    </div>
                 </div>
 
                 {/* Table Container */}
@@ -175,6 +266,31 @@ export const ContestManagementPage = () => {
                             )}
                         </tbody>
                     </table>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="px-6 py-4 border-t border-slate-700/50 bg-[#1e293b]/50 flex items-center justify-between">
+                            <span className="text-sm text-slate-400">
+                                Trang <span className="font-semibold text-white">{page + 1}</span> / <span className="font-semibold text-white">{totalPages}</span>
+                            </span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className={`p-2 rounded border transition-colors ${page === 0 ? 'bg-[#1e293b] border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-[#1e293b] border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                                >
+                                    <i className="ph-bold ph-caret-left"></i>
+                                </button>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                    className={`p-2 rounded border transition-colors ${page >= totalPages - 1 ? 'bg-[#1e293b] border-slate-700 text-slate-500 cursor-not-allowed' : 'bg-[#1e293b] border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white'}`}
+                                >
+                                    <i className="ph-bold ph-caret-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -5,13 +5,14 @@ import com.codegym.spring_boot.entity.enums.ContestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface ContestRepository extends JpaRepository<Contest, Integer> {
+public interface ContestRepository extends JpaRepository<Contest, Integer>, JpaSpecificationExecutor<Contest> {
 
     // Lấy danh sách contest không bị CANCELLED (cho User thường)
     Page<Contest> findByStatusNot(ContestStatus status, Pageable pageable);

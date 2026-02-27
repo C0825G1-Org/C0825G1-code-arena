@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -116,11 +117,14 @@ public class ContestController {
 
     @GetMapping
     public ResponseEntity<Page<ContestListResponse>> getContests(
+            @RequestParam(required = false) String title,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
             @RequestParam(required = false) Boolean manage,
             @AuthenticationPrincipal User currentUser,
             @PageableDefault(size = 10, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(contestService.getContests(status, manage, pageable, currentUser));
+        return ResponseEntity.ok(contestService.getContests(title, status, startTime, endTime, manage, pageable, currentUser));
     }
 
     @GetMapping("/{id}")

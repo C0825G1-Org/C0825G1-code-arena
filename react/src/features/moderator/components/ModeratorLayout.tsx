@@ -66,7 +66,7 @@ export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
                             }`
                         }
                     >
-                        <i className="ph-duotone ph-flask text-xl"></i> Kho Test Cases
+                        <i className="ph-duotone ph-flask text-xl"></i> Kho test cases
                     </NavLink>
                     <NavLink
                         to="/moderator/contests"
@@ -78,7 +78,7 @@ export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
                             }`
                         }
                     >
-                        <i className="ph-duotone ph-trophy text-xl"></i> Quản lý Kỳ thi
+                        <i className="ph-duotone ph-trophy text-xl"></i> Quản lý kỳ thi
                     </NavLink>
                     <NavLink
                         to="/moderator/submissions"
@@ -90,7 +90,7 @@ export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
                             }`
                         }
                     >
-                        <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử Chấm bài
+                        <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử chấm bài
                     </NavLink>
                     <NavLink
                         to="/moderator/candidates"

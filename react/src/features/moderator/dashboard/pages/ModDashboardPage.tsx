@@ -16,7 +16,7 @@ export const ModDashboardPage = () => {
             <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a] space-y-8 animate-fade-in-up">
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Thống Kê Tổng Quan</h1>
+                    <h1 className="text-3xl font-bold text-white mb-2">Thống kê tổng quan</h1>
                     <p className="text-slate-400">
                         Chào mừng {user?.fullName || user?.username} trở lại CodeMod. Xin lưu ý các số liệu dưới đây đang trong quá trình phát triển (Sắp ra mắt).
                     </p>
