@@ -72,6 +72,11 @@ public class ProblemService implements IProblemService {
 
         checkModifyPermission(problem);
 
+        if (Boolean.TRUE.equals(problem.getIsLocked())) {
+            throw new IllegalStateException(
+                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
+        }
+
         if (!problem.getSlug().equals(requestDTO.getSlug()) && problemRepository.existsBySlug(requestDTO.getSlug())) {
             throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
         }
@@ -90,6 +95,11 @@ public class ProblemService implements IProblemService {
         }
 
         checkModifyPermission(problem);
+
+        if (Boolean.TRUE.equals(problem.getIsLocked())) {
+            throw new IllegalStateException(
+                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
+        }
 
         problem.setIsDeleted(true);
         problemRepository.save(problem);

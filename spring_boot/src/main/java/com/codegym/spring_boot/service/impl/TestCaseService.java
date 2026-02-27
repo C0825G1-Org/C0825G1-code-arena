@@ -127,6 +127,11 @@ public class TestCaseService implements ITestCaseService {
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + problemId));
         checkModifyPermission(problem);
 
+        if (Boolean.TRUE.equals(problem.getIsLocked())) {
+            throw new IllegalStateException(
+                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
+        }
+
         // 2. Tìm TestCase trong DB
         TestCase testCase = testCaseRepository.findById(testCaseId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy test case có id: " + testCaseId));
@@ -189,6 +194,11 @@ public class TestCaseService implements ITestCaseService {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + problemId));
         checkModifyPermission(problem);
+
+        if (Boolean.TRUE.equals(problem.getIsLocked())) {
+            throw new IllegalStateException(
+                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
+        }
 
         TestCase testCase = testCaseRepository.findById(testCaseId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy test case có id: " + testCaseId));
