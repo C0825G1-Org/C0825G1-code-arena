@@ -148,54 +148,55 @@ export const router = createBrowserRouter([
         )
     },
     {
-<<<<<<< HEAD
         path: '/moderator/contests/:id/results',
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ContestResultsPage />
-=======
+            </ProtectedRoute>
+        )
+    },
+    {
         path: '/moderator/problems/create',
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
-                    <ModeratorProblemCreatePage />
-                </ProtectedRoute>
-                )
+                <ModeratorProblemCreatePage />
+            </ProtectedRoute>
+        )
     },
-                {
-                    path: '/moderator/problems/edit/:id',
-                element: (
-                <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
-                    <ModeratorProblemEditPage />
->>>>>>> origin/minh
-                </ProtectedRoute>
-                )
+    {
+        path: '/moderator/problems/edit/:id',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorProblemEditPage />
+            </ProtectedRoute>
+        )
     },
-                {
-                    path: '/admin/dashboard',
-                element: (
-                <ProtectedRoute allowedRoles={['ADMIN']}>
-                    <AdminDashboardPage />
-                </ProtectedRoute>
-                )
+    {
+        path: '/admin/dashboard',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboardPage />
+            </ProtectedRoute>
+        )
     },
-                {
-                    path: '/code-editor',
-                element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
+    {
+        path: '/code-editor',
+        element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
     },
-                {
-                    path: '/err/400',
-                element: <Error400Page />
+    {
+        path: '/err/400',
+        element: <Error400Page />
     },
-                {
-                    path: '/err/403',
-                element: <Error403Page />
+    {
+        path: '/err/403',
+        element: <Error403Page />
     },
-                {
-                    path: '/err/500',
-                element: <Error500Page />
+    {
+        path: '/err/500',
+        element: <Error500Page />
     },
-                {
-                    path: '*',
-                element: <Error404Page />
+    {
+        path: '*',
+        element: <Error404Page />
     }
-                ]);
+]);

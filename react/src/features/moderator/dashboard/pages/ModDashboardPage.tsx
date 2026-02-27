@@ -13,7 +13,7 @@ export const ModDashboardPage = () => {
 
     return (
         <ModeratorLayout>
-            <div className="max-w-7xl mx-auto w-full space-y-8 animate-fade-in-up">
+            <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a] space-y-8 animate-fade-in-up">
                 {/* Header */}
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Thống Kê Tổng Quan</h1>
