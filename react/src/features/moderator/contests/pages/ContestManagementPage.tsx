@@ -7,8 +7,15 @@ import {
     PencilSimple,
     Trash,
     ListMagnifyingGlass,
-    CircleNotch
+    CircleNotch,
+    ChartLineUp,
+    ChartPieSlice
 } from '@phosphor-icons/react';
+import { Link } from 'react-router-dom';
+import { DeleteContestModal } from '../components/DeleteContestModal';
+import { EditContestModal } from '../components/EditContestModal';
+import { ManageProblemsModal } from '../components/ManageProblemsModal';
+import { CreateContestModal } from '../components/CreateContestModal';
 
 interface Contest {
     id: number;
@@ -22,6 +29,13 @@ interface Contest {
 export const ContestManagementPage = () => {
     const [contests, setContests] = useState<Contest[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Modal States
+    const [createModalOpen, setCreateModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [manageProblemModalOpen, setManageProblemModalOpen] = useState(false);
+    const [selectedContest, setSelectedContest] = useState<{ id: number; title: string } | null>(null);
 
     useEffect(() => {
         fetchContests();
@@ -68,7 +82,9 @@ export const ContestManagementPage = () => {
                         </h1>
                         <p className="text-slate-400 mt-1">Quản lý danh sách, thêm mới và tùy chỉnh các cuộc thi.</p>
                     </div>
-                    <button className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-lg shadow-lg shadow-purple-500/20 transition-all font-medium border border-purple-400/30">
+                    <button
+                        onClick={() => setCreateModalOpen(true)}
+                        className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-lg shadow-lg shadow-purple-500/20 transition-all font-medium border border-purple-400/30">
                         <Plus weight="bold" /> Thêm Cuộc Thi Mới
                     </button>
                 </div>
@@ -120,16 +136,53 @@ export const ContestManagementPage = () => {
                                             <td className="px-6 py-4 text-slate-300 font-mono">
                                                 {contest.participantCount} <span className="text-slate-500 font-sans text-sm">thí sinh</span>
                                             </td>
-                                            <td className="px-6 py-4 text-right space-x-2">
-                                                <button className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded transition-colors inline-block tooltip-trigger border border-blue-500/20" title="Quản lý bài tập">
-                                                    <ListMagnifyingGlass weight="duotone" className="text-lg" />
-                                                </button>
-                                                <button className="p-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded transition-colors inline-block tooltip-trigger border border-orange-500/20" title="Chỉnh sửa">
-                                                    <PencilSimple weight="duotone" className="text-lg" />
-                                                </button>
-                                                <button className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition-colors inline-block tooltip-trigger border border-red-500/20" title="Xóa cuộc thi">
-                                                    <Trash weight="duotone" className="text-lg" />
-                                                </button>
+                                            <td className="px-6 py-4">
+                                                <div className="flex justify-end items-center gap-2">
+                                                    {contest.status === 'active' && (
+                                                        <button className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded transition-colors flex items-center justify-center tooltip-trigger border border-emerald-500/20" title="Monitor (Theo dõi diễn biến)">
+                                                            <ChartLineUp weight="duotone" className="text-lg" />
+                                                        </button>
+                                                    )}
+                                                    {contest.status === 'finished' && (
+                                                        <Link
+                                                            to={`/moderator/contests/${contest.id}/results`}
+                                                            className="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 rounded transition-colors flex items-center justify-center tooltip-trigger border border-purple-500/20"
+                                                            title="Thống kê kết quả"
+                                                        >
+                                                            <ChartPieSlice weight="duotone" className="text-lg" />
+                                                        </Link>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedContest({ id: contest.id, title: contest.title });
+                                                            setManageProblemModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded transition-colors flex items-center justify-center tooltip-trigger border border-blue-500/20"
+                                                        title="Quản lý bài tập"
+                                                    >
+                                                        <ListMagnifyingGlass weight="duotone" className="text-lg" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedContest({ id: contest.id, title: contest.title });
+                                                            setEditModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded transition-colors flex items-center justify-center tooltip-trigger border border-orange-500/20"
+                                                        title="Chỉnh sửa"
+                                                    >
+                                                        <PencilSimple weight="duotone" className="text-lg" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedContest({ id: contest.id, title: contest.title });
+                                                            setDeleteModalOpen(true);
+                                                        }}
+                                                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition-colors flex items-center justify-center tooltip-trigger border border-red-500/20"
+                                                        title="Xóa cuộc thi"
+                                                    >
+                                                        <Trash weight="duotone" className="text-lg" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -139,6 +192,33 @@ export const ContestManagementPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <CreateContestModal
+                isOpen={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                onSuccess={fetchContests}
+            />
+            <DeleteContestModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                contestId={selectedContest?.id || null}
+                contestTitle={selectedContest?.title || ''}
+                onSuccess={fetchContests}
+            />
+            <EditContestModal
+                isOpen={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                contestId={selectedContest?.id || null}
+                onSuccess={fetchContests}
+            />
+            <ManageProblemsModal
+                isOpen={manageProblemModalOpen}
+                onClose={() => setManageProblemModalOpen(false)}
+                contestId={selectedContest?.id || null}
+                contestTitle={selectedContest?.title || ''}
+                onSuccess={fetchContests}
+            />
         </ModeratorLayout>
     );
 };

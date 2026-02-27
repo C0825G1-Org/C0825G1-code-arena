@@ -21,8 +21,9 @@ public class ProblemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProblemResponseDTO>> getAllProblems() {
-        return ResponseEntity.ok(problemService.getAllProblems());
+    public ResponseEntity<List<ProblemResponseDTO>> getAllProblems(
+            @RequestParam(required = false) Boolean manage) {
+        return ResponseEntity.ok(problemService.getAllProblems(manage));
     }
     @GetMapping("/{id}")
     public ResponseEntity<ProblemResponseDTO> getProblemById(@PathVariable("id") Integer id) {

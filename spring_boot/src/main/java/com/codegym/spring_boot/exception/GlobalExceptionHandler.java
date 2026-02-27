@@ -73,10 +73,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> fieldErrors = new HashMap<>();
+        String firstErrorMessage = "Dữ liệu đầu vào không hợp lệ.";
+        boolean isFirst = true;
+        
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            if (isFirst && fieldError.getDefaultMessage() != null) {
+                firstErrorMessage = fieldError.getDefaultMessage();
+                isFirst = false;
+            }
         }
-        Map<String, Object> body = buildError(HttpStatus.UNPROCESSABLE_ENTITY, "Dữ liệu đầu vào không hợp lệ.");
+        
+        Map<String, Object> body = buildError(HttpStatus.UNPROCESSABLE_ENTITY, firstErrorMessage);
         body.put("fieldErrors", fieldErrors);
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
     }

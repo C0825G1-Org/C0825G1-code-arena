@@ -74,40 +74,54 @@ public class ContestService {
             case active:
                 // Chỉ cho sửa title, description, endTime
                 if (request.getStartTime() != null) {
-                    throw new IllegalStateException("Không thể thay đổi thời gian bắt đầu khi cuộc thi đang diễn ra.");
+                    boolean isStartTimeChanged = contest.getStartTime() == null || !request.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    if (isStartTimeChanged) {
+                        throw new IllegalArgumentException("Không thể thay đổi thời gian bắt đầu khi cuộc thi đang diễn ra.");
+                    }
                 }
                 if (request.getEndTime() != null) {
-                    if (!request.getEndTime().isAfter(LocalDateTime.now())) {
-                        throw new IllegalArgumentException("Thời gian kết thúc mới phải ở tương lai.");
+                    boolean isEndTimeChanged = contest.getEndTime() == null || !request.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    if (isEndTimeChanged) {
+                        if (request.getEndTime().isBefore(LocalDateTime.now()) || request.getEndTime().equals(LocalDateTime.now())) {
+                            throw new IllegalArgumentException("Thời gian kết thúc mới phải ở tương lai.");
+                        }
+                        contest.setEndTime(request.getEndTime());
                     }
-                    contest.setEndTime(request.getEndTime());
                 }
-                if (request.getTitle() != null)
+                if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
                     contest.setTitle(request.getTitle());
-                if (request.getDescription() != null)
+                }
+                if (request.getDescription() != null) {
                     contest.setDescription(request.getDescription());
+                }
                 break;
 
             case upcoming:
                 // Cho phép sửa tất cả
-                if (request.getTitle() != null)
+                if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
                     contest.setTitle(request.getTitle());
-                if (request.getDescription() != null)
+                }
+                if (request.getDescription() != null) {
                     contest.setDescription(request.getDescription());
+                }
                 if (request.getStartTime() != null) {
-                    if (request.getStartTime().isBefore(LocalDateTime.now().plusMinutes(5))) {
-                        throw new IllegalArgumentException("Thời gian bắt đầu phải cách hiện tại ít nhất 5 phút.");
+                    boolean isStartTimeChanged = contest.getStartTime() == null || !request.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    if (isStartTimeChanged) {
+                        if (request.getStartTime().isBefore(LocalDateTime.now().plusMinutes(5))) {
+                            throw new IllegalArgumentException("Thời gian bắt đầu phải cách hiện tại ít nhất 5 phút.");
+                        }
+                        contest.setStartTime(request.getStartTime());
                     }
-                    contest.setStartTime(request.getStartTime());
                 }
                 if (request.getEndTime() != null) {
-                    LocalDateTime effectiveStart = request.getStartTime() != null
-                            ? request.getStartTime()
-                            : contest.getStartTime();
-                    if (!request.getEndTime().isAfter(effectiveStart)) {
-                        throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
+                    boolean isEndTimeChanged = contest.getEndTime() == null || !request.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    if (isEndTimeChanged) {
+                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
+                        if (request.getEndTime().isBefore(effectiveStart) || request.getEndTime().equals(effectiveStart)) {
+                            throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
+                        }
+                        contest.setEndTime(request.getEndTime());
                     }
-                    contest.setEndTime(request.getEndTime());
                 }
                 break;
 
@@ -311,6 +325,7 @@ public class ContestService {
     // =============================================
     // 6. USER: Lấy danh sách cuộc thi (Public)
     // =============================================
+    @Transactional(readOnly = true)
     public Page<ContestListResponse> getContests(String statusFilter, Boolean manage, Pageable pageable, User currentUser) {
         Page<Contest> contests;
 
@@ -389,6 +404,7 @@ public class ContestService {
     // =============================================
     // 8. USER/PUBLIC: Xem chi tiết cuộc thi
     // =============================================
+    @Transactional
     public ContestDetailResponse getContestDetail(Integer id, User currentUser) {
         Contest contest = findContestOrThrow(id);
         ContestStatus realStatus = computeRealTimeStatus(contest);
@@ -407,34 +423,53 @@ public class ContestService {
 
         ContestDetailResponse response = mapToDetailResponse(contest, isRegistered);
 
-        // Logic ẩn/hiện Problems dựa trên trạng thái
-        switch (realStatus) {
-            case upcoming:
-                // Tuyệt đối không trả về problems
-                response.setProblems(null);
-                response.setRanking(null);
-                break;
+        // Kiểm tra quyền sở hữu (Admin hoặc Moderator tạo ra contest)
+        boolean isOwner = false;
+        if (currentUser != null) {
+            String roleStr = currentUser.getRole().name();
+            if (roleStr.equalsIgnoreCase("admin") || 
+               (roleStr.equalsIgnoreCase("moderator") && contest.getCreatedBy() != null && contest.getCreatedBy().getId().equals(currentUser.getId()))) {
+                isOwner = true;
+            }
+        }
 
-            case active:
-                // Chỉ trả về problems nếu đã đăng ký
-                if (isRegistered) {
-                    response.setProblems(getContestProblems(id));
-                } else {
-                    response.setProblems(null);
-                }
-                response.setRanking(null);
-                break;
-
-            case finished:
-                // Trả về toàn bộ problems + ranking
-                response.setProblems(getContestProblems(id));
+        if (isOwner) {
+            response.setProblems(getContestProblems(id));
+            if (realStatus == ContestStatus.finished) {
                 response.setRanking(getRanking(id));
-                break;
-
-            case cancelled:
-                response.setProblems(null);
+            } else {
                 response.setRanking(null);
-                break;
+            }
+        } else {
+            // Logic ẩn/hiện Problems dựa trên trạng thái cho User bình thường
+            switch (realStatus) {
+                case upcoming:
+                    // Tuyệt đối không trả về problems
+                    response.setProblems(null);
+                    response.setRanking(null);
+                    break;
+
+                case active:
+                    // Chỉ trả về problems nếu đã đăng ký
+                    if (isRegistered) {
+                        response.setProblems(getContestProblems(id));
+                    } else {
+                        response.setProblems(null);
+                    }
+                    response.setRanking(null);
+                    break;
+
+                case finished:
+                    // Trả về toàn bộ problems + ranking
+                    response.setProblems(getContestProblems(id));
+                    response.setRanking(getRanking(id));
+                    break;
+
+                case cancelled:
+                    response.setProblems(null);
+                    response.setRanking(null);
+                    break;
+            }
         }
 
         return response;

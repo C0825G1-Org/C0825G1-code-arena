@@ -34,7 +34,18 @@ public class ProblemService implements IProblemService {
     }
 
     @Override
-    public List<ProblemResponseDTO> getAllProblems() {
+    public List<ProblemResponseDTO> getAllProblems(Boolean manage) {
+        if (manage != null && manage) {
+            String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername).orElse(null);
+            
+            if (currentUser != null && currentUser.getRole() == UserRole.moderator) {
+                return problemRepository.findAllByCreatedByAndIsDeletedFalse(currentUser).stream()
+                        .map(this::mapToResponseDTO)
+                        .collect(Collectors.toList());
+            }
+        }
+        
         return problemRepository.findAllByIsDeletedFalse().stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
