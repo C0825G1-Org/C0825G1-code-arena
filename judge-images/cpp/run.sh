@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# ====== COMPILE ======
+g++ Main.cpp -O2 -std=c++20 -o main.out 2> compile_error.txt
+
+if [ $? -ne 0 ]; then
+  echo "COMPILE_ERROR"
+  cat compile_error.txt
+  exit 0
+fi
+
+# ====== RUN ALL TESTCASES ======
+TESTCASE_DIR="/testcases"
+FOUND_TESTCASES=false
+
+# Duyệt qua các file input*.txt
+for input_file in ${TESTCASE_DIR}/input*.txt; do
+  [ -e "$input_file" ] || continue
+  FOUND_TESTCASES=true
+  
+  test_filename=$(basename "$input_file")
+  test_id=${test_filename#input}
+  test_id=${test_id%.txt}
+  
+  # Log báo hiệu đang chạy testcase nào
+  echo "--- TESTCASE ${test_id} ---"
+  
+  # Chạy code với timeout
+  # Sử dụng /usr/bin/time -v để lấy thông tin memory nếu image hỗ trợ, 
+  # ở đây ta tạm dùng đơn giản trước.
+  timeout 2s ./main.out < "$input_file" > "user_output${test_id}.txt" 2> runtime_error.txt
+  EXIT_CODE=$?
+  
+  if [ $EXIT_CODE -eq 124 ]; then
+    echo "STATUS: TLE"
+    continue
+  fi
+  
+  if [ $EXIT_CODE -ne 0 ]; then
+    echo "STATUS: RE"
+    cat runtime_error.txt
+    continue
+  fi
+  
+  echo "STATUS: SUCCESS"
+  echo "ACTUAL_OUTPUT_START"
+  cat "user_output${test_id}.txt"
+  echo "ACTUAL_OUTPUT_END"
+done
+
+if [ "$FOUND_TESTCASES" = false ]; then
+  echo "ERROR: No testcases found"
+  exit 1
+fi
+
+echo "--- ALL_DONE ---"
+exit 0
