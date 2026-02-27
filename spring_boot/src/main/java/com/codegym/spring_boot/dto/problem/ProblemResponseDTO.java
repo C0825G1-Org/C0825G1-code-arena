@@ -18,4 +18,5 @@ public class ProblemResponseDTO {
     private Integer memoryLimit;
     private TestCaseStatus testcaseStatus;
     private Set<TagDTO> tags;
+    private Integer authorId;
 }
