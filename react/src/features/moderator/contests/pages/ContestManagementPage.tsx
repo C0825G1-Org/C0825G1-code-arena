@@ -127,12 +127,22 @@ export const ContestManagementPage = () => {
     };
 
     const getStatusStyles = (status: string) => {
-        switch (status) {
+        switch (status?.toLowerCase()) {
             case 'active': return 'bg-green-500/10 text-green-400 border-green-500/20';
             case 'upcoming': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
             case 'finished': return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
             case 'cancelled': return 'bg-red-500/10 text-red-400 border-red-500/20';
             default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+        }
+    };
+
+    const getStatusText = (status: string) => {
+        switch (status?.toLowerCase()) {
+            case 'active': return 'Đang diễn ra';
+            case 'upcoming': return 'Sắp diễn ra';
+            case 'finished': return 'Đã kết thúc';
+            case 'cancelled': return 'Đã hủy';
+            default: return status;
         }
     };
 
@@ -264,7 +274,7 @@ export const ContestManagementPage = () => {
                                         <td className="px-6 py-3 font-medium text-white">{contest.title}</td>
                                         <td className="px-6 py-3">
                                             <span className={`px-2 py-1 text-xs font-semibold rounded border ${getStatusStyles(contest.status)}`}>
-                                                {contest.status}
+                                                {getStatusText(contest.status)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-3 text-xs text-slate-300">
