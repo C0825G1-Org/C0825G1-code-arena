@@ -24,4 +24,10 @@ export const contestService = {
         if (status) params.status = status;
         return axiosClient.get('/contests', { params });
     },
+    registerForContest: async (id: number): Promise<any> => {
+        return axiosClient.post(`/contests/${id}/register`);
+    },
+    getContestDetail: async (id: number): Promise<any> => {
+        return axiosClient.get(`/contests/${id}`);
+    }
 };

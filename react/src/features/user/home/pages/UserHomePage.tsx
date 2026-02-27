@@ -60,18 +60,20 @@ export const UserHomePage: React.FC = () => {
     // Fetch real contests
     const [contests, setContests] = useState<ContestListItem[]>([]);
     const [loadingContests, setLoadingContests] = useState(true);
+    const [registeringId, setRegisteringId] = useState<number | null>(null);
+
+    const fetchContests = async () => {
+        try {
+            const data = await contestService.getContests(undefined, 0, 5);
+            setContests(data.content || []);
+        } catch (err) {
+            console.error('Failed to fetch contests:', err);
+        } finally {
+            setLoadingContests(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchContests = async () => {
-            try {
-                const data = await contestService.getContests(undefined, 0, 5);
-                setContests(data.content || []);
-            } catch (err) {
-                console.error('Failed to fetch contests:', err);
-            } finally {
-                setLoadingContests(false);
-            }
-        };
         fetchContests();
     }, []);
 
@@ -94,6 +96,66 @@ export const UserHomePage: React.FC = () => {
     // Badge status dùng để hiển thị trên hero (chỉ lấy cuộc thi đang diễn ra, nếu là admin thì kệ, nhưng logic chung cứ lấy active đầu tiên)
     const activeContests = contests.filter(c => c.status === 'active');
     const upcomingContests = contests.filter(c => c.status === 'upcoming');
+
+    const handleRegister = async (contestId: number) => {
+        import('react-hot-toast').then(({ toast }) => {
+            setRegisteringId(contestId);
+            contestService.registerForContest(contestId)
+                .then(() => {
+                    toast.success('Đăng ký tham gia thành công!');
+                    fetchContests(); // Refresh
+                })
+                .catch((error: any) => {
+                    toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
+                    setRegisteringId(null);
+                });
+        });
+    };
+
+    const renderActionButton = (contest: ContestListItem) => {
+        const isReging = registeringId === contest.id;
+        const userIsRegistered = contest.isRegistered || (contest as any).registered;
+
+        if (contest.status === 'finished') {
+            return (
+                <Link to={`/contests/${contest.id}`} className="px-5 py-2.5 rounded-lg font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-600/50 transition-colors whitespace-nowrap">
+                    Xem kết quả
+                </Link>
+            );
+        }
+
+        if (!userIsRegistered) {
+            return (
+                <button
+                    onClick={() => handleRegister(contest.id)}
+                    disabled={isReging}
+                    className="px-6 py-2.5 rounded-lg font-medium bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/30 transition-all border border-purple-500 flex justify-center items-center gap-2 whitespace-nowrap"
+                >
+                    {isReging ? <CircleNotch className="animate-spin text-xl" /> : 'Đăng ký ngay'}
+                </button>
+            );
+        }
+
+        if (contest.status === 'upcoming') {
+            return (
+                <Link to={`/contests/${contest.id}`} className="px-5 py-2.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition-colors whitespace-nowrap">
+                    Xem chi tiết
+                </Link>
+            );
+        }
+
+        if (contest.status === 'active') {
+            return (
+                <button
+                    onClick={() => import('react-hot-toast').then(({ toast }) => toast.success('Đang chuyển hướng vào phòng thi... (Coming soon)'))}
+                    className="px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2 whitespace-nowrap"
+                >
+                    Vào Thi <ArrowRight weight="bold" />
+                </button>
+            );
+        }
+        return null;
+    };
 
     return (
         <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
@@ -286,22 +348,16 @@ export const UserHomePage: React.FC = () => {
                                                     )}
                                                 </span>
                                             </div>
-                                            <h3 className="text-xl font-bold text-white mb-1">{contest.title}</h3>
+                                            <Link to={`/contests/${contest.id}`}>
+                                                <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors line-clamp-1">{contest.title}</h3>
+                                            </Link>
                                             <p className="text-slate-400 text-sm">
                                                 {contest.participantCount} người tham gia
                                             </p>
                                         </div>
-                                        <Link
-                                            to={`/contests`}
-                                            className={`px-5 py-2.5 font-medium rounded-lg transition-colors whitespace-nowrap ${isActive && contest.isRegistered
-                                                ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                                                : isActive
-                                                    ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-lg shadow-orange-500/20'
-                                                    : 'bg-white/5 hover:bg-white/10 text-white border border-white/20'
-                                                }`}
-                                        >
-                                            {isActive && contest.isRegistered ? 'Vào thi ngay' : isActive ? 'Đăng ký' : 'Xem chi tiết'}
-                                        </Link>
+                                        <div className="shrink-0 mt-2 sm:mt-0">
+                                            {renderActionButton(contest)}
+                                        </div>
                                     </div>
                                 );
                             })

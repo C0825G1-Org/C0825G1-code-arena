@@ -14,6 +14,8 @@ import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage'
 import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage';
 import { LandingPage } from '../features/landing/pages/LandingPage';
 import { CodeEditorPage } from '../features/user/code-editor';
+import { UserContestsPage } from '../features/user/contests/pages/UserContestsPage';
+import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -99,6 +101,22 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
                 <UserHomePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/contests',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserContestsPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/contests/:id',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserContestDetailPage />
             </ProtectedRoute>
         )
     },
