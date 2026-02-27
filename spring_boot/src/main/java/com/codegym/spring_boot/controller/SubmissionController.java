@@ -8,7 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import com.codegym.spring_boot.dto.SubmissionHistoryDTO;
+import java.util.List;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,5 +33,12 @@ public class SubmissionController {
         response.put("submissionId", submissionId);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<SubmissionHistoryDTO>> getMySubmissions(
+            @RequestParam(name = "problemId") Integer problemId) {
+        List<SubmissionHistoryDTO> history = submissionService.getHistoryByProblem(problemId);
+        return ResponseEntity.ok(history);
     }
 }

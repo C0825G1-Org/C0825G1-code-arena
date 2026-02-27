@@ -7,4 +7,6 @@ public interface ISubmissionService {
     Integer submitCode(SubmitRequestDTO submitRequestDTO);
 
     void processJudgeResult(JudgeResultMessage msg);
+
+    java.util.List<com.codegym.spring_boot.dto.SubmissionHistoryDTO> getHistoryByProblem(Integer problemId);
 }
