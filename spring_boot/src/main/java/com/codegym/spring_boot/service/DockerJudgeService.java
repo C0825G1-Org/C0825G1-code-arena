@@ -2,6 +2,7 @@ package com.codegym.spring_boot.service;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.AccessMode;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
@@ -54,11 +55,11 @@ public class DockerJudgeService {
 
             HostConfig hostConfig = HostConfig.newHostConfig()
                     .withBinds(
-                            new Bind(new File(submissionDir).getAbsolutePath(), appVolume),
+                            new Bind(new File(submissionDir).getAbsolutePath(), appVolume, AccessMode.rw),
                             new Bind(
                                     new File("problems/" + problemId).getAbsolutePath(),
                                     testcaseVolume,
-                                    true // Read-only
+                                    AccessMode.ro
                             )
                     )
                     .withMemory(256 * 1024 * 1024L) // 256MB

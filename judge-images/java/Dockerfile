@@ -8,13 +8,13 @@ RUN useradd -m -s /bin/bash judge
 WORKDIR /app
 
 # Copy script thực thi
-COPY run.sh /app/run.sh
+COPY run.sh /usr/local/bin/run.sh
 
 # Cấp quyền execute
-RUN chmod +x /app/run.sh
+RUN chmod +x /usr/local/bin/run.sh
 
 # Chuyển sang user không phải root
 USER judge
 
 # Entry point
-ENTRYPOINT ["/app/run.sh"]
+ENTRYPOINT ["/usr/local/bin/run.sh"]

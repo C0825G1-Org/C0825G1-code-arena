@@ -27,7 +27,7 @@ public class DockerConfig {
                         .withDockerHost(
                                 System.getenv().getOrDefault(
                                         "DOCKER_HOST",
-                                        "npipe:////./pipe/docker_engine"
+                                        "tcp://127.0.0.1:2375"
                                 )
                         )
                         .build();

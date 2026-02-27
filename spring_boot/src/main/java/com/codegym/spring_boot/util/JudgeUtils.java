@@ -78,11 +78,9 @@ public class JudgeUtils {
         }
     }
 
-    public static class LogContainerResultCallback implements ResultCallback<Frame> {
+    public static class LogContainerResultCallback extends ResultCallback.Adapter<Frame> {
         protected final StringBuilder sb = new StringBuilder();
 
-        @Override
-        public void onStart(Closeable closeable) {}
 
         @Override
         public void onNext(Frame frame) {
@@ -91,14 +89,7 @@ public class JudgeUtils {
             }
         }
 
-        @Override
-        public void onError(Throwable throwable) {}
 
-        @Override
-        public void onComplete() {}
-
-        @Override
-        public void close() throws IOException {}
 
         @Override
         public String toString() {
