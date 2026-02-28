@@ -10,7 +10,11 @@ import com.codegym.spring_boot.entity.enums.UserRole;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.UserRepository;
+import com.codegym.spring_boot.repository.ContestProblemRepository;
+import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.ITestCaseService;
+import com.codegym.spring_boot.entity.ContestProblem;
+import com.codegym.spring_boot.entity.enums.ContestStatus;
 import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,14 +45,22 @@ public class TestCaseService implements ITestCaseService {
     private final ITestCaseRepository testCaseRepository;
     private final IProblemRepository problemRepository;
     private final UserRepository userRepository;
+    private final ContestProblemRepository contestProblemRepository;
+    private final ContestService contestService;
 
     @Value("${storage.testcases.path:./data/testcases}")
     private String storagePathBase;
 
-    public TestCaseService(ITestCaseRepository testCaseRepository, IProblemRepository problemRepository, UserRepository userRepository) {
+    public TestCaseService(ITestCaseRepository testCaseRepository, 
+                           IProblemRepository problemRepository, 
+                           UserRepository userRepository,
+                           ContestProblemRepository contestProblemRepository,
+                           ContestService contestService) {
         this.testCaseRepository = testCaseRepository;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
+        this.contestProblemRepository = contestProblemRepository;
+        this.contestService = contestService;
     }
 
     @Override
@@ -61,6 +73,7 @@ public class TestCaseService implements ITestCaseService {
 
         // 2. Phân quyền (chỉ ADMIN hoặc OWNER tạo mới được)
         checkModifyPermission(problem);
+        checkIfProblemInActiveContest(problemId);
 
         // 3. Tạo TestCase Entity
         TestCase testCase = new TestCase();
@@ -132,11 +145,7 @@ public class TestCaseService implements ITestCaseService {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + problemId));
         checkModifyPermission(problem);
-
-        if (Boolean.TRUE.equals(problem.getIsLocked())) {
-            throw new IllegalStateException(
-                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
-        }
+        checkIfProblemInActiveContest(problemId);
 
         // 2. Tìm TestCase trong DB
         TestCase testCase = testCaseRepository.findById(testCaseId)
@@ -200,11 +209,7 @@ public class TestCaseService implements ITestCaseService {
         Problem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + problemId));
         checkModifyPermission(problem);
-
-        if (Boolean.TRUE.equals(problem.getIsLocked())) {
-            throw new IllegalStateException(
-                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
-        }
+        checkIfProblemInActiveContest(problemId);
 
         TestCase testCase = testCaseRepository.findById(testCaseId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy test case có id: " + testCaseId));
@@ -253,6 +258,17 @@ public class TestCaseService implements ITestCaseService {
         }
     }
 
+    private void checkIfProblemInActiveContest(Integer problemId) {
+        List<ContestProblem> contests = contestProblemRepository.findByIdProblemId(problemId);
+        for (ContestProblem cp : contests) {
+            ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
+            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
+                throw new IllegalStateException(
+                        "Bài tập đang nằm trong cuộc thi đang diễn ra hoặc đã kết thúc. Không thể thêm/sửa/xóa testcase.");
+            }
+        }
+    }
+
     @Override
     @Transactional
     public ZipUploadResponseDTO uploadTestCasesZip(Integer problemId, MultipartFile file) {
@@ -261,6 +277,7 @@ public class TestCaseService implements ITestCaseService {
                 .filter(p -> !p.getIsDeleted())
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + problemId));
         checkModifyPermission(problem);
+        checkIfProblemInActiveContest(problemId);
 
         if (file.isEmpty() || !file.getOriginalFilename().endsWith(".zip")) {
             throw new IllegalArgumentException("Vui lòng tải lên file định dạng .zip");
