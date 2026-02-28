@@ -26,6 +26,8 @@ import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -97,13 +99,20 @@ public class SubmissionService implements ISubmissionService {
                 Submission savedSubmission = submissionRepository.save(newSubmission);
                 log.info("Saved submission to DB with ID: {}", savedSubmission.getId());
 
-                // 4. Push ticket to Redis Queue for the Judge Engine (Dev 3) to pick up
-                JudgeTicket ticket = new JudgeTicket(
-                                savedSubmission.getId(),
-                                submitRequestDTO.getProblemId(),
-                                submitRequestDTO.getLanguageId(),
-                                savedSubmission.getIsTestRun());
-                judgeQueueService.pushTicketToQueue(ticket);
+                // 4. Push ticket to Redis Queue - ONLY AFTER COMMIT to avoid Race Condition
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                                log.info("Transaction committed. Pushing ticket to Redis for submission ID: {}",
+                                                savedSubmission.getId());
+                                JudgeTicket ticket = new JudgeTicket(
+                                                savedSubmission.getId(),
+                                                submitRequestDTO.getProblemId(),
+                                                submitRequestDTO.getLanguageId(),
+                                                savedSubmission.getIsTestRun());
+                                judgeQueueService.pushTicketToQueue(ticket);
+                        }
+                });
 
                 return savedSubmission.getId();
         }

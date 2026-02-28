@@ -28,7 +28,7 @@ public class JudgeWorker {
     private static final String QUEUE_NAME = "judge_queue";
     private static final String RESULT_CHANNEL = "judge_results";
 
-    @Scheduled(fixedDelay = 1000) // Kiểm tra hàng đợi mỗi giây
+    @Scheduled(fixedDelay = 1000) // Hệ thống đã hoạt động bình thường
     public void consumeQueue() {
         Object ticketObj = redisTemplate.opsForList().rightPop(QUEUE_NAME);
         if (ticketObj == null)
