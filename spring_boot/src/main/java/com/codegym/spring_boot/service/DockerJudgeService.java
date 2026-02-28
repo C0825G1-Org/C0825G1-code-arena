@@ -36,7 +36,8 @@ public class DockerJudgeService {
     public SubmissionResult judge(
             String language,
             String sourceCode,
-            String problemId) {
+            String problemId,
+            Boolean isRunOnly) {
         String submissionId = UUID.randomUUID().toString();
         String submissionDir = "temp-submissions/" + submissionId;
         String containerId = null;
@@ -89,6 +90,8 @@ public class DockerJudgeService {
                     .toString();
 
             // 6. Phân tích kết quả
+            // Truyền cờ isRunOnly nếu cần lọc test case ở mức Parser (có thể mở rộng
+            // JudgeUtils)
             List<TestCaseResult> testResults = JudgeUtils.parseTestResults(logs,
                     testcaseStoragePath + "/problem_" + problemId);
 

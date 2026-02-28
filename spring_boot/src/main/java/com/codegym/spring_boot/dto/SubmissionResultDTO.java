@@ -11,8 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SubmissionResultDTO {
     private Long submissionId;
+    private Integer problemId;
+    private Integer contestId;
     private String status;
     private Long executionTime;
     private Long memoryUsed;
     private Integer score;
+    private Boolean isRunOnly;
 }

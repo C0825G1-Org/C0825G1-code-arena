@@ -42,6 +42,7 @@ public class JudgeUtils {
             boolean passed = false;
             String status = "UNKNOWN";
 
+            String actualOutput = null;
             if (content.contains("STATUS: SUCCESS")) {
                 status = "SUCCESS";
                 // Tách output thực tế
@@ -49,7 +50,7 @@ public class JudgeUtils {
                 Matcher outputMatcher = Pattern.compile(outputRegex, Pattern.DOTALL).matcher(content);
 
                 if (outputMatcher.find()) {
-                    String actualOutput = outputMatcher.group(1).trim();
+                    actualOutput = outputMatcher.group(1).trim();
                     passed = compareWithExpected(actualOutput, problemPath, testId);
                     if (!passed)
                         status = "WA";
@@ -60,7 +61,14 @@ public class JudgeUtils {
                 status = "RE";
             }
 
-            results.add(new TestCaseResult(testId, passed, status));
+            results.add(TestCaseResult.builder()
+                    .testCaseNumber(testId)
+                    .passed(passed)
+                    .message(status)
+                    .executionTime(0L)
+                    .memoryUsed(0L)
+                    .userOutput(actualOutput)
+                    .build());
         }
 
         return results;

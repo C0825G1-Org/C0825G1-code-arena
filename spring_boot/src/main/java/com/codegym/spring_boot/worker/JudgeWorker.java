@@ -55,7 +55,8 @@ public class JudgeWorker {
             SubmissionResult result = dockerJudgeService.judge(
                     submission.getLanguage().getName(),
                     submission.getSourceCode(),
-                    submission.getProblem().getId().toString());
+                    submission.getProblem().getId().toString(),
+                    ticket.isRunOnly());
 
             // 2. Gửi thông báo qua Redis Channel để Client nhận qua Socket.io và Server xử
             // lý lưu DB

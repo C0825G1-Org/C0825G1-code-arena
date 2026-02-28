@@ -42,4 +42,10 @@ public class SubmissionController {
         List<SubmissionHistoryDTO> history = submissionService.getHistoryByProblem(problemId, contestId);
         return ResponseEntity.ok(history);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<com.codegym.spring_boot.dto.SubmissionDetailDTO> getSubmissionDetail(
+            @jakarta.websocket.server.PathParam("id") @org.springframework.web.bind.annotation.PathVariable("id") Integer id) {
+        return ResponseEntity.ok(submissionService.getSubmissionDetail(id));
+    }
 }
