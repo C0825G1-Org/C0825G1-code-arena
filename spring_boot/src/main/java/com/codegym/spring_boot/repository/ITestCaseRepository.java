@@ -13,6 +13,8 @@ public interface ITestCaseRepository extends JpaRepository<TestCase, Integer> {
     List<TestCase> findByProblemId(Integer problemId);
 
     // Tìm TestCase cuối cùng được upload của một problem (theo ID mới nhất)
-    @Query("SELECT t FROM TestCase t WHERE t.problem.id = :problemId ORDER BY t.id DESC LIMIT 1")
-    TestCase findLastTestCaseByProblemId(@Param("problemId") Integer problemId);
+    TestCase findFirstByProblemIdOrderByIdDesc(Integer problemId);
+
+    // Đếm số test case của 1 problem
+    long countByProblemId(Integer problemId);
 }

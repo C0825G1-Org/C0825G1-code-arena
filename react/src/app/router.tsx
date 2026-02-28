@@ -10,6 +10,7 @@ import { ContestManagementPage } from '../features/moderator/contests/pages/Cont
 import { ListPage as ModeratorProblemListPage } from '../features/moderator/problem/ListPage';
 import { CreatePage as ModeratorProblemCreatePage } from '../features/moderator/problem/CreatePage';
 import { EditPage as ModeratorProblemEditPage } from '../features/moderator/problem/EditPage';
+import { CreatePage as ModeratorTestcaseCreatePage } from '../features/moderator/testcase/CreatePage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -168,6 +169,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ModeratorProblemEditPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/testcases',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <ModeratorTestcaseCreatePage />
             </ProtectedRoute>
         )
     },

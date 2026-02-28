@@ -4,7 +4,41 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="" />
+    <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_1/1.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_1/1.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_10/1.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_10/1.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_10/2.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_10/2.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_11/1.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_11/1.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_11/2.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_11/2.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_3/7.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_3/7.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_3/8.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_3/8.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_5/1.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_5/1.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_5/2.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/data/testcases/problem_5/2.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/react/src/features/moderator/services/testcaseApi.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/react/src/features/moderator/testcase/DeleteModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/1.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/1.out" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/2.in" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/2.out" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/react/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/app/router.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/app/router.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/components/ModeratorLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/components/ModeratorLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ITestCaseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ITestCaseRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,9 +47,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="3ACWkx9H2HkueEeL0RnA63ETxeu" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -37,6 +71,7 @@
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "D:\\reg1\\IntelliJ IDEA 2025.2.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -56,6 +91,9 @@
       <option name="presentableId" value="Default" />
       <updated>1772097179626</updated>
       <workItem from="1772097180920" duration="393000" />
+      <workItem from="1772159637250" duration="3790000" />
+      <workItem from="1772181811005" duration="1438000" />
+      <workItem from="1772209366219" duration="3927000" />
     </task>
     <servers />
   </component>
