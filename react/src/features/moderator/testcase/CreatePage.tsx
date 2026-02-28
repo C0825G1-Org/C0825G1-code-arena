@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { ModeratorLayout } from '../components/ModeratorLayout';
@@ -8,6 +9,8 @@ import { DeleteModal } from './DeleteModal';
 import { RootState } from '../../../app/store';
 
 export const CreatePage = () => {
+    const location = useLocation();
+    const locationState = location.state as { problemId?: number } | null;
     const currentUser = useSelector((state: RootState) => state.auth.user);
     const [selectedProblem, setSelectedProblem] = useState('');
     const [problems, setProblems] = useState<ProblemResponseDTO[]>([]);
@@ -21,6 +24,10 @@ export const CreatePage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isUploadingZip, setIsUploadingZip] = useState(false);
+
+    // Searchable dropdown state
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [problemSearchTerm, setProblemSearchTerm] = useState('');
 
     // Form states
     const [isSample, setIsSample] = useState(true);
@@ -40,7 +47,11 @@ export const CreatePage = () => {
                 
                 setProblems(filteredProblems);
                 if (filteredProblems.length > 0) {
-                    setSelectedProblem(String(filteredProblems[0].id));
+                    if (locationState?.problemId && filteredProblems.some(p => p.id === locationState.problemId)) {
+                        setSelectedProblem(String(locationState.problemId));
+                    } else {
+                        setSelectedProblem(String(filteredProblems[0].id));
+                    }
                 }
             } catch (err) {
                 console.error("Lỗi khi tải danh sách bài tập:", err);
@@ -50,7 +61,7 @@ export const CreatePage = () => {
         };
 
         fetchProblems();
-    }, [currentUser]);
+    }, [currentUser, locationState?.problemId]);
 
     // Fetch testcases when a problem is selected
     useEffect(() => {
@@ -210,26 +221,83 @@ export const CreatePage = () => {
 
                 {/* LIST OF TEST CASES (TRÁI) */}
                 <div className="w-full lg:w-1/3 flex flex-col">
-                    <div className="mb-4">
+                    <div className="mb-4 relative">
                         <label className="block text-sm font-medium text-slate-400 mb-2">Đang thiết lập Test cho bài toán:</label>
-                        <select
-                            value={selectedProblem}
-                            onChange={(e) => setSelectedProblem(e.target.value)}
-                            disabled={loadingProblems || problems.length === 0}
-                            className="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none shadow-sm transition-all font-semibold disabled:opacity-50"
-                        >
-                            {loadingProblems ? (
-                                <option value="">Đang tải danh sách bài tập...</option>
-                            ) : problems.length === 0 ? (
-                                <option value="">Không có bài tập nào khả dụng</option>
-                            ) : (
-                                problems.map(prob => (
-                                    <option key={prob.id} value={prob.id}>
-                                        {prob.title}
-                                    </option>
-                                ))
+                        
+                        {/* Custom Searchable Dropdown */}
+                        <div className="relative">
+                            <div 
+                                className={`w-full bg-[#1e293b] border ${isDropdownOpen ? 'border-blue-500' : 'border-[#334155] hover:border-blue-400'} text-white text-sm rounded-lg p-3 outline-none shadow-sm transition-all font-semibold flex justify-between items-center cursor-pointer ${loadingProblems ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => !loadingProblems && setIsDropdownOpen(!isDropdownOpen)}
+                            >
+                                <span className="truncate pr-4">
+                                    {loadingProblems 
+                                        ? "Đang tải danh sách bài tập..." 
+                                        : (problems.find(p => String(p.id) === selectedProblem)?.title || "Chưa chọn bài tập")}
+                                </span>
+                                <i className={`ph-bold ph-caret-down transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}></i>
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            {isDropdownOpen && !loadingProblems && (
+                                <div className="absolute z-50 w-full mt-2 bg-[#1e293b] border border-[#334155] rounded-lg shadow-xl overflow-hidden flex flex-col max-h-[300px]">
+                                    {/* Search Input */}
+                                    <div className="p-2 border-b border-[#334155] bg-[#0f172a]/50 sticky top-0 z-10">
+                                        <div className="relative">
+                                            <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                            <input
+                                                type="text"
+                                                className="w-full bg-[#0f172a] text-white text-sm rounded-md pl-9 pr-3 py-2 outline-none border border-transparent focus:border-blue-500 transition-colors"
+                                                placeholder="Tìm kiếm bài tập..."
+                                                value={problemSearchTerm}
+                                                onChange={(e) => setProblemSearchTerm(e.target.value)}
+                                                onClick={(e) => e.stopPropagation()} // Prevent closing when typing
+                                                autoFocus
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Options List */}
+                                    <div className="overflow-y-auto custom-scrollbar p-1">
+                                        {problems.length === 0 ? (
+                                            <div className="p-3 text-sm text-slate-500 text-center">Không có bài tập nào khả dụng</div>
+                                        ) : (
+                                            problems
+                                                .filter(prob => prob.title.toLowerCase().includes(problemSearchTerm.toLowerCase()) || String(prob.id) === problemSearchTerm)
+                                                .map(prob => (
+                                                    <div
+                                                        key={prob.id}
+                                                        className={`p-3 text-sm rounded-md cursor-pointer transition-colors flex items-center justify-between ${
+                                                            selectedProblem === String(prob.id) 
+                                                                ? 'bg-blue-600/20 text-blue-400 font-medium' 
+                                                                : 'text-slate-300 hover:bg-[#334155]/50'
+                                                        }`}
+                                                        onClick={() => {
+                                                            setSelectedProblem(String(prob.id));
+                                                            setIsDropdownOpen(false);
+                                                            setProblemSearchTerm(''); // Reset search on select
+                                                        }}
+                                                    >
+                                                        <span className="truncate">{prob.title}</span>
+                                                        {selectedProblem === String(prob.id) && <i className="ph-bold ph-check text-blue-400"></i>}
+                                                    </div>
+                                                ))
+                                        )}
+                                        {problems.filter(prob => prob.title.toLowerCase().includes(problemSearchTerm.toLowerCase()) || String(prob.id) === problemSearchTerm).length === 0 && problems.length > 0 && (
+                                            <div className="p-3 text-sm text-slate-500 text-center">Không tìm thấy kết quả phù hợp</div>
+                                        )}
+                                    </div>
+                                </div>
                             )}
-                        </select>
+                        </div>
+                        
+                        {/* Overlay to close dropdown when clicking outside */}
+                        {isDropdownOpen && (
+                            <div 
+                                className="fixed inset-0 z-40"
+                                onClick={() => setIsDropdownOpen(false)}
+                            ></div>
+                        )}
                     </div>
 
                     <div className="bg-[#1e293b]/70 backdrop-blur-md border border-white/5 rounded-xl flex-1 flex flex-col overflow-hidden">
@@ -328,15 +396,15 @@ export const CreatePage = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label className="inline-flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
                                     className="sr-only peer"
                                     checked={isSample}
                                     onChange={(e) => setIsSample(e.target.checked)}
                                 />
-                                <div className="w-11 h-6 bg-slate-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                <span className="ml-3 text-sm font-medium text-slate-300">Test Mẫu (Public)</span>
+                                <div className="relative w-11 h-6 bg-slate-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                <span className="ml-3 text-sm font-medium text-slate-300 whitespace-nowrap">Test Mẫu (Public)</span>
                             </label>
                             
                             {activeTestCaseId && (

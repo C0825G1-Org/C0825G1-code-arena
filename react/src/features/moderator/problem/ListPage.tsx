@@ -194,6 +194,7 @@ export const ListPage = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right flex justify-end gap-2 whitespace-nowrap">
                                         <button
+                                            onClick={() => navigate('/moderator/testcases', { state: { problemId: prob.id } })}
                                             className="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 relative tooltip"
                                             title="Chỉnh sửa Tests"
                                         >
