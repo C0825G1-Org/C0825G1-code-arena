@@ -19,4 +19,6 @@ public class SubmitRequestDTO {
 
     // Optional: Only provided when submitting inside a contest
     private Integer contestId;
+
+    private Boolean isRunOnly = false;
 }

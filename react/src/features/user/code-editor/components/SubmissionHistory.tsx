@@ -3,8 +3,11 @@ import axios from 'axios';
 import { useSocket } from '../../../../shared/hooks/useSocket';
 import { CheckCircle, Clock, WarningCircle, XCircle } from '@phosphor-icons/react';
 import SubmissionDetailPanel from './SubmissionDetailPanel';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../app/store';
 
 const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contestId?: string | null }) => {
+    const { token } = useSelector((state: RootState) => state.auth);
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedSubmissionId, setSelectedSubmissionId] = useState<number | null>(null);
@@ -13,8 +16,6 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
     useEffect(() => {
         const fetchSubmissions = async () => {
             try {
-                const token = localStorage.getItem('token');
-
                 let apiUrl = `http://localhost:8080/api/submissions/me?problemId=${problemId}`;
                 if (contestId) {
                     apiUrl += `&contestId=${contestId}`;
@@ -36,7 +37,7 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
         };
 
         fetchSubmissions();
-    }, [problemId]);
+    }, [problemId, contestId, token]);
 
     // Socket listener for real-time updates
     useSocket((data) => {
@@ -66,7 +67,9 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
                 return newSubmissions;
             }
             // Add new to top
-            return [{ ...data, id: data.submissionId, createdAt: new Date().toISOString() }, ...prev];
+            // Gán isTestRun từ data.isRunOnly nếu có
+            const isTestRun = data.isRunOnly === true;
+            return [{ ...data, id: data.submissionId, isTestRun, createdAt: new Date().toISOString() }, ...prev];
         });
     });
 
@@ -103,11 +106,14 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
                     {submissions.map((sub, index) => (
                         <div
                             key={sub.id || index}
-                            className="p-3 bg-slate-800 rounded border border-slate-700 hover:border-slate-500 cursor-pointer transition-colors"
+                            className={`p-3 rounded border cursor-pointer transition-colors ${sub.isTestRun || sub.isRunOnly ? 'bg-slate-800/50 border-dashed border-slate-600' : 'bg-slate-800 border-slate-700 hover:border-slate-500'}`}
                             onClick={() => setSelectedSubmissionId(sub.id || sub.submissionId)}
                         >
                             <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium">{getStatusUI(sub.status)}</span>
+                                <span className="font-medium flex items-center gap-2">
+                                    {(sub.isTestRun || sub.isRunOnly) && <span className="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Chạy thử</span>}
+                                    {getStatusUI(sub.status)}
+                                </span>
                                 <span className="text-xs text-slate-500">
                                     {sub.createdAt ? new Date(sub.createdAt).toLocaleTimeString() : 'Vừa xong'}
                                 </span>
