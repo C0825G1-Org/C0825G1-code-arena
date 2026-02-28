@@ -50,4 +50,8 @@ public class Submission extends BaseEntity {
     private Integer memoryUsed = 0;
 
     private Integer score = 0;
+
+    @Lob
+    @Column(name = "error_message", columnDefinition = "LONGTEXT")
+    private String errorMessage;
 }

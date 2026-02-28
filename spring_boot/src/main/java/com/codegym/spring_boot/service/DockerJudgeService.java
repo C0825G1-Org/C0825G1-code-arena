@@ -31,10 +31,11 @@ public class DockerJudgeService {
      * Chấm bài bằng Docker container
      */
     public SubmissionResult judge(
-            String language,
+            String rawLanguage,
             String sourceCode,
             String problemId
     ) {
+        String language = normalizeLanguage(rawLanguage);
         String submissionId = UUID.randomUUID().toString();
         String submissionDir = "temp-submissions/" + submissionId;
         String containerId = null;
@@ -57,7 +58,7 @@ public class DockerJudgeService {
                     .withBinds(
                             new Bind(new File(submissionDir).getAbsolutePath(), appVolume, AccessMode.rw),
                             new Bind(
-                                    new File("problems/" + problemId).getAbsolutePath(),
+                                    getProblemsPath(problemId),
                                     testcaseVolume,
                                     AccessMode.ro
                             )
@@ -77,8 +78,40 @@ public class DockerJudgeService {
             containerId = container.getId();
             dockerClient.startContainerCmd(containerId).exec();
 
-            // Đợi tối đa 30s (tổng cho tất cả testcases)
+            // Đo memory TRONG KHI container đang chạy (chạy song song bằng thread riêng)
+            final long[] memHolder = new long[]{0};
+            final String finalContainerId = containerId;
+            Thread statsThread = new Thread(() -> {
+                try {
+                    Thread.sleep(100); // Đợi 100ms cho container khởi động
+                    dockerClient.statsCmd(finalContainerId).exec(
+                        new com.github.dockerjava.api.async.ResultCallback.Adapter<com.github.dockerjava.api.model.Statistics>() {
+                            @Override
+                            public void onNext(com.github.dockerjava.api.model.Statistics object) {
+                                if (object != null && object.getMemoryStats() != null && object.getMemoryStats().getUsage() != null) {
+                                    long mem = object.getMemoryStats().getUsage() / 1024;
+                                    if (mem > memHolder[0]) memHolder[0] = mem; // Lưu peak memory
+                                }
+                                try { close(); } catch (Exception ignored) {}
+                            }
+                        }
+                    ).awaitCompletion(5, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (Exception ignored) {}
+            });
+            statsThread.setDaemon(true);
+            statsThread.start();
+
+            // Đo thời gian thực thi
+            long startTime = System.currentTimeMillis();
+
+            // Đợi container chạy xong
             dockerClient.waitContainerCmd(containerId).start().awaitStatusCode();
+
+            long executionTimeMs = System.currentTimeMillis() - startTime;
+
+            // Chờ stats thread kết thúc (tối đa 3s)
+            try { statsThread.join(3000); } catch (Exception ignored) {}
+            long memoryUsedKb = memHolder[0];
 
             // 5. Lấy log output
             String logs = dockerClient.logContainerCmd(containerId)
@@ -88,8 +121,9 @@ public class DockerJudgeService {
                     .awaitCompletion()
                     .toString();
 
-            // 6. Phân tích kết quả
-            List<TestCaseResult> testResults = JudgeUtils.parseTestResults(logs, "problems/" + problemId);
+            // 6. Phân tích kết quả - dùng đường dẫn tuyệt đối để đọc file expected output
+            String absoluteProblemsPath = getProblemsPath(problemId);
+            List<TestCaseResult> testResults = JudgeUtils.parseTestResults(logs, absoluteProblemsPath);
 
             String finalStatus = "ACCEPTED";
             for (TestCaseResult tr : testResults) {
@@ -98,7 +132,7 @@ public class DockerJudgeService {
                     break;
                 }
             }
-            
+
             if (testResults.isEmpty() && logs.contains("COMPILE_ERROR")) {
                 finalStatus = "COMPILE_ERROR";
             } else if (testResults.isEmpty()) {
@@ -107,9 +141,10 @@ public class DockerJudgeService {
 
             return new SubmissionResult(
                     finalStatus,
-                    finalStatus.equals("COMPILE_ERROR") ? logs : "Judging completed",
+                    !finalStatus.equals("ACCEPTED") ? logs : "Judging completed",
                     testResults,
-                    0, 0
+                    executionTimeMs,
+                    memoryUsedKb
             );
 
         } catch (Exception e) {
@@ -133,5 +168,28 @@ public class DockerJudgeService {
                 }
             } catch (IOException e) {}
         }
+    }
+
+    private String getProblemsPath(String problemId) {
+        // Thử xem folder problems có ở CWD không (chạy từ root)
+        File p1 = new File("problems/" + problemId);
+        if (p1.exists()) return p1.getAbsolutePath();
+        
+        // Thử xem có ở folder cha không (chạy từ spring_boot/)
+        File p2 = new File("../problems/" + problemId);
+        if (p2.exists()) return p2.getAbsolutePath();
+        
+        // Fallback về giá trị mặc định nếu không thấy (để log báo lỗi sau này)
+        return p1.getAbsolutePath();
+    }
+
+    private String normalizeLanguage(String raw) {
+        if (raw == null) return "unknown";
+        String lower = raw.toLowerCase();
+        if (lower.contains("cpp") || lower.contains("c++")) return "cpp";
+        if (lower.contains("java")) return "java";
+        if (lower.contains("python")) return "python";
+        if (lower.contains("javascript") || lower.contains("node") || lower.contains("js")) return "js";
+        return lower.split(" ")[0];
     }
 }

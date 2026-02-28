@@ -1,6 +1,7 @@
 package com.codegym.spring_boot.service.impl;
 
 import com.codegym.spring_boot.dto.JudgeTicket;
+import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.dto.SubmitRequestDTO;
 import com.codegym.spring_boot.entity.Language;
 import com.codegym.spring_boot.entity.Problem;
@@ -46,7 +47,7 @@ public class SubmissionService implements ISubmissionService {
             // yet for testing
             log.warn("User is not authenticated. Falling back to default user ID = 1");
             user = userRepository.findById(1)
-                    .orElseThrow(() -> new RuntimeException("Default user not found"));
+                    .orElseThrow(() -> new RuntimeException("Default User (ID=1) không tồn tại. Vui lòng chạy file mock_data.sql trong thư mục data/mysql/"));
         }
 
         // 2. Prepare dependencies (Using dummy instances for problem and language just
@@ -82,5 +83,21 @@ public class SubmissionService implements ISubmissionService {
         judgeQueueService.pushTicketToQueue(ticket);
 
         return savedSubmission.getId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SubmissionResultDTO getSubmissionResult(Integer id) {
+        Submission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Submission not found with ID: " + id));
+
+        return SubmissionResultDTO.builder()
+                .submissionId(submission.getId().longValue())
+                .status(submission.getStatus().name())
+                .executionTime(submission.getExecutionTime().longValue())
+                .memoryUsed(submission.getMemoryUsed().longValue())
+                .score(submission.getScore())
+                .errorMessage(submission.getErrorMessage())
+                .build();
     }
 }
