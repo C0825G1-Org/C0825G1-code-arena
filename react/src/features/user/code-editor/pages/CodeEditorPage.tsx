@@ -1,18 +1,21 @@
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import CodeEditor from "../components/CodeEditor";
 import ProblemPanel from "../components/ProblemPanel";
 import LanguageSelector from "../components/LanguageSelector";
 import Split from "react-split";
 import SampleTestCases from "../components/SampleTestCases";
 import SubmissionHistory from "../components/SubmissionHistory";
+import ContestTimer from "../components/ContestTimer";
 import { useEffect, useState } from "react";
 import { getSampleTestCases, TestCase } from "../services/problemService";
 import { useSettings } from "../hooks/useSettings";
 import SettingsPopover from "../components/SettingsPopover";
 import { useArena } from "../hooks/useArena";
-import { ArrowCounterClockwise, DotsThreeVertical, Play, CaretLeft, CaretRight, ListBullets } from "@phosphor-icons/react";
+import { ArrowCounterClockwise, DotsThreeVertical, Play, CaretLeft, CaretRight, ListBullets, CheckCircle } from "@phosphor-icons/react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../app/store";
 import { contestService } from "../../home/services/contestService";
 import { ContestDetailData } from "../../contests/pages/UserContestDetailPage";
 
@@ -32,62 +35,139 @@ export default function Home() {
     const isExamMode = !!contestId;
 
     // Contest Data
+    const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
+    const location = useLocation();
     const [contest, setContest] = useState<ContestDetailData | null>(null);
 
     useEffect(() => {
+        // Guard: Nếu là bài thi mà chưa đăng nhập thì chuyển hướng sang login
+        if (isExamMode && !isAuthenticated) {
+            navigate('/login', {
+                state: { from: location.pathname + location.search },
+                replace: true
+            });
+            return;
+        }
+
         // Fetch contest detail if in Exam Mode
-        if (isExamMode) {
+        if (isExamMode && contestId) {
             contestService.getContestDetail(parseInt(contestId))
                 .then(setContest)
                 .catch(err => {
                     console.error("Failed to fetch contest detail for editor:", err);
                 });
         }
-    }, [isExamMode, contestId]);
+    }, [isExamMode, isAuthenticated, navigate, location.pathname, location.search, contestId]);
 
     useEffect(() => {
         // Reset code context when switch problem
         setActiveTab('problem');
-        // Mock get sample test cases for problem 1
         getSampleTestCases(problemId).then(setTestCases).catch(console.error);
+    }, [problemId]);
 
-        // Anti-cheat mechanisms
-        if (isExamMode) {
-            const handleVisibilityChange = () => {
-                if (document.hidden) {
-                    toast.error("CẢNH BÁO: BẠN VỪA RỜI KHỎI MÀN HÌNH THI!", {
-                        position: "top-center",
-                        autoClose: false,
-                        style: { fontWeight: 'bold', fontSize: '1.2rem', padding: '1rem' }
-                    });
-                    // Todo: Call API to log warning for user
+    const [isTimeUp, setIsTimeUp] = useState(false);
+
+    // Anti-cheat & Fullscreen logic
+    useEffect(() => {
+        if (!isExamMode) return;
+
+        const toastId = "fullscreen-prompt";
+
+        const handlePreventCopyPaste = (e: ClipboardEvent) => {
+            e.preventDefault();
+            toast.warning("Hành động bị cấm trong kỳ thi!");
+        };
+
+        const handleContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                toast.error("CẢNH BÁO: BẠN VỪA RỜI KHỎI MÀN HÌNH THI!", {
+                    position: "top-center",
+                    autoClose: 5000,
+                    style: { fontWeight: 'bold' }
+                });
+            }
+        };
+
+        const checkFullscreen = () => {
+            if (!document.fullscreenElement && !(document as any).webkitFullscreenElement && !(document as any).msFullscreenElement) {
+                if (!toast.isActive(toastId)) {
+                    toast.info(
+                        <div className="flex flex-col gap-2">
+                            <span className="font-bold">⚠️ Yêu cầu Toàn màn hình</span>
+                            <span className="text-xs">Vui lòng bật chế độ Toàn màn hình để tiếp tục làm bài thi!</span>
+                            <button
+                                onClick={() => {
+                                    const elem = document.documentElement;
+                                    if (elem.requestFullscreen) elem.requestFullscreen();
+                                    else if ((elem as any).webkitRequestFullscreen) (elem as any).webkitRequestFullscreen();
+                                    else if ((elem as any).msRequestFullscreen) (elem as any).msRequestFullscreen();
+                                    toast.dismiss(toastId);
+                                }}
+                                className="bg-blue-600 px-3 py-1.5 rounded text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+                            >
+                                Bật Toàn màn hình (F11)
+                            </button>
+                        </div>,
+                        {
+                            toastId,
+                            autoClose: false,
+                            closeOnClick: false,
+                            closeButton: false,
+                            position: "top-center",
+                            style: { border: '1px solid #3b82f6' }
+                        }
+                    );
                 }
-            };
+            } else {
+                toast.dismiss(toastId);
+            }
+        };
 
-            const handlePreventCopyPaste = (e: ClipboardEvent) => {
-                e.preventDefault();
-                toast.warning("Hành động bị cấm trong kỳ thi!");
-            };
+        // Initial check with delay to ensure DOM is ready
+        const timer = setTimeout(checkFullscreen, 1000);
 
-            const handleContextMenu = (e: MouseEvent) => {
-                e.preventDefault();
-            };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        document.addEventListener('copy', handlePreventCopyPaste);
+        document.addEventListener('paste', handlePreventCopyPaste);
+        document.addEventListener('contextmenu', handleContextMenu);
 
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            document.addEventListener('copy', handlePreventCopyPaste);
-            document.addEventListener('paste', handlePreventCopyPaste);
-            document.addEventListener('contextmenu', handleContextMenu);
+        // Fullscreen events for all browsers
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+            document.addEventListener(event, checkFullscreen);
+        });
 
-            return () => {
-                document.removeEventListener('visibilitychange', handleVisibilityChange);
-                document.removeEventListener('copy', handlePreventCopyPaste);
-                document.removeEventListener('paste', handlePreventCopyPaste);
-                document.removeEventListener('contextmenu', handleContextMenu);
-            };
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            document.removeEventListener('copy', handlePreventCopyPaste);
+            document.removeEventListener('paste', handlePreventCopyPaste);
+            document.removeEventListener('contextmenu', handleContextMenu);
+            ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+                document.removeEventListener(event, checkFullscreen);
+            });
+            toast.dismiss(toastId);
+        };
+    }, [isExamMode]);
+
+    const handleRunCode = () => {
+        submitLogic(true);
+    };
+
+    const handleSubmit = () => {
+        submitLogic(false);
+    };
+
+    const submitLogic = async (isRunOnly: boolean) => {
+        if (!isAuthenticated) {
+            toast.info("Vui lòng đăng nhập để nộp bài!");
+            navigate('/login', { state: { from: location.pathname + location.search } });
+            return;
         }
-    }, [isExamMode, problemId]);
 
-    const handleSubmit = async () => {
         if (!code.trim()) {
             toast.warning("Mã nguồn không được để trống!");
             return;
@@ -100,12 +180,11 @@ export default function Home() {
 
         setIsSubmitting(true);
         try {
-            const token = localStorage.getItem('token'); // Lấy token thật từ Dev 1 nếu có
-
             const response = await axios.post('http://localhost:8080/api/submissions', {
                 problemId: problemId,
                 languageId: langId,
                 sourceCode: code,
+                isRunOnly: isRunOnly,
                 ...(isExamMode ? { contestId: parseInt(contestId) } : {})
             }, {
                 headers: {
@@ -114,7 +193,7 @@ export default function Home() {
             });
 
             if (response.status === 200) {
-                toast.success("Đã nộp bài, đang chờ hệ thống chấm...");
+                toast.success(isRunOnly ? "Đang chạy thử..." : "Đã nộp bài, đang chờ hệ thống chấm...");
                 setActiveTab('submissions');
             }
         } catch (error) {
@@ -152,6 +231,17 @@ export default function Home() {
                     <div className="flex items-center gap-3">
                         <ListBullets weight="bold" className="text-xl text-blue-400" />
                         <span className="text-white text-lg font-bold">Kỳ thi: {contest?.title}</span>
+                        {contest?.endTime && (
+                            <div className="ml-4">
+                                <ContestTimer
+                                    endTime={contest.endTime}
+                                    onTimeUp={() => {
+                                        setIsTimeUp(true);
+                                        toast.error("Thời gian làm bài đã kết thúc!", { autoClose: false });
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Problem Switcher */}
@@ -260,19 +350,31 @@ export default function Home() {
                                     {/* Cụm chức năng phải */}
                                     <div className="flex items-center gap-3 relative">
                                         <button
-                                            onClick={handleSubmit}
-                                            disabled={isSubmitting}
-                                            className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-medium transition-colors ${isSubmitting
+                                            onClick={handleRunCode}
+                                            disabled={isSubmitting || isTimeUp}
+                                            className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-medium transition-colors ${isSubmitting || isTimeUp
                                                 ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
-                                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                                : 'bg-slate-700 hover:bg-slate-600 text-white border border-slate-600'
+                                                }`}
+                                        >
+                                            <Play size={16} weight="bold" />
+                                            {isSubmitting ? 'Đang chạy...' : 'Chạy thử'}
+                                        </button>
+
+                                        <button
+                                            onClick={handleSubmit}
+                                            disabled={isSubmitting || isTimeUp}
+                                            className={`flex items-center gap-2 px-4 py-1.5 rounded text-sm font-medium transition-colors ${isSubmitting || isTimeUp
+                                                ? 'bg-slate-500 text-slate-300 cursor-not-allowed'
+                                                : 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20'
                                                 }`}
                                         >
                                             {isSubmitting ? (
                                                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
                                             ) : (
-                                                <Play size={16} weight="fill" />
+                                                <CheckCircle size={18} weight="fill" />
                                             )}
-                                            {isSubmitting ? 'Đang gửi...' : 'Nộp Code'}
+                                            {isSubmitting ? 'Đang gửi...' : 'Nộp bài'}
                                         </button>
 
                                         <button
@@ -309,8 +411,9 @@ export default function Home() {
                                         <CodeEditor
                                             language={language}
                                             value={code}
-                                            onChange={setCode}
+                                            onChange={isTimeUp ? () => { } : setCode}
                                             settings={settings}
+                                            readOnly={isTimeUp}
                                         />
                                     </div>
                                 </div>

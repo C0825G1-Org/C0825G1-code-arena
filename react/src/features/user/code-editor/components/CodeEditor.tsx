@@ -12,9 +12,10 @@ type Props = {
     value: string;
     onChange: (value: string) => void;
     settings: Settings;
+    readOnly?: boolean;
 };
 
-function CodeEditor({ language, value, onChange, settings }: Props) {
+function CodeEditor({ language, value, onChange, settings, readOnly = false }: Props) {
     const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
     const vimModeRef = useRef<{ dispose: () => void } | null>(null);
     const vimStatusNodeRef = useRef<HTMLDivElement>(null);
@@ -105,6 +106,7 @@ function CodeEditor({ language, value, onChange, settings }: Props) {
                         detectIndentation: false, // Tắt tự động nhận diện tab cũ
                         autoClosingBrackets: settings.autoComplete ? "always" : "never",
                         suggestOnTriggerCharacters: settings.autoComplete,
+                        readOnly: readOnly,
                     }}
                 />
             </div>
