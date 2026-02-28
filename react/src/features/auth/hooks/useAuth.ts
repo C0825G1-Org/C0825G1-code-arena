@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { authService } from '../services/authService';
 import { loginSuccess, logout as logoutAction } from '../store/authSlice';
@@ -18,6 +18,7 @@ export const useAuth = (): UseAuthReturn => {
     const [isLoading, setIsLoading] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLoginSuccess = (response: { id: number, username: string, fullName: string, email: string, role: string, token: string }, message?: string) => {
         dispatch(loginSuccess({
@@ -33,7 +34,14 @@ export const useAuth = (): UseAuthReturn => {
 
         toast.success(message || `Welcome back, ${response.fullName}!`);
 
-        // Chuyển hướng theo Role giả lập
+        // Ưu tiên quay lại trang cũ nếu có state.from
+        const from = (location.state as any)?.from;
+        if (from) {
+            navigate(from, { replace: true });
+            return;
+        }
+
+        // Chuyển hướng theo Role mặc định
         const userRole = response.role?.replace('ROLE_', '').toUpperCase() || '';
         if (userRole === 'ADMIN') {
             navigate('/admin/dashboard');

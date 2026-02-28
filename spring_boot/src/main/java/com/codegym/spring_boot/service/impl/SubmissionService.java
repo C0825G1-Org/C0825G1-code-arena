@@ -8,7 +8,6 @@ import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.entity.Contest;
 import java.time.Duration;
-import com.codegym.spring_boot.service.ITestCaseService;
 import com.codegym.spring_boot.service.NotificationService;
 import com.codegym.spring_boot.entity.SubmissionTestResult;
 
@@ -25,6 +24,7 @@ import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
 import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -57,13 +57,10 @@ public class SubmissionService implements ISubmissionService {
                                 && !authentication.getPrincipal().equals("anonymousUser")) {
                         String username = authentication.getName();
                         user = userRepository.findByUsernameAndIsDeletedFalse(username)
-                                        .orElseThrow(() -> new RuntimeException("Current user not found"));
+                                        .orElseThrow(() -> new RuntimeException(
+                                                        "Không tìm thấy thông tin người dùng hiện tại."));
                 } else {
-                        // TODO: Fallback to a hardcoded user if Auth (Dev 1) is not fully integrated
-                        // yet for testing
-                        log.warn("User is not authenticated. Falling back to default user ID = 1");
-                        user = userRepository.findById(1)
-                                        .orElseThrow(() -> new RuntimeException("Default user not found"));
+                        throw new SecurityException("Bạn phải đăng nhập để nộp bài.");
                 }
 
                 // 2. Prepare dependencies (Using dummy instances for problem and language just
@@ -93,6 +90,8 @@ public class SubmissionService implements ISubmissionService {
                                 .executionTime(0)
                                 .memoryUsed(0)
                                 .score(0)
+                                .isTestRun(submitRequestDTO.getIsRunOnly() != null ? submitRequestDTO.getIsRunOnly()
+                                                : false)
                                 .build();
 
                 Submission savedSubmission = submissionRepository.save(newSubmission);
@@ -102,7 +101,8 @@ public class SubmissionService implements ISubmissionService {
                 JudgeTicket ticket = new JudgeTicket(
                                 savedSubmission.getId(),
                                 submitRequestDTO.getProblemId(),
-                                submitRequestDTO.getLanguageId());
+                                submitRequestDTO.getLanguageId(),
+                                savedSubmission.getIsTestRun());
                 judgeQueueService.pushTicketToQueue(ticket);
 
                 return savedSubmission.getId();
@@ -142,9 +142,13 @@ public class SubmissionService implements ISubmissionService {
                                                         .status(tcResult.isPassed() ? SubmissionStatus.AC
                                                                         : mapDockerStatusToSubmissionStatus(
                                                                                         tcResult.getMessage()))
-                                                        .executionTime(0) // Chi tiết test case hiện tại chưa tracking
-                                                                          // time
-                                                        .memoryUsed(0)
+                                                        .executionTime(tcResult.getExecutionTime() != null
+                                                                        ? tcResult.getExecutionTime().intValue()
+                                                                        : 0)
+                                                        .memoryUsed(tcResult.getMemoryUsed() != null
+                                                                        ? tcResult.getMemoryUsed().intValue()
+                                                                        : 0)
+                                                        .userOutput(tcResult.getUserOutput())
                                                         .errorMessage(tcResult.isPassed() ? null
                                                                         : tcResult.getMessage())
                                                         .build();
@@ -181,8 +185,10 @@ public class SubmissionService implements ISubmissionService {
 
                 submissionRepository.save(submission);
 
-                // --- 3. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC và nằm trong Contest) ---
-                if (finalStatus == SubmissionStatus.AC && submission.getContest() != null) {
+                // --- 3. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC, nằm trong Contest và KHÔNG
+                // PHẢI CHẠY THỬ) ---
+                if (finalStatus == SubmissionStatus.AC && submission.getContest() != null
+                                && !submission.getIsTestRun()) {
                         Integer contestId = submission.getContest().getId();
                         Integer userId = submission.getUser().getId();
                         Integer problemId = submission.getProblem().getId();
@@ -219,10 +225,13 @@ public class SubmissionService implements ISubmissionService {
                 // 4. Gửi Socket về ReactJS realtime
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                 .submissionId(msg.getSubmissionId())
+                                .problemId(submission.getProblem().getId())
+                                .contestId(submission.getContest() != null ? submission.getContest().getId() : null)
                                 .status(finalStatus.name())
                                 .executionTime(submission.getExecutionTime().longValue())
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
+                                .isRunOnly(submission.getIsTestRun())
                                 .build();
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
         }
@@ -286,5 +295,60 @@ public class SubmissionService implements ISubmissionService {
                                 .score(sub.getScore())
                                 .createdAt(sub.getCreatedAt())
                                 .build()).collect(Collectors.toList());
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public com.codegym.spring_boot.dto.SubmissionDetailDTO getSubmissionDetail(Integer submissionId) {
+                Submission submission = submissionRepository.findById(submissionId)
+                                .orElseThrow(() -> new jakarta.persistence.NoResultException(
+                                                "Không tìm thấy bài nộp ID: " + submissionId));
+
+                // Bảo mật: Kiểm tra xem bài nộp có thuộc về user hiện tại không
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                String username = auth.getName();
+                if (!submission.getUser().getUsername().equals(username)) {
+                        // Trừ khi là MOD hoặc ADMIN (Tạm thời check đơn giản, Dev 1 có thể mở rộng)
+                        boolean isAdmin = auth.getAuthorities().stream()
+                                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
+                                                        || a.getAuthority().equals("ROLE_MODERATOR"));
+                        if (!isAdmin) {
+                                throw new SecurityException("Bạn không có quyền xem bài nộp của người khác.");
+                        }
+                }
+
+                // Lấy danh sách kết quả chi tiết từng testcase
+                List<SubmissionTestResult> testResults = submissionTestResultRepository
+                                .findBySubmissionId(submissionId);
+
+                List<com.codegym.spring_boot.dto.TestCaseResultDetailDTO> detailTCs = testResults.stream()
+                                .map(tr -> com.codegym.spring_boot.dto.TestCaseResultDetailDTO.builder()
+                                                .id(tr.getId())
+                                                .status(tr.getStatus().name())
+                                                .executionTime(tr.getExecutionTime())
+                                                .memoryUsed(tr.getMemoryUsed())
+                                                .isSample(tr.getTestCase().getIsSample())
+                                                .input(tr.getTestCase().getIsSample()
+                                                                ? tr.getTestCase().getSampleInput()
+                                                                : null)
+                                                .expectedOutput(tr.getTestCase().getIsSample()
+                                                                ? tr.getTestCase().getSampleOutput()
+                                                                : null)
+                                                .actualOutput(tr.getUserOutput())
+                                                .errorMessage(tr.getErrorMessage())
+                                                .build())
+                                .collect(Collectors.toList());
+
+                return com.codegym.spring_boot.dto.SubmissionDetailDTO.builder()
+                                .id(submission.getId())
+                                .status(submission.getStatus().name())
+                                .score(submission.getScore())
+                                .executionTime(submission.getExecutionTime())
+                                .memoryUsed(submission.getMemoryUsed())
+                                .sourceCode(submission.getSourceCode())
+                                .createdAt(submission.getCreatedAt())
+                                .isTestRun(submission.getIsTestRun())
+                                .testCaseResults(detailTCs)
+                                .build();
         }
 }
