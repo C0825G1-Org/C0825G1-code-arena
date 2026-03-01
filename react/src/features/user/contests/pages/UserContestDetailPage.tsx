@@ -170,7 +170,7 @@ export const UserContestDetailPage = () => {
         if (contest.status === 'finished') {
             return (
                 <button
-                    disabled
+                    onClick={() => navigate(`/contests/${contest.id}/results`)}
                     className="w-full py-3.5 rounded-xl font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 cursor-pointer hover:bg-slate-600/50 transition-colors flex justify-center items-center"
                 >
                     Xem kết quả
