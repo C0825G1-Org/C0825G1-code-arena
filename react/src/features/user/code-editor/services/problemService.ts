@@ -25,9 +25,11 @@ export async function getProblem(id: number): Promise<Problem> {
 export type TestCase = {
     id: number;
     problemId: number;
-    input: string;
-    output: string;
-    is_sample: boolean;
+    isSample: boolean;
+    sampleInput: string;
+    sampleOutput: string;
+    inputFilename: string;
+    outputFilename: string;
 };
 
 export async function getSampleTestCases(problemId: number): Promise<TestCase[]> {
