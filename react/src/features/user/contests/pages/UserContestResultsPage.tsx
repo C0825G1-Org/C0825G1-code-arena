@@ -130,44 +130,52 @@ export const UserContestResultsPage = () => {
                         <p className="text-xl text-blue-400 font-medium">{contest.title}</p>
                     </div>
 
-                    {/* Two-Column Layout */}
+                    {/* Personal Summary Cards (Unified Sizes) */}
+                    {myResult ? (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                            {/* Rank Card */}
+                            <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300 relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                <Medal weight="fill" className={`text-4xl mx-auto mb-3 ${myResult.rank === 1 ? 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' : myResult.rank === 2 ? 'text-slate-300 drop-shadow-[0_0_15px_rgba(203,213,225,0.5)]' : myResult.rank === 3 ? 'text-amber-600 drop-shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'text-blue-500'}`} />
+                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Thứ hạng của bạn</h3>
+                                <div className="text-4xl font-black text-white">#{myResult.rank} <span className="text-lg text-slate-500 font-medium">/ {contest.participantCount}</span></div>
+                            </div>
+
+                            {/* Score Card */}
+                            <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
+                                <CheckCircle weight="fill" className="text-4xl text-emerald-500 mx-auto mb-3" />
+                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Số bài giải được</h3>
+                                <div className="text-4xl font-black text-white">{myResult.totalScore} <span className="text-lg text-slate-500 font-medium">bài</span></div>
+                            </div>
+
+                            {/* Penalty Card */}
+                            <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
+                                <Clock weight="fill" className="text-4xl text-red-400 mx-auto mb-3" />
+                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Tổng Penalty</h3>
+                                <div className="text-4xl font-black text-white">{myResult.totalPenalty} <span className="text-lg text-slate-500 font-medium">phút</span></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-8 text-center mb-12">
+                            <ChartLineUp weight="duotone" className="text-5xl text-slate-500 mx-auto mb-4" />
+                            <p className="text-slate-300 text-lg">Bạn không tham gia hoặc chưa ghi nhận kết quả trong cuộc thi này.</p>
+                        </div>
+                    )}
+
+                    {/* Two-Column Layout for Details */}
                     <div className="flex flex-col lg:flex-row gap-8">
 
-                        {/* Left Column: Problems & Results */}
+                        {/* Left Column: Problems & Detailed Results */}
                         <div className="flex-1 space-y-8">
-                            {/* Personal Summary Cards */}
-                            {myResult ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    {/* Score Card */}
-                                    <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
-                                        <CheckCircle weight="fill" className="text-4xl text-emerald-500 mb-2" />
-                                        <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Số bài giải được</h3>
-                                        <div className="text-4xl font-black text-white">{myResult.totalScore} <span className="text-lg text-slate-500 font-medium">bài</span></div>
-                                    </div>
-
-                                    {/* Penalty Card */}
-                                    <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
-                                        <Clock weight="fill" className="text-4xl text-red-400 mb-2" />
-                                        <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Tổng Penalty</h3>
-                                        <div className="text-4xl font-black text-white">{myResult.totalPenalty} <span className="text-lg text-slate-500 font-medium">phút</span></div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-8 text-center">
-                                    <ChartLineUp weight="duotone" className="text-5xl text-slate-500 mx-auto mb-4" />
-                                    <p className="text-slate-300 text-lg">Bạn không tham gia hoặc chưa ghi nhận kết quả trong cuộc thi này.</p>
-                                </div>
-                            )}
-
                             {/* Detailed Problem Status List */}
-                            {myResult && myResult.problemDetails && myResult.problemDetails.length > 0 && contest.problems && (
+                            {contest.problems && contest.problems.length > 0 ? (
                                 <div>
                                     <h2 className="text-2xl font-bold text-slate-200 mb-6 flex items-center gap-3">
-                                        <Code weight="bold" className="text-blue-400" /> Trạng thái giải bài tập
+                                        <Code weight="bold" className="text-blue-400" /> Danh sách bài tập
                                     </h2>
                                     <div className="space-y-4">
                                         {contest.problems.sort((a, b) => a.orderIndex - b.orderIndex).map((p, idx) => {
-                                            const pResult = myResult.problemDetails.find(pd => pd.problemId === p.id);
+                                            const pResult = myResult?.problemDetails?.find(pd => pd.problemId === p.id);
                                             const statusClass = pResult
                                                 ? (pResult.isAccepted ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-red-500/50 bg-red-500/10')
                                                 : 'border-slate-700/50 bg-slate-900/50';
@@ -199,7 +207,7 @@ export const UserContestResultsPage = () => {
                                                                 {pResult.isAccepted && pResult.solvedTimeMinutes > 0 && <div className="text-slate-400">Time: {pResult.solvedTimeMinutes}m</div>}
                                                             </>
                                                         ) : (
-                                                            <span className="text-slate-500 italic">Chưa thử sức</span>
+                                                            <span className="text-slate-500 flex items-center gap-1.5"><ChartLineUp className="text-lg" /> Chưa thử sức</span>
                                                         )}
                                                     </div>
                                                 </div>
@@ -207,31 +215,21 @@ export const UserContestResultsPage = () => {
                                         })}
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="bg-slate-900/40 border border-slate-700/50 rounded-2xl p-8 text-center">
+                                    <p className="text-slate-400">Cuộc thi này không có bài tập nào.</p>
+                                </div>
                             )}
                         </div>
 
-                        {/* Right Column: Sticky Rank & Leaderboard Dashboard */}
+                        {/* Right Column: Small Leaderboard Sidebar */}
                         <div className="w-full lg:w-[400px] shrink-0 space-y-8">
-                            {/* Personal Rank Highlight */}
-                            {myResult && (
-                                <div className="bg-slate-900/60 border border-slate-700/50 rounded-3xl p-8 text-center sticky top-[100px] shadow-2xl relative overflow-hidden group">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <Medal weight="fill" className={`text-6xl mx-auto mb-4 ${myResult.rank === 1 ? 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' : myResult.rank === 2 ? 'text-slate-300 drop-shadow-[0_0_15px_rgba(203,213,225,0.5)]' : myResult.rank === 3 ? 'text-amber-600 drop-shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'text-blue-500'}`} />
-                                    <h3 className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">Thứ hạng của bạn</h3>
-                                    <div className="flex items-baseline justify-center gap-2">
-                                        <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400">#{myResult.rank}</span>
-                                        <span className="text-2xl text-slate-500 font-bold">/ {contest.participantCount}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Small Leaderboard Sidebar */}
                             <div>
-                                <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
-                                    <Trophy weight="fill" className="text-yellow-500" /> Top thí sinh
+                                <h2 className="text-xl font-bold text-slate-200 mb-6 flex items-center gap-2">
+                                    <Trophy weight="fill" className="text-yellow-500" /> Top thí sinh xuất sắc
                                 </h2>
 
-                                <div className="rounded-2xl border border-slate-700/50 bg-slate-900/40 overflow-hidden">
+                                <div className="rounded-2xl border border-slate-700/50 bg-slate-900/40 overflow-hidden shadow-xl">
                                     <div className="divide-y divide-slate-700/50">
                                         {leaderboard.slice(0, 5).map((u) => (
                                             <div key={u.userId} className={`flex items-center gap-4 p-4 transition-colors ${u.userId === user?.id ? 'bg-blue-900/30' : 'hover:bg-slate-800/40'}`}>
@@ -251,8 +249,8 @@ export const UserContestResultsPage = () => {
                                     </div>
                                     {leaderboard.length > 5 && (
                                         <div className="p-3 text-center bg-slate-800/50 border-t border-slate-700/50">
-                                            <Link to={`/contests/${contest.id}`} className="text-blue-400 hover:text-blue-300 text-sm font-bold">
-                                                Xem toàn bộ &rarr;
+                                            <Link to={`/contests/${contest.id}`} className="text-blue-400 hover:text-blue-300 text-sm font-bold flex justify-center items-center gap-2">
+                                                Xem toàn bộ <ArrowLeft className="rotate-180" />
                                             </Link>
                                         </div>
                                     )}
