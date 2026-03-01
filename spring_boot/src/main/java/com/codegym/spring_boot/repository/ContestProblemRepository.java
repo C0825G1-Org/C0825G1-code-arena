@@ -13,6 +13,9 @@ public interface ContestProblemRepository extends JpaRepository<ContestProblem, 
     // Lấy danh sách bài tập của contest, sắp theo thứ tự
     List<ContestProblem> findByIdContestIdOrderByOrderIndexAsc(Integer contestId);
 
+    // Lấy danh sách các cuộc thi mà một bài tập đang tham gia
+    List<ContestProblem> findByIdProblemId(Integer problemId);
+
     // Xóa tất cả bài tập của contest (dùng khi reset)
     void deleteByIdContestId(Integer contestId);
 

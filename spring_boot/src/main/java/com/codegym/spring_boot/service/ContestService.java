@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
 
+import com.codegym.spring_boot.scheduler.ContestEventScheduler;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +34,7 @@ public class ContestService {
     private final ContestParticipantRepository participantRepository;
     private final ContestProblemRepository problemRepository;
     private final IProblemRepository iProblemRepository;
+    private final ContestEventScheduler contestEventScheduler;
 
     // =============================================
     // 1. MODERATOR/ADMIN: Tạo cuộc thi
@@ -56,6 +59,8 @@ public class ContestService {
         contest.setCreatedBy(currentUser);
 
         contest = contestRepository.save(contest);
+        contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
+        contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
         return mapToDetailResponse(contest, false);
     }
 
@@ -133,6 +138,8 @@ public class ContestService {
         }
 
         contest = contestRepository.save(contest);
+        contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
+        contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
         return mapToDetailResponse(contest, false);
     }
 
@@ -152,6 +159,7 @@ public class ContestService {
         contest.setStatus(ContestStatus.cancelled);
         contest.setIsDeleted(true);
         contestRepository.save(contest);
+        contestEventScheduler.cancelAllSchedules(id);
 
         // Unlock tất cả problems của contest bị hủy
         unlockProblemsOfContest(id);
@@ -549,6 +557,12 @@ public class ContestService {
     // MAPPER: Contest → ContestListResponse
     // =============================================
     private ContestListResponse mapToListResponse(Contest contest, boolean isRegistered) {
+        Integer firstProblemId = null;
+        var problems = problemRepository.findByIdContestIdOrderByOrderIndexAsc(contest.getId());
+        if (problems != null && !problems.isEmpty()) {
+            firstProblemId = problems.get(0).getProblem().getId();
+        }
+
         return ContestListResponse.builder()
                 .id(contest.getId())
                 .title(contest.getTitle())
@@ -558,6 +572,7 @@ public class ContestService {
                 .participantCount(participantRepository.countByIdContestId(contest.getId()))
                 .serverTime(LocalDateTime.now())
                 .isRegistered(isRegistered)
+                .firstProblemId(firstProblemId)
                 .build();
     }
 

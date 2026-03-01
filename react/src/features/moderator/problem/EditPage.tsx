@@ -293,21 +293,6 @@ export const EditPage = () => {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl p-6 border border-indigo-500/30">
-                            <div className="flex justify-between items-center mb-4 border-b border-indigo-500/20 pb-2">
-                                <h2 className="text-lg font-bold text-indigo-400 flex items-center gap-2">
-                                    <i className="ph-bold ph-flask"></i> Test Cases
-                                </h2>
-                                <span className="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded text-xs font-bold font-mono">3 Tests</span>
-                            </div>
-                            <button
-                                onClick={() => navigate(`/moderator/problems/${id}/testcases`)}
-                                className="w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 border border-indigo-500/50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2"
-                            >
-                                <i className="ph-bold ph-upload-simple"></i> Quản lý Test Cases
-                            </button>
-                        </div>
                     </div>
 
                 </div>

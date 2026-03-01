@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../services/contestService';
+import { useContestWebSocket } from '../../contests/hooks/useContestWebSocket';
 import {
     Code,
     Bell,
@@ -62,7 +63,7 @@ export const UserHomePage: React.FC = () => {
     const [loadingContests, setLoadingContests] = useState(true);
     const [registeringId, setRegisteringId] = useState<number | null>(null);
 
-    const fetchContests = async () => {
+    const fetchContests = useCallback(async () => {
         try {
             const data = await contestService.getContests({ page: 0, size: 5 });
             setContests(data.content || []);
@@ -71,11 +72,56 @@ export const UserHomePage: React.FC = () => {
         } finally {
             setLoadingContests(false);
         }
-    };
+    }, []);
+
+    // Keep latest fetchContests for websocket callbacks (avoid stale closure).
+    const fetchContestsRef = useRef(fetchContests);
+    useEffect(() => {
+        fetchContestsRef.current = fetchContests;
+    }, [fetchContests]);
 
     useEffect(() => {
         fetchContests();
     }, []);
+
+    // WebSocket real-time updates for contest status
+    const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
+        // Refetch to ensure status badges/buttons update without full page reload.
+        fetchContestsRef.current();
+    }, []);
+
+    useContestWebSocket(handleContestStatusUpdate);
+
+    // Fallback realtime: when local time passes contest start/end, refetch once.
+    useEffect(() => {
+        if (!contests.length) return;
+
+        const timer = setInterval(() => {
+            const now = Date.now();
+            let shouldRefresh = false;
+
+            for (const contest of contests) {
+                const start = new Date(contest.startTime).getTime();
+                const end = new Date(contest.endTime).getTime();
+                if (Number.isNaN(start) || Number.isNaN(end)) continue;
+
+                if (contest.status === 'upcoming' && now >= start) {
+                    shouldRefresh = true;
+                    break;
+                }
+                if (contest.status === 'active' && now >= end) {
+                    shouldRefresh = true;
+                    break;
+                }
+            }
+
+            if (shouldRefresh) {
+                fetchContestsRef.current();
+            }
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [contests]);
 
     const handleLogout = () => {
         navigate('/');
@@ -118,7 +164,7 @@ export const UserHomePage: React.FC = () => {
 
         if (contest.status === 'finished') {
             return (
-                <Link to={`/contests/${contest.id}`} className="px-5 py-2.5 rounded-lg font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-600/50 transition-colors whitespace-nowrap">
+                <Link to={`/contests/${contest.id}/results`} className="px-5 py-2.5 rounded-lg font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 hover:bg-slate-600/50 transition-colors whitespace-nowrap">
                     Xem kết quả
                 </Link>
             );
@@ -144,10 +190,15 @@ export const UserHomePage: React.FC = () => {
             );
         }
 
+        // Active State
         if (contest.status === 'active') {
+            const destUrl = contest.firstProblemId
+                ? `/code-editor/${contest.firstProblemId}?contestId=${contest.id}`
+                : `/contests/${contest.id}`;
+
             return (
                 <button
-                    onClick={() => navigate('/code-editor/1')}
+                    onClick={() => navigate(destUrl)}
                     className="px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2 whitespace-nowrap"
                 >
                     Vào Thi <ArrowRight weight="bold" />

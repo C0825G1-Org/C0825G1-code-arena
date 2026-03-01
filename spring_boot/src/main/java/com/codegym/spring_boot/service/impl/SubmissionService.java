@@ -5,7 +5,7 @@ import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.entity.TestCase;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
-import com.codegym.spring_boot.repository.ContestParticipantRepository;
+import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.entity.Contest;
 import java.time.Duration;
 import com.codegym.spring_boot.service.NotificationService;
@@ -23,10 +23,13 @@ import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,6 +48,7 @@ public class SubmissionService implements ISubmissionService {
         private final ISubmissionTestResultRepository submissionTestResultRepository;
         private final ContestParticipantRepository contestParticipantRepository;
         private final NotificationService notificationService;
+        private final com.codegym.spring_boot.service.ILeaderboardService leaderboardService;
 
         @Override
         @Transactional
@@ -243,6 +247,8 @@ public class SubmissionService implements ISubmissionService {
                                 }
                         }
                 }
+                // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
+                leaderboardService.updateScore(submission);
 
                 // 4. Gửi Socket về ReactJS realtime
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()

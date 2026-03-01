@@ -21,4 +21,5 @@ public class ContestListResponse {
     private LocalDateTime serverTime;
     @com.fasterxml.jackson.annotation.JsonProperty("isRegistered")
     private boolean isRegistered;
+    private Integer firstProblemId;
 }

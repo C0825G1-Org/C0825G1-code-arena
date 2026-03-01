@@ -258,26 +258,10 @@ export const CreatePage = () => {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl p-6 border border-indigo-500/30">
-                            <div className="flex justify-between items-center mb-4 border-b border-indigo-500/20 pb-2">
-                                <h2 className="text-lg font-bold text-indigo-400 flex items-center gap-2">
-                                    <i className="ph-bold ph-flask"></i> Test Cases
-                                </h2>
-                                <span className="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded text-xs font-bold font-mono">0 Tests</span>
-                            </div>
-                            <p className="text-sm text-slate-400 mb-4">Bạn cần tạo bài tập trước khi có thể cấu hình Test Cases hệ thống.</p>
-                            <button
-                                disabled
-                                className="w-full bg-indigo-600/10 text-indigo-400/50 border border-indigo-500/20 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 cursor-not-allowed"
-                            >
-                                <i className="ph-bold ph-upload-simple"></i> Quản lý Test Cases
-                            </button>
-                        </div>
                     </div>
 
                 </div>
-            </div>
+                </div>
             </div>
         </ModeratorLayout>
     );

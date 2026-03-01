@@ -23,6 +23,9 @@ public interface ContestRepository extends JpaRepository<Contest, Integer>, JpaS
 
     // Lọc theo status cụ thể
     Page<Contest> findByStatus(ContestStatus status, Pageable pageable);
+    
+    // Lấy tất cả theo status không phân trang (cho Scheduler)
+    List<Contest> findByStatus(ContestStatus status);
 
     // Cho Cron Job: tìm contest UPCOMING mà startTime đã qua
     List<Contest> findByStatusAndStartTimeLessThanEqual(ContestStatus status, LocalDateTime time);

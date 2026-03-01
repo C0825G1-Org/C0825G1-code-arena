@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ModeratorLayout } from '../../components/ModeratorLayout';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { Link } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { DeleteContestModal } from '../components/DeleteContestModal';
 import { EditContestModal } from '../components/EditContestModal';
 import { ManageProblemsModal } from '../components/ManageProblemsModal';
 import { CreateContestModal } from '../components/CreateContestModal';
+import { useContestWebSocket } from '../../../../features/user/contests/hooks/useContestWebSocket';
 
 interface Contest {
     id: number;
@@ -38,11 +39,7 @@ export const ContestManagementPage = () => {
     const [manageProblemModalOpen, setManageProblemModalOpen] = useState(false);
     const [selectedContest, setSelectedContest] = useState<{ id: number; title: string } | null>(null);
 
-    useEffect(() => {
-        fetchContests();
-    }, [page]); // Re-fetch only when page changes
-
-    const fetchContests = async () => {
+    const fetchContests = useCallback(async () => {
         try {
             setLoading(true);
             const params: any = {
@@ -75,7 +72,25 @@ export const ContestManagementPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, searchTerm, statusFilter, startTime, endTime]);
+
+    // Keep latest fetchContests for websocket callbacks (avoid stale closure).
+    const fetchContestsRef = useRef(fetchContests);
+    useEffect(() => {
+        fetchContestsRef.current = fetchContests;
+    }, [fetchContests]);
+
+    useEffect(() => {
+        fetchContests();
+    }, [fetchContests]); // Re-fetch when params (incl. page) change
+
+    // WebSocket real-time updates for contest status
+    const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
+        // Refetch to ensure status badges update without full page reload.
+        fetchContestsRef.current();
+    }, []);
+
+    useContestWebSocket(handleContestStatusUpdate);
 
     const handleSearchClick = () => {
         if (page === 0) {

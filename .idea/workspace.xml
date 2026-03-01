@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/1.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/1.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/2.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/2.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/6.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/6.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/7.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/7.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/1.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/1.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/2.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/2.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestProblemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestProblemRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="3ACWkx9H2HkueEeL0RnA63ETxeu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;minh&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Codegym/C0825G1-code-arena&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\reg1\\IntelliJ IDEA 2025.2.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="" />
+      <created>1772097179626</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1772097179626</updated>
+      <workItem from="1772097180920" duration="393000" />
+      <workItem from="1772159637250" duration="3790000" />
+      <workItem from="1772181811005" duration="1438000" />
+      <workItem from="1772209366219" duration="4121000" />
+      <workItem from="1772293097970" duration="2794000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

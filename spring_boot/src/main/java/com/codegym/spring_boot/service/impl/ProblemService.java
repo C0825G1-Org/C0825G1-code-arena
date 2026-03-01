@@ -7,10 +7,14 @@ import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Tag;
 import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.UserRole;
+import com.codegym.spring_boot.repository.ContestProblemRepository;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITagRepository;
 import com.codegym.spring_boot.repository.UserRepository;
+import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.IProblemService;
+import com.codegym.spring_boot.entity.ContestProblem;
+import com.codegym.spring_boot.entity.enums.ContestStatus;
 import jakarta.persistence.NoResultException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,12 +32,19 @@ public class ProblemService implements IProblemService {
     private final IProblemRepository problemRepository;
     private final ITagRepository tagRepository;
     private final UserRepository userRepository;
+    private final ContestProblemRepository contestProblemRepository;
+    private final ContestService contestService;
 
-    public ProblemService(IProblemRepository problemRepository, ITagRepository tagRepository,
-            com.codegym.spring_boot.repository.UserRepository userRepository) {
+    public ProblemService(IProblemRepository problemRepository, 
+                          ITagRepository tagRepository, 
+                          UserRepository userRepository,
+                          ContestProblemRepository contestProblemRepository,
+                          ContestService contestService) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
+        this.contestProblemRepository = contestProblemRepository;
+        this.contestService = contestService;
     }
 
     @Override
@@ -86,11 +97,7 @@ public class ProblemService implements IProblemService {
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
 
         checkModifyPermission(problem);
-
-        if (Boolean.TRUE.equals(problem.getIsLocked())) {
-            throw new IllegalStateException(
-                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
-        }
+        checkIfProblemInActiveContest(id);
 
         if (!problem.getSlug().equals(requestDTO.getSlug()) && problemRepository.existsBySlug(requestDTO.getSlug())) {
             throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
@@ -110,15 +117,22 @@ public class ProblemService implements IProblemService {
         }
 
         checkModifyPermission(problem);
-
-        if (Boolean.TRUE.equals(problem.getIsLocked())) {
-            throw new IllegalStateException(
-                    "Bài tập đang được sử dụng trong cuộc thi đang diễn ra. Không thể sửa/xóa.");
-        }
+        checkIfProblemInActiveContest(id);
 
         problem.setIsDeleted(true);
         problemRepository.save(problem);
         return true;
+    }
+
+    private void checkIfProblemInActiveContest(Integer problemId) {
+        List<ContestProblem> contests = contestProblemRepository.findByIdProblemId(problemId);
+        for (ContestProblem cp : contests) {
+            ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
+            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
+                throw new IllegalStateException(
+                        "Bài tập đang nằm trong cuộc thi đang diễn ra hoặc đã kết thúc. Không thể sửa/xóa.");
+            }
+        }
     }
 
     private void checkModifyPermission(Problem problem) {

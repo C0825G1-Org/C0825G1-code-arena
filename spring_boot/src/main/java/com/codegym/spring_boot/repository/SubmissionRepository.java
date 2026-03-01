@@ -30,4 +30,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
         // đó
         int countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(Integer userId, Integer problemId,
                         Integer contestId, Integer id, SubmissionStatus status);
+
+        // Fetch all submissions for a contest to rebuild leaderboard details
+        List<Submission> findByContestIdOrderByIdAsc(Integer contestId);
 }

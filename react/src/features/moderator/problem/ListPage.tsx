@@ -69,11 +69,23 @@ export const ListPage = () => {
         fetchData();
     }, [currentUser]);
 
-    // Derived states for pagination
+    // Reset page on filter change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, difficulty]);
+
+    // Derived states for pagination & filter
+    const filteredProblemsList = problems.filter((prob) => {
+        const term = searchTerm.toLowerCase();
+        const matchesSearch = prob.title.toLowerCase().includes(term) || String(prob.id) === term;
+        const matchesDifficulty = difficulty ? prob.difficulty === difficulty : true;
+        return matchesSearch && matchesDifficulty;
+    });
+
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentProblems = problems.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(problems.length / itemsPerPage);
+    const currentProblems = filteredProblemsList.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredProblemsList.length / itemsPerPage);
 
     // Change page
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -88,7 +100,7 @@ export const ListPage = () => {
     };
 
     return (
-        <ModeratorLayout>
+        <ModeratorLayout headerTitle="Quản Lý Bài Tập">
             {/* Header Title inside Content Area replacing the generic header */}
             <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
                 
@@ -182,6 +194,7 @@ export const ListPage = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right flex justify-end gap-2 whitespace-nowrap">
                                         <button
+                                            onClick={() => navigate('/moderator/testcases', { state: { problemId: prob.id } })}
                                             className="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 relative tooltip"
                                             title="Chỉnh sửa Tests"
                                         >

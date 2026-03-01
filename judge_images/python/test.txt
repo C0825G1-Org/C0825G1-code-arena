@@ -1,1 +1,0 @@
-Dockerfile để build máy chấm python

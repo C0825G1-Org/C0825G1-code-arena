@@ -6,9 +6,10 @@ import { logout } from '../../auth/store/authSlice';
 
 interface ModeratorLayoutProps {
     children?: React.ReactNode;
+    headerTitle?: React.ReactNode;
 }
 
-export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
+export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps) => {
     const user = useSelector((state: RootState) => state.auth.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -120,7 +121,15 @@ export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
                 <header className="h-16 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
                     {/* Header title can be injected via context or left generic if page titles are rendered in the content area. We will keep it generic or empty here, as each page might want its own header tools (like CreatePage has a Back button and Save button).
                         Actually, let's put the user profile and logout here. */}
-                    <div className="flex-1"></div>
+                    <div className="flex-1">
+                        {headerTitle ? (
+                            typeof headerTitle === 'string' ? (
+                                <h1 className="text-xl font-semibold text-white">{headerTitle}</h1>
+                            ) : (
+                                headerTitle
+                            )
+                        ) : null}
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-3 text-sm">
                             <span className="font-semibold text-white">{user?.username || 'Moderator'}</span>
@@ -141,7 +150,7 @@ export const ModeratorLayout = ({ children }: ModeratorLayoutProps) => {
                 </header>
 
                 {/* Page Content injected via Outlet or children props */}
-                <div className="flex-1 overflow-y-auto bg-[#0f172a] relative">
+                <div className="flex-1 overflow-y-auto bg-[#0f172a] relative flex flex-col min-h-0">
                     {children || <Outlet />}
                 </div>
             </main>
