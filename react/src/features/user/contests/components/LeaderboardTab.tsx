@@ -59,6 +59,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                         <tr>
                             <th className="py-4 px-6 font-semibold w-24 text-center">Hạng</th>
                             <th className="py-4 px-6 font-semibold">Thí sinh</th>
+                            <th className="py-4 px-6 font-semibold text-center w-32">Tổng Điểm</th>
                             <th className="py-4 px-6 font-semibold text-center w-32">Số bài giải</th>
                             <th className="py-4 px-6 font-semibold text-center w-32">Penalty (phút)</th>
                         </tr>
@@ -99,8 +100,13 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                         </div>
                                     </td>
                                     <td className="py-4 px-6 text-center">
-                                        <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 font-bold rounded-lg border border-blue-500/30">
+                                        <span className="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-500 font-bold rounded-lg border border-yellow-500/30">
                                             {user.totalScore}
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-6 text-center">
+                                        <span className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 font-bold rounded-lg border border-emerald-500/30">
+                                            {user.totalSolved}
                                         </span>
                                     </td>
                                     <td className="py-4 px-6 text-center">
