@@ -18,6 +18,8 @@
     "@stomp/stompjs": "^7.3.0",
     "axios": "^1.13.5",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.23",
+    "monaco-editor": "^0.55.1",
     "monaco-vim": "^0.4.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -28,11 +30,13 @@
     "react-split": "^2.0.14",
     "react-toastify": "^11.0.5",
     "sockjs-client": "^1.6.1",
+    "socket.io-client": "^4.8.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.2.1",
+    "@types/lodash": "^4.17.24",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",

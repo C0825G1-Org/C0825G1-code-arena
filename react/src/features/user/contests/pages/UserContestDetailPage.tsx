@@ -20,6 +20,15 @@ const statusConfig: Record<string, { label: string; bg: string; text: string; bo
 };
 
 // Interface reflecting the API response
+export interface ContestProblemData {
+    id: number;
+    orderIndex: number;
+    title: string;
+    difficulty: string;
+    isFrozen: boolean;
+    frozenReason: string;
+}
+
 export interface ContestDetailData {
     id: number;
     title: string;
@@ -31,6 +40,7 @@ export interface ContestDetailData {
     registered?: boolean; // Fallback for backend serialization
     serverTime: string;
     participantCount: number;
+    problems?: ContestProblemData[];
 }
 
 export const UserContestDetailPage = () => {
@@ -188,12 +198,14 @@ export const UserContestDetailPage = () => {
         }
 
         // Active State
+        // Nếu contest có bài tập, lấy bài đầu tiên hoặc ẩn nút này
+        const firstProblemId = contest.problems && contest.problems.length > 0 ? contest.problems[0].id : 1;
         return (
             <button
-                onClick={() => toast.success('Đang chuyển hướng vào phòng thi... (Coming soon)')}
+                onClick={() => navigate('/code-editor/' + firstProblemId + '?contestId=' + contest.id)}
                 className="w-full py-3.5 rounded-xl text-lg font-extrabold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_25px_rgba(56,189,248,0.5)] transition-all hover:scale-[1.02] flex justify-center items-center gap-2"
             >
-                Vào Thi <ArrowRight weight="bold" />
+                Vào Thi (Bài Đầu) <ArrowRight weight="bold" />
             </button>
         );
     };
@@ -294,6 +306,54 @@ export const UserContestDetailPage = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Problems List Section */}
+                        {(contest.status === 'active' || contest.status === 'finished') && userIsRegistered && contest.problems && (
+                            <div className="bg-slate-800/30 rounded-3xl p-8 sm:p-10 border border-slate-700/30">
+                                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                                    <Code weight="duotone" className="text-emerald-400" /> Danh sách bài tập
+                                </h2>
+                                {contest.problems.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {contest.problems.sort((a, b) => a.orderIndex - b.orderIndex).map((p, idx) => (
+                                            <div key={p.id} className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-5 flex items-center justify-between hover:border-emerald-500/50 transition-colors">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center font-black text-2xl text-slate-300 shadow-inner">
+                                                        {String.fromCharCode(65 + idx)} {/* A, B, C... */}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-xl text-slate-100">{p.title}</h3>
+                                                        <div className="text-sm mt-1 flex items-center gap-3">
+                                                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400' : p.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-400'}`}>
+                                                                {p.difficulty || 'Bình thường'}
+                                                            </span>
+                                                            <span className="text-slate-500 font-medium">100 Điểm</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-4 flex-shrink-0">
+                                                    {p.isFrozen && (
+                                                        <span className="text-blue-400 text-sm font-semibold italic flex items-center gap-1">
+                                                            ❄️ Đóng băng
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        onClick={() => navigate(`/code-editor/${p.id}?contestId=${contest.id}`)}
+                                                        className="px-6 py-2.5 rounded-xl font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all hover:scale-105 shadow-md flex items-center gap-2 border border-blue-500/50"
+                                                    >
+                                                        Giải bài <ArrowRight weight="bold" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-8 text-center">
+                                        <p className="text-slate-400">Không có bài tập nào trong cuộc thi này hoặc ban tổ chức chưa thêm bài.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Sticky Sidebar Area */}

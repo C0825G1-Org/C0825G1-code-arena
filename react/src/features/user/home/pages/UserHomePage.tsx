@@ -193,7 +193,7 @@ export const UserHomePage: React.FC = () => {
         if (contest.status === 'active') {
             return (
                 <button
-                    onClick={() => import('react-hot-toast').then(({ toast }) => toast.success('Đang chuyển hướng vào phòng thi... (Coming soon)'))}
+                    onClick={() => navigate('/code-editor/1')}
                     className="px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2 whitespace-nowrap"
                 >
                     Vào Thi <ArrowRight weight="bold" />

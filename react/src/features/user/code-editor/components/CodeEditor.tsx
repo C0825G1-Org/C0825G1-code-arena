@@ -1,6 +1,9 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import Editor, { OnMount } from "@monaco-editor/react";
+import * as monaco from "monaco-editor";
+import { editor as MonacoEditor } from "monaco-editor";
 import { initVimMode } from 'monaco-vim';
+import { debounce } from 'lodash';
 
 import { Settings } from "../hooks/useSettings";
 
@@ -9,28 +12,26 @@ type Props = {
     value: string;
     onChange: (value: string) => void;
     settings: Settings;
+    readOnly?: boolean;
 };
 
-function CodeEditor({ language, value, onChange, settings }: Props) {
-    const editorRef = useRef<any>(null);
-    const vimModeRef = useRef<any>(null);
+function CodeEditor({ language, value, onChange, settings, readOnly = false }: Props) {
+    const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
+    const vimModeRef = useRef<{ dispose: () => void } | null>(null);
     const vimStatusNodeRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ lineNumber: 1, column: 1 });
 
-    const handleEditorDidMount: OnMount = (editor, monaco) => {
+    const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
         editorRef.current = editor;
 
-        // Expose monaco instance for vim mode
-        (window as any).monaco = monaco;
-
-        editor.onDidChangeCursorPosition((e: any) => {
+        editor.onDidChangeCursorPosition((e) => {
             setPosition({ lineNumber: e.position.lineNumber, column: e.position.column });
         });
 
         applyEditorMode(editor);
     };
 
-    const applyEditorMode = (editor: any) => {
+    const applyEditorMode = useCallback((editor: MonacoEditor.IStandaloneCodeEditor) => {
         if (vimModeRef.current) {
             vimModeRef.current.dispose();
             vimModeRef.current = null;
@@ -41,12 +42,15 @@ function CodeEditor({ language, value, onChange, settings }: Props) {
         }
 
         if (settings.editorMode === "vim" && vimStatusNodeRef.current) {
+            // initVimMode uses global window.monaco inside, so we must inject it here cleanly
+            if (!(window as any).monaco) {
+                (window as any).monaco = monaco;
+            }
             vimModeRef.current = initVimMode(editor, vimStatusNodeRef.current);
         } else if (settings.editorMode === "emacs") {
-            // Placeholder: Emacs is not natively supported by monaco-vim
             console.warn("Emacs mode is not fully supported yet in this IDE version.");
         }
-    };
+    }, [settings.editorMode]);
 
     useEffect(() => {
         if (editorRef.current) {
@@ -55,19 +59,31 @@ function CodeEditor({ language, value, onChange, settings }: Props) {
 
         return () => {
             if (vimModeRef.current) {
-                vimModeRef.current.dispose();
+                try {
+                    vimModeRef.current.dispose();
+                } catch (e) {
+                    console.warn("Failed to dispose vim/emacs mode safely", e);
+                }
+                vimModeRef.current = null;
             }
+            // Không được dispose editorRef của Monaco ở Component unmount, thư viện @monaco-editor/react sẽ tự hook và làm điều này.
+            // Nếu gọi thủ công sẽ bắn lỗi "Cannot read properties of null (reading 'getFullModelRange')".
         }
-    }, [settings.editorMode]);
+    }, [settings.editorMode, applyEditorMode]);
 
     useEffect(() => {
         if (editorRef.current) {
-            editorRef.current.getModel()?.updateOptions({
+            editorRef.current.updateOptions({
                 tabSize: settings.tabSpaces,
                 insertSpaces: true
             });
         }
     }, [settings.tabSpaces]);
+
+    const debouncedOnChange = useMemo(
+        () => debounce((val: string) => onChange(val), 300),
+        [onChange]
+    );
 
     return (
         <div className="flex flex-col h-full w-full">
@@ -77,7 +93,7 @@ function CodeEditor({ language, value, onChange, settings }: Props) {
                     language={language}
                     theme={settings.theme}
                     value={value}
-                    onChange={(v) => onChange(v || "")}
+                    onChange={(v) => debouncedOnChange(v || "")}
                     onMount={handleEditorDidMount}
                     options={{
                         fontFamily: "Fira Code",
@@ -90,6 +106,7 @@ function CodeEditor({ language, value, onChange, settings }: Props) {
                         detectIndentation: false, // Tắt tự động nhận diện tab cũ
                         autoClosingBrackets: settings.autoComplete ? "always" : "never",
                         suggestOnTriggerCharacters: settings.autoComplete,
+                        readOnly: readOnly,
                     }}
                 />
             </div>

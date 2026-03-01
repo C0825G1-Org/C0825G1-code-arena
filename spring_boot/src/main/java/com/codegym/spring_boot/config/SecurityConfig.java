@@ -2,6 +2,7 @@ package com.codegym.spring_boot.config;
 
 import com.codegym.spring_boot.security.JwtAuthenticationFilter;
 import com.codegym.spring_boot.security.OAuth2SuccessHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +44,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/**", "/api/test/public", "/error",
                                                                 "/login/oauth2/**", "/ws/**")
                                                 .permitAll()
+                                                .requestMatchers("/api/submissions/**").authenticated()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/contests", "/api/contests/**")
                                                 .permitAll()

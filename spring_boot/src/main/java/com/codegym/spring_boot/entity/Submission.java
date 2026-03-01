@@ -50,4 +50,7 @@ public class Submission extends BaseEntity {
     private Integer memoryUsed = 0;
 
     private Integer score = 0;
+
+    @Column(name = "is_test_run")
+    private Boolean isTestRun = false;
 }

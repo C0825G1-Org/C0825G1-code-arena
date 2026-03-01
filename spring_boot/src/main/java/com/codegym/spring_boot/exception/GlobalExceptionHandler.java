@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
         Map<String, String> fieldErrors = new HashMap<>();
         String firstErrorMessage = "Dữ liệu đầu vào không hợp lệ.";
         boolean isFirst = true;
-        
+
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage());
             if (isFirst && fieldError.getDefaultMessage() != null) {
@@ -83,10 +83,17 @@ public class GlobalExceptionHandler {
                 isFirst = false;
             }
         }
-        
+
         Map<String, Object> body = buildError(HttpStatus.UNPROCESSABLE_ENTITY, firstErrorMessage);
         body.put("fieldErrors", fieldErrors);
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
+    }
+
+    // 404: Không tìm thấy NoResultException
+    @ExceptionHandler(jakarta.persistence.NoResultException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResult(jakarta.persistence.NoResultException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildError(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
 
     // 500: Lỗi không mong đợi
@@ -94,6 +101,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         log.error("Lỗi hệ thống không mong đợi", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau."));
+                .body(buildError(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Lỗi server: " + ex.getClass().getSimpleName() + " - " + ex.getMessage()));
     }
 }

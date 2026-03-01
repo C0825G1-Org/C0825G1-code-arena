@@ -13,4 +13,12 @@ public interface ITestCaseService {
     List<TestCaseResponseDTO> getTestCasesByProblem(Integer problemId);
     void deleteTestCase(Integer problemId, Integer testCaseId);
     ZipUploadResponseDTO uploadTestCasesZip(Integer problemId, MultipartFile file);
+    /**
+     * Lấy Standard Output chuẩn từ DB (nếu là sample test) hoặc đọc file (nếu là
+     * hidden test).
+     *
+     * @param testCaseId ID của test case
+     * @return Chuỗi kết quả chuẩn để so khớp
+     */
+    String getExpectedOutput(Integer testCaseId);
 }
