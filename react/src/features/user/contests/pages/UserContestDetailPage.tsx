@@ -1,23 +1,38 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
 import { contestService } from '../../home/services/contestService';
-import { useContestWebSocket } from '../hooks/useContestWebSocket';
 import { toast } from 'react-hot-toast';
 import {
     Code, Bell, SignOut, ShieldStar, ArrowLeft,
     CalendarStar, Users, Clock, ArrowRight,
-    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar
+    CircleNotch, Trophy, WarningCircle, CheckCircle, Info
 } from '@phosphor-icons/react';
-import { LeaderboardTab } from '../components/LeaderboardTab';
+import { LeaderboardTab } from '../components/LeaderboardTab'; // Added this import back to support leaderboard rendering
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
     active: { label: 'Đang diễn ra', bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
     upcoming: { label: 'Sắp tới', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' },
     finished: { label: 'Đã kết thúc', bg: 'bg-slate-500/20', text: 'text-slate-400', border: 'border-slate-500/30' },
+};
+
+const getTimeLeft = (targetTime: string, serverTime?: string): string => {
+    const now = serverTime ? new Date(serverTime) : new Date();
+    const target = new Date(targetTime);
+    const diffMs = target.getTime() - now.getTime();
+
+    if (diffMs <= 0) return 'Đã hết';
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) return `${days} ngày ${hours}h nữa`;
+    if (hours > 0) return `${hours}h ${minutes}p nữa`;
+    return `${minutes} phút nữa`;
 };
 
 // Interface reflecting the API response
@@ -57,14 +72,9 @@ export const UserContestDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
 
-    // Live Countdown state
-    const [timeLeftStr, setTimeLeftStr] = useState<string>('');
-
-    // Tab state
-    const [activeTab, setActiveTab] = useState<'problems' | 'leaderboard'>('problems');
-
     const fetchContestDetail = async () => {
         try {
+            setLoading(true);
             const data = await contestService.getContestDetail(Number(id));
             setContest(data);
         } catch (err: any) {
@@ -78,57 +88,9 @@ export const UserContestDetailPage = () => {
 
     useEffect(() => {
         if (id) {
-            setLoading(true);
             fetchContestDetail();
         }
     }, [id]);
-
-    // WebSocket real-time updates for contest status
-    const handleContestUpdate = useCallback((wsContestId: number, _newStatus: string) => {
-        if (wsContestId === Number(id)) {
-            fetchContestDetail(); // Hard refresh to get problems list securely from API
-        }
-    }, [id]);
-
-    useContestWebSocket(handleContestUpdate);
-
-    // Live Countdown Effect
-    useEffect(() => {
-        if (!contest || contest.status !== 'upcoming') return;
-
-        // Calculate offset between local 'now' and serverTime once
-        const localTimeAtFetch = new Date().getTime();
-        const serverTimeAtFetch = new Date(contest.serverTime).getTime();
-        const offset = serverTimeAtFetch - localTimeAtFetch;
-
-        const targetTime = new Date(contest.startTime).getTime();
-
-        const timer = setInterval(() => {
-            const currentRealTime = new Date().getTime() + offset;
-            const diffMs = targetTime - currentRealTime;
-
-            if (diffMs <= 0) {
-                clearInterval(timer);
-                setTimeLeftStr('Đã đến giờ!');
-                fetchContestDetail(); // Auto refresh!
-            } else {
-                const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-                if (days > 0) {
-                    setTimeLeftStr(`${days} ngày ${hours}h nữa`);
-                } else if (hours > 0) {
-                    setTimeLeftStr(`${hours}h ${minutes}p nữa`);
-                } else {
-                    setTimeLeftStr(`${minutes}p ${seconds}s nữa`);
-                }
-            }
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [contest]);
 
     const handleLogout = () => {
         navigate('/');
@@ -149,7 +111,7 @@ export const UserContestDetailPage = () => {
         }
     };
 
-    if (loading && !contest) {
+    if (loading) {
         return (
             <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
                 <div className="flex flex-col items-center gap-4">
@@ -170,7 +132,7 @@ export const UserContestDetailPage = () => {
         if (contest.status === 'finished') {
             return (
                 <button
-                    onClick={() => navigate(`/contests/${contest.id}/results`)}
+                    disabled
                     className="w-full py-3.5 rounded-xl font-medium bg-slate-700/50 text-slate-300 border border-slate-600/50 cursor-pointer hover:bg-slate-600/50 transition-colors flex justify-center items-center"
                 >
                     Xem kết quả
@@ -244,13 +206,8 @@ export const UserContestDetailPage = () => {
                     )}
                     <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"><Bell className="text-xl" /></button>
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
-                        <div className="text-right hidden sm:block">
-                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">1550</span></div>
-                        </div>
                         <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
                     </Link>
-                    <button onClick={handleLogout} className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5"><SignOut weight="bold" className="text-xl" /></button>
                 </div>
             </nav>
 
@@ -316,8 +273,8 @@ export const UserContestDetailPage = () => {
                             </div>
                         </div>
 
+                        {/* Problems List Section (Removed to prevent leaking questions) */}
                         <div className="bg-slate-800/30 rounded-3xl p-8 sm:p-10 border border-slate-700/30">
-                            {/* Leaderboard Only */}
                             <LeaderboardTab contestId={contest.id} />
                         </div>
                     </div>
@@ -342,7 +299,7 @@ export const UserContestDetailPage = () => {
                                         <CalendarStar weight="duotone" className="text-5xl text-purple-400 mx-auto mb-3" />
                                         <h3 className="text-slate-400 font-medium mb-1">Bắt đầu sau</h3>
                                         <div className="text-2xl font-bold text-white">
-                                            {timeLeftStr || 'Đang tải...'}
+                                            {getTimeLeft(contest.startTime, contest.serverTime)}
                                         </div>
                                     </div>
                                 ) : (
