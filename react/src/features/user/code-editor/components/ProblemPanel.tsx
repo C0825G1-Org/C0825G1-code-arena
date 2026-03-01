@@ -40,7 +40,7 @@ export default function ProblemPanel({ problemId, contestId }: Props) {
     if (!problem) return null;
 
     return (
-        <div className="h-full overflow-y-auto scroll-smooth p-6 bg-slate-900 text-slate-200">
+        <div className="h-full overflow-y-auto scroll-smooth p-6 text-slate-200">
             {contestId && (
                 <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 text-sm font-black tracking-wide uppercase shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                     <span className="animate-pulse">🔴</span> Đang Trong Khảo Thí

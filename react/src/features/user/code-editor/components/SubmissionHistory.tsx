@@ -97,32 +97,40 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
     if (loading) return <div className="p-4 text-center text-slate-400">Đang tải lịch sử...</div>;
 
     return (
-        <div className="flex flex-col h-full bg-slate-900 text-slate-300 p-4 overflow-y-auto">
-            <h3 className="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Lịch sử nộp bài</h3>
+        <div className="flex flex-col h-full text-slate-300 p-6 overflow-y-auto scroll-smooth">
+            <h3 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-3 flex items-center gap-2">
+                <Clock size={24} className="text-blue-400" />
+                Lịch sử nộp bài
+            </h3>
             {submissions.length === 0 ? (
-                <div className="text-center text-slate-500 mt-4">Chưa có bài nộp nào.</div>
+                <div className="text-center text-slate-500 mt-10 flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                        <Clock size={32} />
+                    </div>
+                    Chưa có bài nộp nào.
+                </div>
             ) : (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                     {submissions.map((sub, index) => (
                         <div
                             key={sub.id || index}
-                            className={`p-3 rounded border cursor-pointer transition-colors ${sub.isTestRun || sub.isRunOnly ? 'bg-slate-800/50 border-dashed border-slate-600' : 'bg-slate-800 border-slate-700 hover:border-slate-500'}`}
+                            className={`p-4 rounded-xl border cursor-pointer transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 ${sub.isTestRun || sub.isRunOnly ? 'bg-[#1e293b]/50 border-dashed border-slate-600 hover:bg-[#1e293b]/70 hover:border-slate-400' : 'bg-[#1e293b] border-white/5 hover:border-white/20'}`}
                             onClick={() => setSelectedSubmissionId(sub.id || sub.submissionId)}
                         >
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium flex items-center gap-2">
-                                    {(sub.isTestRun || sub.isRunOnly) && <span className="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Chạy thử</span>}
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="font-semibold flex items-center gap-2">
+                                    {(sub.isTestRun || sub.isRunOnly) && <span className="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Chạy thử</span>}
                                     {getStatusUI(sub.status)}
                                 </span>
-                                <span className="text-xs text-slate-500">
-                                    {sub.createdAt ? new Date(sub.createdAt).toLocaleTimeString() : 'Vừa xong'}
+                                <span className="text-xs font-medium text-slate-500 bg-black/20 px-2 py-1 rounded-full">
+                                    {sub.createdAt ? new Date(sub.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Vừa xong'}
                                 </span>
                             </div>
                             {(sub.status === 'AC' || sub.status === 'WA' || sub.status === 'TLE' || sub.status === 'MLE') && (
-                                <div className="flex gap-4 text-xs text-slate-400 bg-slate-900 p-2 rounded">
-                                    <span>⏱️ {sub.executionTime || 0} ms</span>
-                                    <span>💾 {sub.memoryUsed || 0} MB</span>
-                                    <span>🏆 Điểm: {sub.score || 0}</span>
+                                <div className="flex gap-4 text-xs font-medium text-slate-400 bg-black/20 p-2.5 rounded-lg border border-white/5">
+                                    <span className="flex items-center gap-1.5"><Clock size={14} /> {sub.executionTime || 0} ms</span>
+                                    <span className="flex items-center gap-1.5 border-l border-white/10 pl-4">💾 {sub.memoryUsed || 0} MB</span>
+                                    <span className="flex items-center gap-1.5 border-l border-white/10 pl-4 text-amber-400">🏆 {sub.score || 0} pts</span>
                                 </div>
                             )}
                         </div>
