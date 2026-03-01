@@ -8,7 +8,7 @@ import { leaderboardApiService, LeaderboardDTO } from '../services/leaderboardAp
 import { toast } from 'react-hot-toast';
 import {
     Code, Bell, ShieldStar, ArrowLeft,
-    Trophy, CircleNotch, Medal, CheckCircle, Clock, ChartLineUp
+    Trophy, CircleNotch, Medal, CheckCircle, Clock, ChartLineUp, SignOut
 } from '@phosphor-icons/react';
 import { ContestDetailData } from './UserContestDetailPage';
 
@@ -64,11 +64,17 @@ export const UserContestResultsPage = () => {
     // Find current user's rank
     const myResult = leaderboard.find(lb => lb.userId === user?.id);
 
+    const handleLogout = () => {
+        navigate('/');
+        setTimeout(() => {
+            dispatch(logout());
+        }, 10);
+    };
     return (
         <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-x-hidden">
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-900/20 to-transparent pointer-events-none" />
-            <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
+            {/* Background Glows */}
+            <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
 
             {/* Navbar */}
             <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
@@ -82,22 +88,38 @@ export const UserContestResultsPage = () => {
                         <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
                         <Link to="/contests" className="text-blue-400 hover:text-blue-300 transition-colors border-b-2 border-blue-400 pb-1">Cuộc thi</Link>
                         <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
+                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {isModerator && (
-                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600/40 transition-all text-sm font-medium border border-blue-500/20">
-                            <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
+                        <Link
+                            to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'}
+                            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20"
+                        >
+                            <ShieldStar weight="duotone" className="text-lg" />
+                            <span>Quản trị</span>
                         </Link>
                     )}
+
+                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300">
+                        <Bell className="text-xl" />
+                    </button>
+
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                        <div className="text-right hidden sm:block">
+                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
+                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">1550</span></div>
+                        </div>
                         <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
                     </Link>
+                    <button onClick={handleLogout} className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5"><SignOut weight="bold" className="text-xl" /></button>
                 </div>
             </nav>
 
-            <main className="flex-1 container mx-auto px-4 sm:px-6 py-12 z-10 max-w-5xl">
-                <Link to={`/contests/${contest.id}`} className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 font-medium">
+            <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 z-10 max-w-6xl">
+                {/* Back Link */}
+                <Link to={`/contests/${contest.id}`} className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 font-medium">
                     <ArrowLeft weight="bold" /> Trở về Chi tiết cuộc thi
                 </Link>
 
