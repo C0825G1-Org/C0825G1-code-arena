@@ -23,13 +23,10 @@ import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
-import com.codegym.spring_boot.service.IProblemService;
 import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -61,31 +58,14 @@ public class SubmissionService implements ISubmissionService {
                                 && !authentication.getPrincipal().equals("anonymousUser")) {
                         String username = authentication.getName();
                         user = userRepository.findByUsernameAndIsDeletedFalse(username)
-                                        .orElseThrow(() -> new RuntimeException(
-                                                        "Không tìm thấy thông tin người dùng hiện tại."));
+                                        .orElseThrow(() -> new RuntimeException("Current user not found"));
                 } else {
-                        throw new SecurityException("Bạn phải đăng nhập để nộp bài.");
+                        log.warn("User is not authenticated. Falling back to default user ID = 1");
+                        user = userRepository.findById(1)
+                                        .orElseThrow(() -> new RuntimeException("Default User (ID=1) không tồn tại."));
                 }
-        // 1. Get current user from Security Context
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = null;
-        if (authentication != null && authentication.isAuthenticated()
-                && !authentication.getPrincipal().equals("anonymousUser")) {
-            String username = authentication.getName();
-            user = userRepository.findByUsernameAndIsDeletedFalse(username)
-                    .orElseThrow(() -> new RuntimeException("Current user not found"));
-        } else {
-            // TODO: Fallback to a hardcoded user if Auth (Dev 1) is not fully integrated
-            // yet for testing
-            log.warn("User is not authenticated. Falling back to default user ID = 1");
-            user = userRepository.findById(1)
-                    .orElseThrow(() -> new RuntimeException("Default User (ID=1) không tồn tại. Vui lòng chạy file mock_data.sql trong thư mục data/mysql/"));
-        }
 
-                // 2. Prepare dependencies (Using dummy instances for problem and language just
-                // to hold IDs for saving foreign keys, ideally we should fetch them)
-                // Note: For a real stable application, fetch the Problem and Language to ensure
-                // they exist before inserting.
+                // 2. Prepare dependencies
                 Problem problemReference = new Problem();
                 problemReference.setId(submitRequestDTO.getProblemId());
 
@@ -116,40 +96,32 @@ public class SubmissionService implements ISubmissionService {
                 Submission savedSubmission = submissionRepository.save(newSubmission);
                 log.info("Saved submission to DB with ID: {}", savedSubmission.getId());
 
-                // 4. Push ticket to Redis Queue - ONLY AFTER COMMIT to avoid Race Condition
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                        @Override
-                        public void afterCommit() {
-                                log.info("Transaction committed. Pushing ticket to Redis for submission ID: {}",
-                                                savedSubmission.getId());
-                                JudgeTicket ticket = new JudgeTicket(
-                                                savedSubmission.getId(),
-                                                submitRequestDTO.getProblemId(),
-                                                submitRequestDTO.getLanguageId(),
-                                                savedSubmission.getIsTestRun());
-                                judgeQueueService.pushTicketToQueue(ticket);
-                        }
-                });
+                // 4. Push ticket to Redis Queue - PUSH DIRECTLY (Diagnostic)
+                log.info("Pushing ticket to Redis for submission ID: {}", savedSubmission.getId());
+                JudgeTicket ticket = new JudgeTicket(
+                                savedSubmission.getId(),
+                                submitRequestDTO.getProblemId(),
+                                submitRequestDTO.getLanguageId(),
+                                savedSubmission.getIsTestRun());
+                judgeQueueService.pushTicketToQueue(ticket);
 
-        return savedSubmission.getId();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public SubmissionResultDTO getSubmissionResult(Integer id) {
-        Submission submission = submissionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Submission not found with ID: " + id));
-
-        return SubmissionResultDTO.builder()
-                .submissionId(submission.getId().longValue())
-                .status(submission.getStatus().name())
-                .executionTime(submission.getExecutionTime().longValue())
-                .memoryUsed(submission.getMemoryUsed().longValue())
-                .score(submission.getScore())
-                .errorMessage(submission.getErrorMessage())
-                .build();
-    }
                 return savedSubmission.getId();
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public SubmissionResultDTO getSubmissionResult(Integer id) {
+                Submission submission = submissionRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Submission not found with ID: " + id));
+
+                return SubmissionResultDTO.builder()
+                                .submissionId(submission.getId().longValue())
+                                .status(submission.getStatus().name())
+                                .executionTime(submission.getExecutionTime().longValue())
+                                .memoryUsed(submission.getMemoryUsed().longValue())
+                                .score(submission.getScore())
+                                .errorMessage(submission.getErrorMessage())
+                                .build();
         }
 
         @Override
@@ -165,6 +137,19 @@ public class SubmissionService implements ISubmissionService {
                 }
 
                 SubmissionStatus finalStatus = mapDockerStatusToSubmissionStatus(msg.getStatus());
+                submission.setStatus(finalStatus);
+
+                // Nếu là trạng thái đang chấm, chỉ cập nhật status và notify UI rồi thoát
+                if (finalStatus == SubmissionStatus.judging) {
+                        submissionRepository.save(submission);
+                        SubmissionResultDTO dto = SubmissionResultDTO.builder()
+                                        .submissionId(msg.getSubmissionId())
+                                        .problemId(submission.getProblem().getId())
+                                        .status(finalStatus.name())
+                                        .build();
+                        notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
+                        return;
+                }
 
                 // Kiểm tra trước khi lưu để xác định Penalty
                 boolean alreadyAC = false;
@@ -177,15 +162,15 @@ public class SubmissionService implements ISubmissionService {
                 // 1. Lưu TestResult chi tiết
                 if (msg.getTestCaseResults() != null) {
                         for (com.codegym.spring_boot.dto.TestCaseResult tcResult : msg.getTestCaseResults()) {
-                                TestCase testCase = testCaseRepository.findById(tcResult.getTestCaseNumber())
-                                                .orElse(null);
-                                if (testCase != null) {
+                                String inputFilename = tcResult.getTestCaseNumber() + ".in";
+                                TestCase tcEntity = testCaseRepository.findByProblemIdAndInputFilename(
+                                                submission.getProblem().getId(), inputFilename);
+
+                                if (tcEntity != null) {
                                         SubmissionTestResult testResult = SubmissionTestResult.builder()
                                                         .submission(submission)
-                                                        .testCase(testCase)
-                                                        .status(tcResult.isPassed() ? SubmissionStatus.AC
-                                                                        : mapDockerStatusToSubmissionStatus(
-                                                                                        tcResult.getMessage()))
+                                                        .testCase(tcEntity)
+                                                        .status(mapDockerStatusToTestCaseStatus(tcResult.getMessage()))
                                                         .executionTime(tcResult.getExecutionTime() != null
                                                                         ? tcResult.getExecutionTime().intValue()
                                                                         : 0)
@@ -197,6 +182,9 @@ public class SubmissionService implements ISubmissionService {
                                                                         : tcResult.getMessage())
                                                         .build();
                                         submissionTestResultRepository.save(testResult);
+                                } else {
+                                        log.warn("TestCase not found for problem {} and filename {}",
+                                                        submission.getProblem().getId(), inputFilename);
                                 }
                         }
                 }
@@ -216,32 +204,24 @@ public class SubmissionService implements ISubmissionService {
                 submission.setScore(score);
                 submission.setStatus(finalStatus);
 
-                // Lưu error runtime hoặc compiler nếu có
-                if (msg.getCompileMessage() != null && !msg.getCompileMessage().trim().isEmpty()
-                                && finalStatus != SubmissionStatus.AC) {
-                        SubmissionTestResult compileErrorLog = SubmissionTestResult.builder()
-                                        .submission(submission)
-                                        .status(finalStatus)
-                                        .errorMessage(msg.getCompileMessage())
-                                        .build();
-                        submissionTestResultRepository.save(compileErrorLog);
+                // Lưu error runtime hoặc compiler nếu có vào thẳng Submission entity
+                if (msg.getCompileMessage() != null && !msg.getCompileMessage().trim().isEmpty()) {
+                        submission.setErrorMessage(msg.getCompileMessage());
                 }
 
                 submissionRepository.save(submission);
 
-                // --- 3. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC, nằm trong Contest và KHÔNG
-                // PHẢI CHẠY THỬ) ---
+                // --- 3. Logic Penalty ACM-ICPC ---
                 if (finalStatus == SubmissionStatus.AC && submission.getContest() != null
                                 && !submission.getIsTestRun()) {
                         Integer contestId = submission.getContest().getId();
                         Integer userId = submission.getUser().getId();
                         Integer problemId = submission.getProblem().getId();
 
-                        // Chỉ cập nhật Penalty nếu đây là lần ĐẦU TIÊN User AC bài này trong kỳ thi.
                         if (!alreadyAC) {
                                 Contest contest = submission.getContest();
                                 if (contest.getStartTime() != null && submission.getCreatedAt() != null) {
-                                        long minutesFromStart = Duration
+                                        long minutesFromStart = java.time.Duration
                                                         .between(contest.getStartTime(), submission.getCreatedAt())
                                                         .toMinutes();
 
@@ -259,8 +239,6 @@ public class SubmissionService implements ISubmissionService {
                                                                 p.setTotalPenalty(p.getTotalPenalty()
                                                                                 + (int) penaltyMinutes);
                                                                 contestParticipantRepository.save(p);
-                                                                log.info("Cập nhật Penalty ICPC User {} - Tăng 1 điểm, Penalty: {} phút",
-                                                                                userId, penaltyMinutes);
                                                         });
                                 }
                         }
@@ -280,6 +258,18 @@ public class SubmissionService implements ISubmissionService {
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
         }
 
+        private SubmissionStatus mapDockerStatusToTestCaseStatus(String status) {
+                if (status == null)
+                        return SubmissionStatus.RE;
+                return switch (status) {
+                        case "SUCCESS" -> SubmissionStatus.AC;
+                        case "WA", "WRONG_ANSWER" -> SubmissionStatus.WA;
+                        case "TLE", "TIME_LIMIT_EXCEEDED" -> SubmissionStatus.TLE;
+                        case "MLE", "MEMORY_LIMIT_EXCEEDED" -> SubmissionStatus.MLE;
+                        default -> SubmissionStatus.RE;
+                };
+        }
+
         private SubmissionStatus mapDockerStatusToSubmissionStatus(String dockerStatus) {
                 if (dockerStatus == null)
                         return SubmissionStatus.RE;
@@ -287,6 +277,8 @@ public class SubmissionService implements ISubmissionService {
                         case "ACCEPTED":
                         case "SUCCESS":
                                 return SubmissionStatus.AC;
+                        case "judging":
+                                return SubmissionStatus.judging;
                         case "RUNTIME_ERROR":
                                 return SubmissionStatus.RE;
                         case "COMPILE_ERROR":

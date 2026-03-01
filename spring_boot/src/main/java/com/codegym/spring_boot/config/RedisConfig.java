@@ -9,7 +9,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.listener.ChannelTopic;
-import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
 public class RedisConfig {
@@ -42,7 +41,7 @@ public class RedisConfig {
     @Bean
     public MessageListenerAdapter listenerAdapter(com.codegym.spring_boot.worker.JudgeResultListener receiver) {
         MessageListenerAdapter adapter = new MessageListenerAdapter(receiver, "handleMessage");
-        adapter.setSerializer(RedisSerializer.string());
+        adapter.setSerializer(new GenericJackson2JsonRedisSerializer());
         return adapter;
     }
 }

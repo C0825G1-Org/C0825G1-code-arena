@@ -22,7 +22,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping({"/api/submissions", "/api/submissions/"})
+@RequestMapping({ "/api/submissions", "/api/submissions/" })
 @RequiredArgsConstructor
 @CrossOrigin("*")
 public class SubmissionController {
@@ -51,7 +51,7 @@ public class SubmissionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<com.codegym.spring_boot.dto.SubmissionDetailDTO> getSubmissionDetail(
-            @jakarta.websocket.server.PathParam("id") @org.springframework.web.bind.annotation.PathVariable("id") Integer id) {
+            @PathVariable("id") Integer id) {
         return ResponseEntity.ok(submissionService.getSubmissionDetail(id));
     }
 
@@ -61,14 +61,11 @@ public class SubmissionController {
         return ResponseEntity.ok("Submission Controller is ACTIVE");
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/status")
     public ResponseEntity<SubmissionResultDTO> getSubmissionStatus(@PathVariable Integer id) {
         log.info("Retrieving status for submission: {}", id);
         SubmissionResultDTO result = submissionService.getSubmissionResult(id);
         return ResponseEntity.ok(result);
     }
-
-
-
 
 }
