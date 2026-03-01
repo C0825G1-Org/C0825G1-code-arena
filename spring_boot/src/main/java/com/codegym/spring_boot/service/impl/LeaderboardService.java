@@ -88,22 +88,87 @@ public class LeaderboardService implements ILeaderboardService {
 
     @Override
     public List<LeaderboardDTO> getLeaderboard(Integer contestId) {
-        // Fallback to getting directly from DB (already sorted by score DESC, penalty ASC)
+        // Fallback to getting directly from DB (already sorted by AC count DESC, penalty ASC)
+        // Notice that ContestParticipant.totalScore is actually tracking the AC count.
         List<ContestParticipant> participants = participantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId);
 
-        // Map to LeaderboardDTO
-        // Note: For full real-time feel, we'll keep it simple and just do a DB query here, 
-        // as the data is relatively small, but this can be heavily optimized with Redis later.
+        // Fetch all submissions for this contest to build the problem details and actual points
+        List<Submission> allSubmissions = submissionRepository.findByContestIdOrderByIdAsc(contestId);
+
+        // Map: userId -> map of problemId -> ProblemDetail
+        Map<Integer, Map<Integer, LeaderboardDTO.ProblemDetail>> userProblemDetails = new java.util.HashMap<>();
         
+        // Initialize map for all participants to ensure they show up even with 0 submissions
+        for (ContestParticipant p : participants) {
+            userProblemDetails.put(p.getUser().getId(), new java.util.HashMap<>());
+        }
+
+        for (Submission sub : allSubmissions) {
+            Integer uid = sub.getUser().getId();
+            Integer pid = sub.getProblem().getId();
+            
+            if (!userProblemDetails.containsKey(uid)) continue; // ignore non-participants just in case
+            
+            Map<Integer, LeaderboardDTO.ProblemDetail> pMap = userProblemDetails.get(uid);
+            
+            pMap.putIfAbsent(pid, LeaderboardDTO.ProblemDetail.builder()
+                .problemId(pid)
+                .isAccepted(false)
+                .failedAttempts(0)
+                .solvedTimeMinutes(0)
+                .score(0)
+                .build());
+                
+            LeaderboardDTO.ProblemDetail detail = pMap.get(pid);
+            
+            // If already accepted, ignore further attempts for ICPC penalty purposes
+            if (detail.getIsAccepted()) continue;
+            
+            if (sub.getStatus() == SubmissionStatus.AC) {
+                detail.setIsAccepted(true);
+                detail.setScore(sub.getScore() != null ? sub.getScore() : 100);
+                
+                LocalDateTime startTime = sub.getContest().getStartTime();
+                LocalDateTime subTime = sub.getCreatedAt() != null ? sub.getCreatedAt() : LocalDateTime.now();
+                long mins = Duration.between(startTime, subTime).toMinutes();
+                detail.setSolvedTimeMinutes((int) Math.max(0, mins));
+            } else {
+                detail.setFailedAttempts(detail.getFailedAttempts() + 1);
+                // Update score if partial points are higher
+                if (sub.getScore() != null && sub.getScore() > detail.getScore()) {
+                    detail.setScore(sub.getScore());
+                }
+            }
+        }
+
         List<LeaderboardDTO> dtoList = participants.stream().map(p -> {
+            Integer uid = p.getUser().getId();
             LeaderboardDTO dto = new LeaderboardDTO();
-            dto.setUserId(p.getUser().getId());
+            dto.setUserId(uid);
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
-            dto.setTotalScore(p.getTotalScore());
+            
+            // Penalty uses DB value
             dto.setTotalPenalty(p.getTotalPenalty());
-            // TODO: In a more advanced version, we would also query details for each problem (e.g. WA count, solve time)
-            // But for now, basic ranking is enough
+            
+            int totalPoints = 0;
+            int totalAcCount = 0;
+            List<LeaderboardDTO.ProblemDetail> pDetailsList = new java.util.ArrayList<>();
+            if (userProblemDetails.containsKey(uid)) {
+                pDetailsList.addAll(userProblemDetails.get(uid).values());
+                for (LeaderboardDTO.ProblemDetail pd : pDetailsList) {
+                    totalPoints += pd.getScore();
+                    if (pd.getIsAccepted() != null && pd.getIsAccepted()) {
+                        totalAcCount++;
+                    }
+                }
+            }
+            // Explicitly count AC problems for "Solved Count"
+            dto.setTotalSolved(totalAcCount);
+            // Points
+            dto.setTotalScore(totalPoints); 
+            dto.setProblemDetails(pDetailsList);
+            
             return dto;
         }).collect(Collectors.toList());
 

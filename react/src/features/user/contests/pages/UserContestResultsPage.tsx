@@ -132,20 +132,27 @@ export const UserContestResultsPage = () => {
 
                     {/* Personal Summary Cards (Unified Sizes) */}
                     {myResult ? (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
                             {/* Rank Card */}
                             <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300 relative overflow-hidden group">
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 <Medal weight="fill" className={`text-4xl mx-auto mb-3 ${myResult.rank === 1 ? 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' : myResult.rank === 2 ? 'text-slate-300 drop-shadow-[0_0_15px_rgba(203,213,225,0.5)]' : myResult.rank === 3 ? 'text-amber-600 drop-shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'text-blue-500'}`} />
-                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Thứ hạng của bạn</h3>
+                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Thứ hạng</h3>
                                 <div className="text-4xl font-black text-white">#{myResult.rank} <span className="text-lg text-slate-500 font-medium">/ {contest.participantCount}</span></div>
                             </div>
 
-                            {/* Score Card */}
+                            {/* Total Points Card */}
+                            <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
+                                <Trophy weight="fill" className="text-4xl text-yellow-500 mx-auto mb-3" />
+                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Tổng Điểm</h3>
+                                <div className="text-4xl font-black text-emerald-400">{myResult.totalScore}</div>
+                            </div>
+
+                            {/* Solved Card */}
                             <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
                                 <CheckCircle weight="fill" className="text-4xl text-emerald-500 mx-auto mb-3" />
-                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Số bài giải được</h3>
-                                <div className="text-4xl font-black text-white">{myResult.totalScore} <span className="text-lg text-slate-500 font-medium">bài</span></div>
+                                <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Số bài giải</h3>
+                                <div className="text-4xl font-black text-white">{myResult.totalSolved} <span className="text-lg text-slate-500 font-medium">bài</span></div>
                             </div>
 
                             {/* Penalty Card */}
@@ -192,7 +199,7 @@ export const UserContestResultsPage = () => {
                                                                 <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400' : p.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-400'}`}>
                                                                     {p.difficulty || 'Bình thường'}
                                                                 </span>
-                                                                <span className="text-slate-400 font-medium">100 Điểm</span>
+                                                                <span className="text-slate-400 font-medium">{pResult ? pResult.score : 0} <span className="text-slate-500">/ 100 Điểm</span></span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -239,7 +246,9 @@ export const UserContestResultsPage = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="font-bold text-slate-200 truncate">{u.username}</div>
                                                     <div className="text-xs text-slate-500 flex gap-2">
-                                                        <span className="text-emerald-400">{u.totalScore} bài</span>
+                                                        <span className="text-yellow-500 font-bold">{u.totalScore} điểm</span>
+                                                        <span>•</span>
+                                                        <span className="text-emerald-400">{u.totalSolved} bài</span>
                                                         <span>•</span>
                                                         <span>{u.totalPenalty}m</span>
                                                     </div>

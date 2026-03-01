@@ -18,6 +18,7 @@ public class LeaderboardDTO {
     private String fullName;
     private Integer totalScore;    // Number of AC problems
     private Integer totalPenalty;  // Total time penalty
+    private Integer totalSolved;   // Added
     private List<ProblemDetail> problemDetails;
 
     @Data
@@ -29,5 +30,6 @@ public class LeaderboardDTO {
         private Boolean isAccepted;
         private Integer failedAttempts;
         private Integer solvedTimeMinutes; // Time passed from contest start to AC in minutes
+        private Integer score; // Added to show points achieved
     }
 }

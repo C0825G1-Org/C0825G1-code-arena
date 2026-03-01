@@ -6,6 +6,7 @@ export interface LeaderboardProblemDetail {
     isAccepted: boolean;
     failedAttempts: number;
     solvedTimeMinutes: number;
+    score: number;
 }
 
 export interface LeaderboardDTO {
@@ -15,6 +16,7 @@ export interface LeaderboardDTO {
     fullName: string;
     totalScore: number;
     totalPenalty: number;
+    totalSolved: number;
     problemDetails: LeaderboardProblemDetail[];
 }
 
