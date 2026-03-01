@@ -1,6 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 
 # ====== COMPILE ======
+# Alpine uses g++, check if Main.cpp exists
+if [ ! -f "Main.cpp" ]; then
+  echo "COMPILE_ERROR"
+  echo "Main.cpp not found in /app"
+  ls -la /app
+  exit 0
+fi
+
 g++ Main.cpp -O2 -std=c++20 -o main.out 2> compile_error.txt
 
 if [ $? -ne 0 ]; then
@@ -13,7 +21,6 @@ fi
 TESTCASE_DIR="/testcases"
 FOUND_TESTCASES=false
 
-# Duyệt qua các file input*.txt
 for input_file in ${TESTCASE_DIR}/*.in; do
   [ -e "$input_file" ] || continue
   FOUND_TESTCASES=true
@@ -21,12 +28,8 @@ for input_file in ${TESTCASE_DIR}/*.in; do
   test_filename=$(basename "$input_file")
   test_id=${test_filename%.in}
   
-  # Log báo hiệu đang chạy testcase nào
   echo "--- TESTCASE ${test_id} ---"
   
-  # Chạy code với timeout
-  # Sử dụng /usr/bin/time -v để lấy thông tin memory nếu image hỗ trợ, 
-  # ở đây ta tạm dùng đơn giản trước.
   timeout 2s ./main.out < "$input_file" > "user_output${test_id}.txt" 2> runtime_error.txt
   EXIT_CODE=$?
   
@@ -48,7 +51,8 @@ for input_file in ${TESTCASE_DIR}/*.in; do
 done
 
 if [ "$FOUND_TESTCASES" = false ]; then
-  echo "ERROR: No testcases found"
+  echo "ERROR: No testcases found in ${TESTCASE_DIR}"
+  ls -la ${TESTCASE_DIR}
   exit 1
 fi
 

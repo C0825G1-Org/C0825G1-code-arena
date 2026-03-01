@@ -5,7 +5,8 @@ TESTCASE_DIR="/testcases"
 
 if [ ! -f "$PYTHON_FILE" ]; then
   echo "RUNTIME_ERROR"
-  echo "solution.py not found"
+  echo "solution.py not found in /app"
+  ls -la /app
   exit 0
 fi
 
@@ -41,7 +42,8 @@ for input_file in ${TESTCASE_DIR}/*.in; do
 done
 
 if [ "$FOUND_TESTCASES" = false ]; then
-  echo "ERROR: No testcases found"
+  echo "ERROR: No testcases found in ${TESTCASE_DIR}"
+  ls -la ${TESTCASE_DIR}
   exit 1
 fi
 
