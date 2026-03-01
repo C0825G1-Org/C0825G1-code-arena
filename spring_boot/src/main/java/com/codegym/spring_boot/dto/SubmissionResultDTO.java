@@ -17,5 +17,6 @@ public class SubmissionResultDTO {
     private Long executionTime;
     private Long memoryUsed;
     private Integer score;
+    private String errorMessage;
     private Boolean isRunOnly;
 }

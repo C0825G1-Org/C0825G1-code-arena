@@ -40,6 +40,8 @@ public class RedisConfig {
 
     @Bean
     public MessageListenerAdapter listenerAdapter(com.codegym.spring_boot.worker.JudgeResultListener receiver) {
-        return new MessageListenerAdapter(receiver, "handleMessage");
+        MessageListenerAdapter adapter = new MessageListenerAdapter(receiver, "handleMessage");
+        adapter.setSerializer(new GenericJackson2JsonRedisSerializer());
+        return adapter;
     }
 }

@@ -7,7 +7,8 @@ TESTCASE_DIR="/testcases"
 # ====== COMPILE ======
 if [ ! -f "$JAVA_FILE" ]; then
   echo "COMPILE_ERROR"
-  echo "Main.java not found"
+  echo "Main.java not found in /app"
+  ls -la /app
   exit 0
 fi
 
@@ -52,7 +53,8 @@ for input_file in ${TESTCASE_DIR}/*.in; do
 done
 
 if [ "$FOUND_TESTCASES" = false ]; then
-  echo "ERROR: No testcases found"
+  echo "ERROR: No testcases found in ${TESTCASE_DIR}"
+  ls -la ${TESTCASE_DIR}
   exit 1
 fi
 

@@ -1,7 +1,7 @@
 FROM alpine:3.19
 
 # Cài đặt bộ máy biên dịch C++
-RUN apk add --no-cache g++ libstdc++
+RUN apk add --no-cache g++ libstdc++ bash
 
 # Tạo user không phải root
 RUN addgroup -S judge && adduser -S judge -G judge

@@ -19,7 +19,7 @@ public class JudgeUtils {
             case "java" -> "Main.java";
             case "cpp", "c++" -> "Main.cpp";
             case "python" -> "solution.py";
-            case "js", "javascript" -> "solution.js";
+            case "js", "javascript", "nodejs" -> "solution.js";
             default -> "solution.txt";
         };
     }
@@ -30,8 +30,8 @@ public class JudgeUtils {
     public static List<TestCaseResult> parseTestResults(String logs, String problemPath) {
         List<TestCaseResult> results = new ArrayList<>();
 
-        // Regex để tách từng khối TESTCASE
-        String regex = "--- TESTCASE (\\d+) ---\\n(.*?)(?=\\n--- TESTCASE|\\n--- ALL_DONE ---|$)";
+        // Regex để tách từng khối TESTCASE (hỗ trợ cả \n và \r\n)
+        String regex = "--- TESTCASE (\\d+) ---[\\r\\n]+(.*?)(?=[\\r\\n]+--- TESTCASE|[\\r\\n]+--- ALL_DONE ---|$)";
         Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
         Matcher matcher = pattern.matcher(logs);
 
@@ -46,7 +46,7 @@ public class JudgeUtils {
             if (content.contains("STATUS: SUCCESS")) {
                 status = "SUCCESS";
                 // Tách output thực tế
-                String outputRegex = "ACTUAL_OUTPUT_START\\n(.*?)\\nACTUAL_OUTPUT_END";
+                String outputRegex = "ACTUAL_OUTPUT_START[\\r\\n]+(.*?)[\\r\\n]+ACTUAL_OUTPUT_END";
                 Matcher outputMatcher = Pattern.compile(outputRegex, Pattern.DOTALL).matcher(content);
 
                 if (outputMatcher.find()) {
@@ -80,9 +80,10 @@ public class JudgeUtils {
             if (!Files.exists(expectedPath))
                 return false;
 
-            String expected = Files.readString(expectedPath).trim();
+            String expected = Files.readString(expectedPath).replace("\r\n", "\n").trim();
+            String actualNormalized = actual.replace("\r\n", "\n").trim();
             // So sánh bỏ qua khoảng trắng thừa ở cuối dòng/cuối file
-            return expected.equals(actual);
+            return expected.equals(actualNormalized);
         } catch (Exception e) {
             return false;
         }

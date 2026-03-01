@@ -164,4 +164,3 @@ CREATE TABLE posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-ALTER TABLE contests MODIFY COLUMN status ENUM('upcoming', 'active', 'finished', 'cancelled') DEFAULT 'upcoming';

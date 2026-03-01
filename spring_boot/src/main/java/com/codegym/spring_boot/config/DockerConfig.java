@@ -13,36 +13,39 @@ import java.time.Duration;
 @Configuration
 public class DockerConfig {
 
-    @Bean
-    public DockerClient dockerClient() {
+        @Bean
+        public DockerClient dockerClient() {
 
-        /*
-         * Cấu hình Docker:
-         * - Nếu dùng Docker Desktop local → không cần set DOCKER_HOST
-         * - Nếu remote → set DOCKER_HOST=tcp://host:2375
-         */
+                /*
+                 * Cấu hình Docker:
+                 * - Nếu dùng Docker Desktop local → không cần set DOCKER_HOST
+                 * - Nếu remote → set DOCKER_HOST=tcp://host:2375
+                 */
 
-        DefaultDockerClientConfig config =
-                DefaultDockerClientConfig.createDefaultConfigBuilder()
-                        .withDockerHost(
-                                System.getenv().getOrDefault(
-                                        "DOCKER_HOST",
-                                        "tcp://127.0.0.1:2375"
-                                )
-                        )
-                        .build();
+                String os = System.getProperty("os.name").toLowerCase();
+                String defaultHost = os.contains("win")
+                                ? "tcp://localhost:2375" // Ưu tiên TCP trên Windows để ổn định hơn
+                                : "unix:///var/run/docker.sock";
 
-        ApacheDockerHttpClient httpClient =
-                new ApacheDockerHttpClient.Builder()
-                        .dockerHost(config.getDockerHost())
-                        .sslConfig(config.getSSLConfig())
-                        .maxConnections(100)
-                        .connectionTimeout(Duration.ofSeconds(5))
-                        .responseTimeout(Duration.ofSeconds(30))
-                        .build();
+                String dockerHost = System.getenv("DOCKER_HOST");
+                if (dockerHost == null || dockerHost.isEmpty()) {
+                        dockerHost = defaultHost;
+                }
 
-        return DockerClientBuilder.getInstance(config)
-                .withDockerHttpClient(httpClient)
-                .build();
-    }
+                DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                                .withDockerHost(dockerHost)
+                                .build();
+
+                ApacheDockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                                .dockerHost(config.getDockerHost())
+                                .sslConfig(config.getSSLConfig())
+                                .maxConnections(100)
+                                .connectionTimeout(Duration.ofSeconds(10)) // Tăng timeout
+                                .responseTimeout(Duration.ofSeconds(45))
+                                .build();
+
+                return DockerClientBuilder.getInstance(config)
+                                .withDockerHttpClient(httpClient)
+                                .build();
+        }
 }
