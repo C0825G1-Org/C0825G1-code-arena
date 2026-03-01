@@ -6,7 +6,7 @@ import Split from "react-split";
 import SampleTestCases from "../components/SampleTestCases";
 import SubmissionHistory from "../components/SubmissionHistory";
 import ContestTimer from "../components/ContestTimer";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { getSampleTestCases, TestCase } from "../services/problemService";
 import { useSettings } from "../hooks/useSettings";
 import SettingsPopover from "../components/SettingsPopover";
@@ -20,19 +20,20 @@ import { contestService } from "../../home/services/contestService";
 import { ContestDetailData } from "../../contests/pages/UserContestDetailPage";
 
 export default function Home() {
+    const [searchParams] = useSearchParams();
+    const contestId = searchParams.get('contestId');
+    const isExamMode = !!contestId;
+
     const { problemId: problemIdStr } = useParams<{ problemId: string }>();
     const problemId = problemIdStr ? parseInt(problemIdStr, 10) : 1; // Fallback to 1 if no param
-    const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId);
+    const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId, contestId);
+
     const { settings, updateSettings } = useSettings();
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState<'problem' | 'submissions' | 'hints' | 'discussions'>('problem');
-
-    const [searchParams] = useSearchParams();
-    const contestId = searchParams.get('contestId');
-    const isExamMode = !!contestId;
 
     // Contest Data
     const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -66,6 +67,9 @@ export default function Home() {
     }, [problemId]);
 
     const [isTimeUp, setIsTimeUp] = useState(false);
+    const [violationCount, setViolationCount] = useState(0);  // Số lần rời màn hình thi
+    const [scorePenalty, setScorePenalty] = useState(false);  // Lần 2: chia đôi điểm
+    const violationRef = useRef(0);                      // Ref để tránh stale closure
 
     // Anti-cheat & Fullscreen logic
     useEffect(() => {
@@ -73,22 +77,50 @@ export default function Home() {
 
         const toastId = "fullscreen-prompt";
 
-        const handlePreventCopyPaste = (e: ClipboardEvent) => {
-            e.preventDefault();
-            toast.warning("Hành động bị cấm trong kỳ thi!");
-        };
-
         const handleContextMenu = (e: MouseEvent) => {
             e.preventDefault();
         };
 
         const handleVisibilityChange = () => {
-            if (document.hidden) {
-                toast.error("CẢNH BÁO: BẠN VỪA RỜI KHỎI MÀN HÌNH THI!", {
-                    position: "top-center",
-                    autoClose: 5000,
-                    style: { fontWeight: 'bold' }
-                });
+            if (!document.hidden) return; // Chỉ xử lý khi RỜI khỏi tab
+            if (violationRef.current >= 3) return; // Đã khóa rồi, không xử lý thêm
+
+            violationRef.current += 1;
+            const count = violationRef.current;
+            setViolationCount(count);
+
+            if (count === 1) {
+                // Lần 1: Cảnh báo
+                toast.error(
+                    <div className="flex flex-col gap-1">
+                        <span className="font-bold text-base">⚠️ CẢNH BÁO VI PHẠM (1/3)</span>
+                        <span className="text-sm">Bạn vừa rời khỏi màn hình thi!</span>
+                        <span className="text-xs opacity-80">Lần 2: Điểm bị chia đôi. Lần 3: Tự động nộp bài và khóa thi.</span>
+                    </div>,
+                    { autoClose: 8000, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #f97316' } }
+                );
+            } else if (count === 2) {
+                // Lần 2: Chia đôi điểm
+                setScorePenalty(true);
+                toast.error(
+                    <div className="flex flex-col gap-1">
+                        <span className="font-bold text-base">🔴 VI PHẠM LẦN 2 – ĐIỂM BỊ CHIA ĐÔI!</span>
+                        <span className="text-sm">Tất cả bài nộp từ bây giờ chỉ được tính 50% điểm.</span>
+                        <span className="text-xs opacity-80">⚠️ Rời màn hình thêm 1 lần nữa sẽ bị tự động nộp bài và khóa thi!</span>
+                    </div>,
+                    { toastId: 'violation-toast', autoClose: false, closeButton: true, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #ef4444' } }
+                );
+            } else if (count >= 3) {
+                // Lần 3: Tự nộp bài + khóa
+                toast.error(
+                    <div className="flex flex-col gap-1">
+                        <span className="font-bold text-base">🔒 VI PHẠM LẦN 3 – TỰ ĐỘNG NỘP BÀI!</span>
+                        <span className="text-sm">Bài thi của bạn đã bị nộp tự động và tài khoản bị khóa thi.</span>
+                    </div>,
+                    { toastId: 'violation-lock-toast', autoClose: false, closeButton: false, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #7f1d1d', background: '#450a0a' } }
+                );
+                setIsTimeUp(true); // Khóa toàn bộ giao diện
+                submitLogic(false); // Tự nộp bài ngay lập tức
             }
         };
 
@@ -131,8 +163,6 @@ export default function Home() {
         const timer = setTimeout(checkFullscreen, 1000);
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        document.addEventListener('copy', handlePreventCopyPaste);
-        document.addEventListener('paste', handlePreventCopyPaste);
         document.addEventListener('contextmenu', handleContextMenu);
 
         // Fullscreen events for all browsers
@@ -143,13 +173,11 @@ export default function Home() {
         return () => {
             clearTimeout(timer);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
-            document.removeEventListener('copy', handlePreventCopyPaste);
-            document.removeEventListener('paste', handlePreventCopyPaste);
             document.removeEventListener('contextmenu', handleContextMenu);
             ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
                 document.removeEventListener(event, checkFullscreen);
             });
-            toast.dismiss(toastId);
+            toast.dismiss(); // Xóa tẩt cả toast bao gồm cả toast vi phạm và toast báoFullscreen khi unmount
         };
     }, [isExamMode]);
 
@@ -165,11 +193,6 @@ export default function Home() {
         if (!isAuthenticated) {
             toast.info("Vui lòng đăng nhập để nộp bài!");
             navigate('/login', { state: { from: location.pathname + location.search } });
-            return;
-        }
-
-        if (!code.trim()) {
-            toast.warning("Mã nguồn không được để trống!");
             return;
         }
 
@@ -293,8 +316,23 @@ export default function Home() {
                             <ContestTimer
                                 endTime={contest.endTime}
                                 onTimeUp={() => {
+                                    if (isTimeUp) return;
                                     setIsTimeUp(true);
-                                    toast.error("Thời gian làm bài đã kết thúc!", { autoClose: false });
+
+                                    const toastId = "contest-timeout";
+                                    if (!toast.isActive(toastId)) {
+                                        toast.error("Hết giờ làm bài! Hệ thống đang tự động nộp bài của bạn...", {
+                                            toastId,
+                                            autoClose: 5000,
+                                            position: "top-center",
+                                            style: { fontWeight: 'bold' }
+                                        });
+                                    }
+
+                                    // Tự động nộp bài nếu có code
+                                    if (code.trim()) {
+                                        handleSubmit();
+                                    }
                                 }}
                             />
                         </div>
