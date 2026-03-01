@@ -190,10 +190,15 @@ export const UserHomePage: React.FC = () => {
             );
         }
 
+        // Active State
         if (contest.status === 'active') {
+            const destUrl = contest.firstProblemId
+                ? `/code-editor/${contest.firstProblemId}?contestId=${contest.id}`
+                : `/contests/${contest.id}`;
+
             return (
                 <button
-                    onClick={() => navigate('/code-editor/1')}
+                    onClick={() => navigate(destUrl)}
                     className="px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2 whitespace-nowrap"
                 >
                     Vào Thi <ArrowRight weight="bold" />

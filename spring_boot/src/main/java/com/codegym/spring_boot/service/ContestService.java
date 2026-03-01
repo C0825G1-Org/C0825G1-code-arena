@@ -557,6 +557,12 @@ public class ContestService {
     // MAPPER: Contest → ContestListResponse
     // =============================================
     private ContestListResponse mapToListResponse(Contest contest, boolean isRegistered) {
+        Integer firstProblemId = null;
+        var problems = problemRepository.findByIdContestIdOrderByOrderIndexAsc(contest.getId());
+        if (problems != null && !problems.isEmpty()) {
+            firstProblemId = problems.get(0).getProblem().getId();
+        }
+
         return ContestListResponse.builder()
                 .id(contest.getId())
                 .title(contest.getTitle())
@@ -566,6 +572,7 @@ public class ContestService {
                 .participantCount(participantRepository.countByIdContestId(contest.getId()))
                 .serverTime(LocalDateTime.now())
                 .isRegistered(isRegistered)
+                .firstProblemId(firstProblemId)
                 .build();
     }
 

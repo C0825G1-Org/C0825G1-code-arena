@@ -20,6 +20,7 @@ import { LandingPage } from '../features/landing/pages/LandingPage';
 import { CodeEditorPage } from '../features/user/code-editor';
 import { UserContestsPage } from '../features/user/contests/pages/UserContestsPage';
 import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
+import { UserContestResultsPage } from '../features/user/contests/pages/UserContestResultsPage';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -121,6 +122,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
                 <UserContestDetailPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/contests/:id/results',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserContestResultsPage />
             </ProtectedRoute>
         )
     },

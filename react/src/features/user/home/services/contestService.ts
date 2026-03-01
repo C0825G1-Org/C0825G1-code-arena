@@ -9,6 +9,7 @@ export interface ContestListItem {
     participantCount: number;
     serverTime: string;
     isRegistered: boolean;
+    firstProblemId?: number;
 }
 
 interface PageResponse<T> {
