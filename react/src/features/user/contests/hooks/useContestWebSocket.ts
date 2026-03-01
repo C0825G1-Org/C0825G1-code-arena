@@ -1,8 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Client } from '@stomp/stompjs';
-// Vite can pick a Node-targeted entry for sockjs-client (uses `global`).
-// Import the browser bundle explicitly to avoid "global is not defined".
-import SockJS from 'sockjs-client/dist/sockjs';
+import { io, Socket } from 'socket.io-client';
 
 export const useContestWebSocket = (onContestUpdate: (contestId: number, status: string) => void) => {
     const callbackRef = useRef(onContestUpdate);
@@ -13,39 +10,37 @@ export const useContestWebSocket = (onContestUpdate: (contestId: number, status:
     }, [onContestUpdate]);
 
     useEffect(() => {
-        // Init STOMP Client
-        const stompClient = new Client({
-            // Backend registers SockJS endpoint at /ws (withSockJS), so use SockJS client.
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-            reconnectDelay: 5000,
-            heartbeatIncoming: 4000,
-            heartbeatOutgoing: 4000,
-            onConnect: () => {
-                console.log('Connected to WS!');
-                stompClient.subscribe('/topic/contests', (message) => {
-                    if (message.body) {
-                        try {
-                            const data = JSON.parse(message.body);
-                            if (data.contestId && data.status) {
-                                // Always call the latest callback via ref
-                                callbackRef.current(data.contestId, data.status);
-                            }
-                        } catch (err) {
-                            console.error("Error parsing WS message: ", err);
-                        }
-                    }
-                });
-            },
-            onStompError: (frame) => {
-                console.error('Broker reported error: ' + frame.headers['message']);
-            },
+        // Init Socket.IO Client
+        // Note: The port 9092 is handled by Dev Nguyen's SocketIOServer
+        const socket: Socket = io('http://localhost:9092', {
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 2000,
         });
 
-        stompClient.activate();
+        socket.on('connect', () => {
+            console.log('Socket.IO (Contest updates) Connected to server!');
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('Socket.IO Connection Error:', err.message);
+        });
+
+        // Listen for the custom event broadcasted by ContestEventScheduler
+        socket.on('contest_update', (data: any) => {
+            console.log('Received Socket.IO contest_update:', data);
+            if (data.contestId && data.status) {
+                // Always call the latest callback via ref
+                callbackRef.current(data.contestId, data.status);
+            }
+        });
 
         return () => {
-            if (stompClient.active) {
-                stompClient.deactivate();
+            if (socket.connected) {
+                socket.off('contest_update');
+                socket.disconnect();
+                console.log('Socket.IO (Contest updates) Disconnected');
             }
         };
     }, []); // Establish connection only once per component mount

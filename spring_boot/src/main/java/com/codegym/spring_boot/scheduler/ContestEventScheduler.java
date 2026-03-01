@@ -3,10 +3,10 @@ package com.codegym.spring_boot.scheduler;
 import com.codegym.spring_boot.entity.Contest;
 import com.codegym.spring_boot.entity.enums.ContestStatus;
 import com.codegym.spring_boot.repository.ContestRepository;
+import com.corundumstudio.socketio.SocketIOServer;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.ScheduledFuture;
 public class ContestEventScheduler {
 
     private final TaskScheduler taskScheduler;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final SocketIOServer socketIOServer;
     private final ContestRepository contestRepository;
 
     private final Map<Integer, ScheduledFuture<?>> startTasks = new ConcurrentHashMap<>();
@@ -56,7 +56,7 @@ public class ContestEventScheduler {
 
         ScheduledFuture<?> future = taskScheduler.schedule(() -> {
             log.info("Pushing CONTEST_STARTED event for contestId {}", contestId);
-            messagingTemplate.convertAndSend("/topic/contests", (Object) Map.of(
+            socketIOServer.getBroadcastOperations().sendEvent("contest_update", Map.of(
                     "contestId", contestId,
                     "event", "STARTED",
                     "status", "active"
@@ -77,7 +77,7 @@ public class ContestEventScheduler {
 
         ScheduledFuture<?> future = taskScheduler.schedule(() -> {
             log.info("Pushing CONTEST_FINISHED event for contestId {}", contestId);
-            messagingTemplate.convertAndSend("/topic/contests", (Object) Map.of(
+            socketIOServer.getBroadcastOperations().sendEvent("contest_update", Map.of(
                     "contestId", contestId,
                     "event", "FINISHED",
                     "status", "finished"
