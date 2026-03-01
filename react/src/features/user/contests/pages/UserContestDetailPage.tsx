@@ -317,7 +317,9 @@ export const UserContestDetailPage = () => {
                         </div>
 
                         <div className="bg-slate-800/30 rounded-3xl p-8 sm:p-10 border border-slate-700/30">
-                            {/* Leaderboard Only */}
+                            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                                <ChartBar weight="duotone" className="text-blue-400" /> Bảng xếp hạng
+                            </h2>
                             <LeaderboardTab contestId={contest.id} />
                         </div>
                     </div>
