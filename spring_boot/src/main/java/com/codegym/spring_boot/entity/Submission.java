@@ -53,4 +53,8 @@ public class Submission extends BaseEntity {
 
     @Column(name = "is_test_run")
     private Boolean isTestRun = false;
+
+    @Lob
+    @Column(name = "error_message", columnDefinition = "LONGTEXT")
+    private String errorMessage;
 }

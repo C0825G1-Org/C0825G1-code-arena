@@ -24,6 +24,7 @@ public class JudgeWorker {
     private final DockerJudgeService dockerJudgeService;
     private final SubmissionRepository submissionRepository;
     private final ObjectMapper objectMapper;
+    private final SubmissionProcessor submissionProcessor;  // Dùng bean riêng để @Transactional hoạt động
 
     private static final String QUEUE_NAME = "judge_queue";
     private static final String RESULT_CHANNEL = "judge_results";
@@ -36,6 +37,7 @@ public class JudgeWorker {
 
         try {
             JudgeTicket ticket = objectMapper.convertValue(ticketObj, JudgeTicket.class);
+            log.info(">>> Dequeued ticket for submission ID: {}", ticket.submissionId());
             log.info("Processing ticket for submission ID: {}", ticket.submissionId());
 
             processSubmission(ticket);
@@ -50,6 +52,8 @@ public class JudgeWorker {
         Submission submission = submissionRepository.findById(ticket.submissionId())
                 .orElseThrow(() -> new RuntimeException("Submission not found: " + ticket.submissionId()));
 
+            // Gọi sang bean khác để @Transactional hoạt động đúng (tránh self-invocation)
+            submissionProcessor.process(ticket);
         try {
             // 1. Thực hiện chấm bài qua Docker
             SubmissionResult result = dockerJudgeService.judge(
@@ -74,6 +78,7 @@ public class JudgeWorker {
             log.info("Finished docker judge and sent full result to Redis for submission {}", ticket.submissionId());
 
         } catch (Exception e) {
+            log.error("Error processing judge ticket from queue", e);
             log.error("Critical error in JudgeWorker for submission {}", ticket.submissionId(), e);
             JudgeResultMessage errorMessage = JudgeResultMessage.builder()
                     .userId(submission.getUser().getId().longValue())

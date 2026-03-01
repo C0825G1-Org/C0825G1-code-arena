@@ -12,6 +12,7 @@ import com.codegym.spring_boot.service.NotificationService;
 import com.codegym.spring_boot.entity.SubmissionTestResult;
 
 import com.codegym.spring_boot.dto.JudgeTicket;
+import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.dto.SubmitRequestDTO;
 import com.codegym.spring_boot.dto.SubmissionHistoryDTO;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
+import com.codegym.spring_boot.service.IProblemService;
 import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
@@ -64,6 +66,21 @@ public class SubmissionService implements ISubmissionService {
                 } else {
                         throw new SecurityException("Bạn phải đăng nhập để nộp bài.");
                 }
+        // 1. Get current user from Security Context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = null;
+        if (authentication != null && authentication.isAuthenticated()
+                && !authentication.getPrincipal().equals("anonymousUser")) {
+            String username = authentication.getName();
+            user = userRepository.findByUsernameAndIsDeletedFalse(username)
+                    .orElseThrow(() -> new RuntimeException("Current user not found"));
+        } else {
+            // TODO: Fallback to a hardcoded user if Auth (Dev 1) is not fully integrated
+            // yet for testing
+            log.warn("User is not authenticated. Falling back to default user ID = 1");
+            user = userRepository.findById(1)
+                    .orElseThrow(() -> new RuntimeException("Default User (ID=1) không tồn tại. Vui lòng chạy file mock_data.sql trong thư mục data/mysql/"));
+        }
 
                 // 2. Prepare dependencies (Using dummy instances for problem and language just
                 // to hold IDs for saving foreign keys, ideally we should fetch them)
@@ -114,6 +131,24 @@ public class SubmissionService implements ISubmissionService {
                         }
                 });
 
+        return savedSubmission.getId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SubmissionResultDTO getSubmissionResult(Integer id) {
+        Submission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Submission not found with ID: " + id));
+
+        return SubmissionResultDTO.builder()
+                .submissionId(submission.getId().longValue())
+                .status(submission.getStatus().name())
+                .executionTime(submission.getExecutionTime().longValue())
+                .memoryUsed(submission.getMemoryUsed().longValue())
+                .score(submission.getScore())
+                .errorMessage(submission.getErrorMessage())
+                .build();
+    }
                 return savedSubmission.getId();
         }
 

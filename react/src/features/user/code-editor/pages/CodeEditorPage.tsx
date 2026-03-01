@@ -173,10 +173,14 @@ export default function Home() {
             return;
         }
 
-        // Map language string to language_id (Assuming: 1=Java, 2=Python, 3=C++)
-        let langId = 1;
-        if (language === 'python') langId = 2;
-        if (language === 'cpp') langId = 3;
+        // Map language string to language_id theo DB: 1=C++20, 2=Java21, 3=Python3.12, 4=JavaScript(Node20)
+        const languageIdMap: Record<string, number> = {
+            'cpp': 1,
+            'java': 2,
+            'python': 3,
+            'javascript': 4,
+        };
+        const langId = languageIdMap[language] ?? 1;
 
         setIsSubmitting(true);
         try {
