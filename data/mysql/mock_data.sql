@@ -147,3 +147,82 @@ INSERT INTO contest_problems (contest_id, problem_id, order_index) VALUES
 INSERT INTO contest_participants (contest_id, user_id, total_score, total_penalty) VALUES 
 (4, 3, 0, 0), -- User nguyen (user_id = 3)
 (4, 4, 0, 0); -- User lan (user_id = 4)
+
+-- Problem 1 (A+B): test case đầu tiên là mẫu: input "5 10", output "15"
+UPDATE test_cases 
+SET is_sample = true, sample_input = '5 10', sample_output = '15'
+WHERE problem_id = 1 AND input_filename = '1.in';
+-- Problem 3 (Sum Array): input "3\n1 2 3", output "6"
+UPDATE test_cases 
+SET is_sample = true, sample_input = '3\n1 2 3', sample_output = '6'
+WHERE problem_id = 3 AND input_filename = '1.in';
+-- Problem 4 (Is Prime): input "7", output "YES"
+UPDATE test_cases 
+SET is_sample = true, sample_input = '7', sample_output = 'YES'
+WHERE problem_id = 4 AND input_filename = '1.in';
+-- Problem 5 (Sum N): input "10", output "55"
+UPDATE test_cases 
+SET is_sample = true, sample_input = '10', sample_output = '55'
+WHERE problem_id = 5 AND input_filename = '1.in';
+
+-- ==========================================
+-- 10. BỔ SUNG TEST CASES ĐỦ TRƯỜNG HỢP (Problem 3, 4, 5)
+--     Cấu trúc: 2 sample (TC1, TC2) + 10 hidden (TC3-TC12)
+-- ==========================================
+
+-- ---- PROBLEM 3: Tính Tổng Dãy Số ----
+-- TC2 → Sample thứ 2: input [10 20 30 40 50] → 150
+UPDATE test_cases
+SET is_sample = TRUE, sample_input = '5\n10 20 30 40 50', sample_output = '150'
+WHERE problem_id = 3 AND input_filename = '2.in';
+
+-- TC3-TC12 (hidden) cho Problem 3
+UPDATE test_cases SET score_weight = 10 WHERE problem_id = 3 AND input_filename = '3.in'; -- [99] → 99
+INSERT INTO test_cases (problem_id, is_sample, sample_input, sample_output, input_filename, output_filename, score_weight) VALUES
+(3, FALSE, NULL, NULL, '4.in',  '4.out',  10),  -- [0,0,0,0] → 0
+(3, FALSE, NULL, NULL, '5.in',  '5.out',  10),  -- [-1,-2,-3] → -6
+(3, FALSE, NULL, NULL, '6.in',  '6.out',  10),  -- [1M,2M,3M] → 6M
+(3, FALSE, NULL, NULL, '7.in',  '7.out',  10),  -- tổng = 0
+(3, FALSE, NULL, NULL, '8.in',  '8.out',  10),  -- 1..10 → 55
+(3, FALSE, NULL, NULL, '9.in',  '9.out',  10),  -- [7,7,7,7,7] → 35
+(3, FALSE, NULL, NULL, '10.in', '10.out', 10),  -- [100..600] → 2100
+(3, FALSE, NULL, NULL, '11.in', '11.out', 10),  -- [-100..-400] → -1000
+(3, FALSE, NULL, NULL, '12.in', '12.out', 10);  -- [1000000000] → 1000000000
+
+-- ---- PROBLEM 4: Kiểm Tra Số Nguyên Tố ----
+-- TC2 → Sample thứ 2: input 4 → NO
+UPDATE test_cases
+SET is_sample = TRUE, sample_input = '4', sample_output = 'NO'
+WHERE problem_id = 4 AND input_filename = '2.in';
+
+-- TC3-TC12 (hidden) cho Problem 4
+UPDATE test_cases SET score_weight = 10 WHERE problem_id = 4 AND input_filename = '3.in'; -- 1 → NO
+INSERT INTO test_cases (problem_id, is_sample, sample_input, sample_output, input_filename, output_filename, score_weight) VALUES
+(4, FALSE, NULL, NULL, '4.in',  '4.out',  10),  -- 2 → YES (SNT chẵn duy nhất)
+(4, FALSE, NULL, NULL, '5.in',  '5.out',  10),  -- 0 → NO (biên dưới)
+(4, FALSE, NULL, NULL, '6.in',  '6.out',  10),  -- 9 → NO (3×3, dễ nhầm lẻ=SNT)
+(4, FALSE, NULL, NULL, '7.in',  '7.out',  10),  -- 97 → YES
+(4, FALSE, NULL, NULL, '8.in',  '8.out',  10),  -- 100 → NO
+(4, FALSE, NULL, NULL, '9.in',  '9.out',  10),  -- 13 → YES
+(4, FALSE, NULL, NULL, '10.in', '10.out', 10),  -- 25 → NO (5×5)
+(4, FALSE, NULL, NULL, '11.in', '11.out', 10),  -- 17 → YES
+(4, FALSE, NULL, NULL, '12.in', '12.out', 10);  -- 1000000007 → YES (số lớn)
+
+-- ---- PROBLEM 5: Tổng 1..N ----
+-- TC2 → Sample thứ 2: input 1 → 1
+UPDATE test_cases
+SET is_sample = TRUE, sample_input = '1', sample_output = '1'
+WHERE problem_id = 5 AND input_filename = '2.in';
+
+-- TC3-TC12 (hidden) cho Problem 5
+UPDATE test_cases SET score_weight = 10 WHERE problem_id = 5 AND input_filename = '3.in'; -- 2 → 3
+INSERT INTO test_cases (problem_id, is_sample, sample_input, sample_output, input_filename, output_filename, score_weight) VALUES
+(5, FALSE, NULL, NULL, '4.in',  '4.out',  10),  -- 100 → 5050
+(5, FALSE, NULL, NULL, '5.in',  '5.out',  10),  -- 1000 → 500500
+(5, FALSE, NULL, NULL, '6.in',  '6.out',  10),  -- 50 → 1275
+(5, FALSE, NULL, NULL, '7.in',  '7.out',  10),  -- 5 → 15
+(5, FALSE, NULL, NULL, '8.in',  '8.out',  10),  -- 99 → 4950
+(5, FALSE, NULL, NULL, '9.in',  '9.out',  10),  -- 200 → 20100
+(5, FALSE, NULL, NULL, '10.in', '10.out', 10),  -- 500 → 125250
+(5, FALSE, NULL, NULL, '11.in', '11.out', 10),  -- 7 → 28
+(5, FALSE, NULL, NULL, '12.in', '12.out', 10);  -- 10000 → 50005000
