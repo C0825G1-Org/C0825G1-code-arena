@@ -12,7 +12,19 @@ export const useLeaderboardSocket = (contestId: number, onUpdate: (data: Leaderb
     useEffect(() => {
         if (!contestId) return;
 
+        let token = '';
+        const tokenStr = localStorage.getItem('token');
+        if (tokenStr) {
+            try {
+                const parsedToken = JSON.parse(tokenStr);
+                token = typeof parsedToken === 'string' ? parsedToken : (parsedToken?.token || parsedToken?.accessToken || '');
+            } catch (e) {
+                token = tokenStr;
+            }
+        }
+
         const socket: Socket = io('http://localhost:9092', {
+            query: { token },
             transports: ['websocket'],
             reconnection: true,
             reconnectionAttempts: 5,
