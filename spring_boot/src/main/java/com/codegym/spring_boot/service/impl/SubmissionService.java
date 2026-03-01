@@ -215,42 +215,41 @@ public class SubmissionService implements ISubmissionService {
 
                 submissionRepository.save(submission);
 
-                // --- 3. Logic Penalty ACM-ICPC ---
-                if (finalStatus == SubmissionStatus.AC && submission.getContest() != null
-                                && !submission.getIsTestRun()) {
-                        Integer contestId = submission.getContest().getId();
-                        Integer userId = submission.getUser().getId();
-                        Integer problemId = submission.getProblem().getId();
-
-                        if (!alreadyAC) {
-                                Contest contest = submission.getContest();
-                                if (contest.getStartTime() != null && submission.getCreatedAt() != null) {
-                                        long minutesFromStart = java.time.Duration
-                                                        .between(contest.getStartTime(), submission.getCreatedAt())
-                                                        .toMinutes();
-
-                                        int failedAttempts = submissionRepository
-                                                        .countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(
-                                                                        userId, problemId, contestId,
-                                                                        submission.getId(),
-                                                                        SubmissionStatus.AC);
-
-                                        long penaltyMinutes = minutesFromStart + (failedAttempts * 20L);
-
-                                        contestParticipantRepository.findByContestIdAndUserId(contestId, userId)
-                                                        .ifPresent(p -> {
-                                                                p.setTotalScore(p.getTotalScore() + 1);
-                                                                p.setTotalPenalty(p.getTotalPenalty()
-                                                                                + (int) penaltyMinutes);
-                                                                contestParticipantRepository.save(p);
-                                                        });
-                                }
-                        }
-                }
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
-                leaderboardService.updateScore(submission);
+                // Ủy quyền việc cập nhật Penalty, Điểm số bài thi và Real-time cho
+                // LeaderboardService
+                if (submission.getContest() != null && !submission.getIsTestRun()) {
+                        leaderboardService.updateScore(submission);
+                }
 
                 // 4. Gửi Socket về ReactJS realtime
+                // Nếu là chạy thử, gửi kèm kết quả từng test case (để hiển thị output thực tế)
+                List<SubmissionResultDTO.TestCaseResultDTO> tcResultDTOs = null;
+                if (Boolean.TRUE.equals(submission.getIsTestRun()) && msg.getTestCaseResults() != null) {
+                        tcResultDTOs = msg.getTestCaseResults().stream().map(tcResult -> {
+                                String inputFilename = tcResult.getTestCaseNumber() + ".in";
+                                TestCase tcEntity = testCaseRepository.findByProblemIdAndInputFilename(
+                                                submission.getProblem().getId(), inputFilename);
+
+                                String input = tcEntity != null ? tcEntity.getSampleInput() : null;
+                                String expectedOutput = tcEntity != null ? tcEntity.getSampleOutput() : null;
+                                boolean isSample = tcEntity != null && Boolean.TRUE.equals(tcEntity.getIsSample());
+                                String actualStatus = tcResult.isPassed() ? "AC"
+                                                : (tcResult.getMessage() != null ? tcResult.getMessage() : "WA");
+
+                                return SubmissionResultDTO.TestCaseResultDTO.builder()
+                                                .id(tcEntity != null ? tcEntity.getId() : null)
+                                                .status(actualStatus)
+                                                .isSample(isSample)
+                                                .input(input)
+                                                .actualOutput(tcResult.getUserOutput())
+                                                .expectedOutput(isSample ? expectedOutput : null) // Ẩn expected của
+                                                                                                  // test ẩn
+                                                .executionTime(tcResult.getExecutionTime())
+                                                .build();
+                        }).collect(Collectors.toList());
+                }
+
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                 .submissionId(msg.getSubmissionId())
                                 .problemId(submission.getProblem().getId())
@@ -260,8 +259,10 @@ public class SubmissionService implements ISubmissionService {
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
                                 .isRunOnly(submission.getIsTestRun())
+                                .testCaseResults(tcResultDTOs)
                                 .build();
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
+
         }
 
         private SubmissionStatus mapDockerStatusToTestCaseStatus(String status) {
@@ -281,7 +282,6 @@ public class SubmissionService implements ISubmissionService {
                         return SubmissionStatus.RE;
                 switch (dockerStatus) {
                         case "ACCEPTED":
-                        case "SUCCESS":
                                 return SubmissionStatus.AC;
                         case "judging":
                                 return SubmissionStatus.judging;
