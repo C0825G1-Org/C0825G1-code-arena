@@ -5,9 +5,8 @@ import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.entity.TestCase;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
-import com.codegym.spring_boot.repository.ContestParticipantRepository;
+import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.entity.Contest;
-import java.time.Duration;
 import com.codegym.spring_boot.service.NotificationService;
 import com.codegym.spring_boot.entity.SubmissionTestResult;
 
@@ -44,8 +43,8 @@ public class SubmissionService implements ISubmissionService {
         private final UserRepository userRepository;
         private final ITestCaseRepository testCaseRepository;
         private final ISubmissionTestResultRepository submissionTestResultRepository;
-        private final ContestParticipantRepository contestParticipantRepository;
         private final NotificationService notificationService;
+        private final com.codegym.spring_boot.service.ILeaderboardService leaderboardService;
 
         @Override
         @Transactional
@@ -194,42 +193,8 @@ public class SubmissionService implements ISubmissionService {
 
                 submissionRepository.save(submission);
 
-                // --- 3. Logic Penalty ACM-ICPC (Chỉ áp dụng khi AC, nằm trong Contest và KHÔNG
-                // PHẢI CHẠY THỬ) ---
-                if (finalStatus == SubmissionStatus.AC && submission.getContest() != null
-                                && !submission.getIsTestRun()) {
-                        Integer contestId = submission.getContest().getId();
-                        Integer userId = submission.getUser().getId();
-                        Integer problemId = submission.getProblem().getId();
-
-                        // Chỉ cập nhật Penalty nếu đây là lần ĐẦU TIÊN User AC bài này trong kỳ thi.
-                        if (!alreadyAC) {
-                                Contest contest = submission.getContest();
-                                if (contest.getStartTime() != null && submission.getCreatedAt() != null) {
-                                        long minutesFromStart = Duration
-                                                        .between(contest.getStartTime(), submission.getCreatedAt())
-                                                        .toMinutes();
-
-                                        int failedAttempts = submissionRepository
-                                                        .countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(
-                                                                        userId, problemId, contestId,
-                                                                        submission.getId(),
-                                                                        SubmissionStatus.AC);
-
-                                        long penaltyMinutes = minutesFromStart + (failedAttempts * 20L);
-
-                                        contestParticipantRepository.findByContestIdAndUserId(contestId, userId)
-                                                        .ifPresent(p -> {
-                                                                p.setTotalScore(p.getTotalScore() + 1);
-                                                                p.setTotalPenalty(p.getTotalPenalty()
-                                                                                + (int) penaltyMinutes);
-                                                                contestParticipantRepository.save(p);
-                                                                log.info("Cập nhật Penalty ICPC User {} - Tăng 1 điểm, Penalty: {} phút",
-                                                                                userId, penaltyMinutes);
-                                                        });
-                                }
-                        }
-                }
+                // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
+                leaderboardService.updateScore(submission);
 
                 // 4. Gửi Socket về ReactJS realtime
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()

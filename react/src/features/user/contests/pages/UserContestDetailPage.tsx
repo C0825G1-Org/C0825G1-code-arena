@@ -9,8 +9,9 @@ import { toast } from 'react-hot-toast';
 import {
     Code, Bell, SignOut, ShieldStar, ArrowLeft,
     CalendarStar, Users, Clock, ArrowRight,
-    CircleNotch, Trophy, WarningCircle, CheckCircle, Info
+    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar
 } from '@phosphor-icons/react';
+import { LeaderboardTab } from '../components/LeaderboardTab';
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
@@ -58,6 +59,9 @@ export const UserContestDetailPage = () => {
 
     // Live Countdown state
     const [timeLeftStr, setTimeLeftStr] = useState<string>('');
+
+    // Tab state
+    const [activeTab, setActiveTab] = useState<'problems' | 'leaderboard'>('problems');
 
     const fetchContestDetail = async () => {
         try {
@@ -307,13 +311,32 @@ export const UserContestDetailPage = () => {
                             </div>
                         </div>
 
-                        {/* Problems List Section */}
-                        {(contest.status === 'active' || contest.status === 'finished') && userIsRegistered && contest.problems && (
-                            <div className="bg-slate-800/30 rounded-3xl p-8 sm:p-10 border border-slate-700/30">
-                                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                                    <Code weight="duotone" className="text-emerald-400" /> Danh sách bài tập
-                                </h2>
-                                {contest.problems.length > 0 ? (
+                        <div className="bg-slate-800/30 rounded-3xl p-8 sm:p-10 border border-slate-700/30">
+                            {/* Tab Navigation */}
+                            <div className="flex items-center gap-6 mb-8 border-b border-slate-700/50 pb-4">
+                                <button
+                                    onClick={() => setActiveTab('problems')}
+                                    className={`flex items-center gap-2 text-xl font-bold transition-colors ${activeTab === 'problems'
+                                        ? 'text-emerald-400 border-b-2 border-emerald-400 pb-2'
+                                        : 'text-slate-400 hover:text-slate-200 pb-2 border-b-2 border-transparent'
+                                        }`}
+                                >
+                                    <Code weight="duotone" className="text-2xl" /> Danh sách bài tập
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('leaderboard')}
+                                    className={`flex items-center gap-2 text-xl font-bold transition-colors ${activeTab === 'leaderboard'
+                                        ? 'text-blue-400 border-b-2 border-blue-400 pb-2'
+                                        : 'text-slate-400 hover:text-slate-200 pb-2 border-b-2 border-transparent'
+                                        }`}
+                                >
+                                    <ChartBar weight="duotone" className="text-2xl" /> Bảng xếp hạng
+                                </button>
+                            </div>
+
+                            {/* Problems Tab Content */}
+                            {activeTab === 'problems' && (
+                                contest.problems.length > 0 ? (
                                     <div className="space-y-4">
                                         {contest.problems.sort((a, b) => a.orderIndex - b.orderIndex).map((p, idx) => (
                                             <div key={p.id} className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-5 flex items-center justify-between hover:border-emerald-500/50 transition-colors">
@@ -351,9 +374,14 @@ export const UserContestDetailPage = () => {
                                     <div className="bg-slate-900/50 border border-slate-700/50 rounded-2xl p-8 text-center">
                                         <p className="text-slate-400">Không có bài tập nào trong cuộc thi này hoặc ban tổ chức chưa thêm bài.</p>
                                     </div>
-                                )}
-                            </div>
-                        )}
+                                )
+                            )}
+
+                            {/* Leaderboard Tab Content */}
+                            {activeTab === 'leaderboard' && (
+                                <LeaderboardTab contestId={contest.id} />
+                            )}
+                        </div>
                     </div>
 
                     {/* Right Column: Sticky Sidebar Area */}
