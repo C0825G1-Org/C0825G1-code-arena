@@ -289,7 +289,7 @@ export const UserHomePage: React.FC = () => {
                                 {user?.fullName || 'User'}
                             </div>
                             <div className="text-xs text-slate-400 font-mono">Rating: <span
-                                className="text-yellow-400">{userStats.eloRanking}</span>
+                                className="text-yellow-400">{userStats?.eloRanking || 1500}</span>
                             </div>
                         </div>
                         <img
@@ -480,27 +480,36 @@ export const UserHomePage: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="flex flex-col divide-y divide-slate-700/50">
-                                    {topCoders.map((coder, index) => (
-                                        <div key={coder.userId} className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors">
-                                            <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm bg-slate-700 text-slate-300">
-                                                #{index + 1}
-                                            </div>
-                                            <img
-                                                src={`https://i.pravatar.cc/150?u=${coder.userId}`}
-                                                alt="Avatar"
-                                                className="w-10 h-10 rounded-full border border-slate-600"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-semibold text-white truncate">{coder.fullName || coder.username}</div>
-                                                <div className="text-xs text-slate-400">@{coder.username}</div>
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <div className="font-bold text-yellow-400 flex items-center justify-end gap-1">
-                                                    {coder.globalRating} <Ranking weight="bold" />
+                                    {topCoders.map((coder, index) => {
+                                        let rankColors = "bg-slate-700 text-slate-300"; // default
+                                        if (index === 0) rankColors = "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.3)]"; // Gold
+                                        else if (index === 1) rankColors = "bg-slate-400/20 text-slate-300 border border-slate-400/50"; // Silver
+                                        else if (index === 2) rankColors = "bg-orange-500/20 text-orange-400 border border-orange-500/50"; // Bronze
+
+                                        return (
+                                            <div key={coder.userId} className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors">
+                                                <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${rankColors}`}>
+                                                    #{index + 1}
+                                                </div>
+                                                <img
+                                                    src={`https://i.pravatar.cc/150?u=${coder.userId}`}
+                                                    alt="Avatar"
+                                                    className="w-10 h-10 rounded-full border border-slate-600"
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className={`font-semibold truncate ${index === 0 ? 'text-yellow-400' : 'text-white'}`}>
+                                                        {coder.fullName || coder.username}
+                                                    </div>
+                                                    <div className="text-xs text-slate-400">@{coder.username}</div>
+                                                </div>
+                                                <div className="text-right shrink-0">
+                                                    <div className="font-bold text-yellow-400 flex items-center justify-end gap-1">
+                                                        {coder.globalRating} <Ranking weight="bold" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

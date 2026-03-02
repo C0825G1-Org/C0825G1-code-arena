@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Boolean existsByEmail(String email);
 
-    long countByGlobalRatingGreaterThan(int rating);
+    long countByGlobalRatingLessThan(int rating);
 
-    List<User> findTop3ByRoleOrderByGlobalRatingDesc(UserRole role);
+    List<User> findTop3ByRoleOrderByGlobalRatingAsc(UserRole role);
 }

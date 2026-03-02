@@ -27,8 +27,8 @@ public class UserDashboardService implements IUserDashboardService {
         Integer userId = user.getId();
         int globalRating = user.getGlobalRating() != null ? user.getGlobalRating() : 1500;
 
-        // 1. Calculate Elo Ranking and Top %
-        long rank = userRepository.countByGlobalRatingGreaterThan(globalRating) + 1;
+        // 1. Calculate Rank and Top % (smaller global_rating is better)
+        long rank = userRepository.countByGlobalRatingLessThan(globalRating) + 1;
         long totalUsers = userRepository.count();
         double topPercent = totalUsers > 0 ? ((double) rank / totalUsers) * 100 : 0.0;
 
@@ -55,8 +55,8 @@ public class UserDashboardService implements IUserDashboardService {
 
     @Override
     public List<TopCoderResponse> getTopCoders() {
-        // Fetch top 3 users with role USER
-        List<User> topUsers = userRepository.findTop3ByRoleOrderByGlobalRatingDesc(UserRole.user);
+        // Fetch top 3 users with role USER in ascending order (smaller rating = higher rank)
+        List<User> topUsers = userRepository.findTop3ByRoleOrderByGlobalRatingAsc(UserRole.user);
         
         return topUsers.stream().map(user -> TopCoderResponse.builder()
                 .userId(user.getId())
