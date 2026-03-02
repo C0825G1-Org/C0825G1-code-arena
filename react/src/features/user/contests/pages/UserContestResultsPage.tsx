@@ -244,7 +244,7 @@ export const UserContestResultsPage = () => {
                                                     {u.rank}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="font-bold text-slate-200 truncate">{u.username}</div>
+                                                    <div className="font-bold text-slate-200 truncate">{u.fullName}</div>
                                                     <div className="text-xs text-slate-500 flex gap-2">
                                                         <span className="text-yellow-500 font-bold">{u.totalScore} điểm</span>
                                                         <span>•</span>
