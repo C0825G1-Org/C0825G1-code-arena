@@ -49,6 +49,10 @@ public class ContestService {
         if (!request.getEndTime().isAfter(request.getStartTime())) {
             throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
         }
+        // Validate: Thời gian thi tối đa 3 tiếng
+        if (java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes() > 180) {
+            throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
+        }
 
         Contest contest = new Contest();
         contest.setTitle(request.getTitle());
@@ -93,6 +97,10 @@ public class ContestService {
                         if (request.getEndTime().isBefore(LocalDateTime.now()) || request.getEndTime().equals(LocalDateTime.now())) {
                             throw new IllegalArgumentException("Thời gian kết thúc mới phải ở tương lai.");
                         }
+                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
+                        if (java.time.Duration.between(effectiveStart, request.getEndTime()).toMinutes() > 180) {
+                            throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
+                        }
                         contest.setEndTime(request.getEndTime());
                     }
                 }
@@ -127,6 +135,9 @@ public class ContestService {
                         LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
                         if (request.getEndTime().isBefore(effectiveStart) || request.getEndTime().equals(effectiveStart)) {
                             throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
+                        }
+                        if (java.time.Duration.between(effectiveStart, request.getEndTime()).toMinutes() > 180) {
+                            throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
                         }
                         contest.setEndTime(request.getEndTime());
                     }
@@ -411,6 +422,10 @@ public class ContestService {
         ContestParticipantId cpId = new ContestParticipantId(contestId, currentUser.getId());
         if (participantRepository.existsById(cpId)) {
             throw new IllegalStateException("Bạn đã đăng ký cuộc thi này trước đó.");
+        }
+
+        if (participantRepository.countByIdContestId(contestId) >= 10) {
+            throw new IllegalStateException("Cuộc thi đã đủ số lượng người tham gia tối đa (10 người).");
         }
 
         ContestParticipant participant = new ContestParticipant();
