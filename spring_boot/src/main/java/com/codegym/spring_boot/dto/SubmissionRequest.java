@@ -1,5 +1,6 @@
 package com.codegym.spring_boot.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
