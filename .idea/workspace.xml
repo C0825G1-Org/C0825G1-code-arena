@@ -5,27 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_10/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/6.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/6.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/7.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_3/7.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/data/testcases/problem_4/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestProblemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestProblemRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +62,7 @@
       <workItem from="1772159637250" duration="3790000" />
       <workItem from="1772181811005" duration="1438000" />
       <workItem from="1772209366219" duration="4121000" />
-      <workItem from="1772293097970" duration="2794000" />
+      <workItem from="1772293097970" duration="3612000" />
     </task>
     <servers />
   </component>
