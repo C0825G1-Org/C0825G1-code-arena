@@ -375,7 +375,6 @@ export const UserHomePage: React.FC = () => {
                                     <Ranking weight="duotone" className="text-3xl mb-2 text-yellow-400" />
                                     <div className="text-2xl font-bold flex items-baseline gap-1">
                                         {userStats?.eloRanking || 1500}
-                                        <span className="text-xs text-slate-500 font-normal">Top {userStats?.topPercent || 0}%</span>
                                     </div>
                                     <div className="text-xs text-slate-400 mt-1">Elo Ranking</div>
                                 </div>

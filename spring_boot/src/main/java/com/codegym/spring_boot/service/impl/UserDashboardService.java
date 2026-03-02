@@ -3,6 +3,7 @@ package com.codegym.spring_boot.service.impl;
 import com.codegym.spring_boot.dto.dashboard.response.TopCoderResponse;
 import com.codegym.spring_boot.dto.dashboard.response.UserStatsResponse;
 import com.codegym.spring_boot.entity.User;
+import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.entity.enums.UserRole;
 import com.codegym.spring_boot.repository.SubmissionRepository;
 import com.codegym.spring_boot.repository.UserRepository;
@@ -33,15 +34,15 @@ public class UserDashboardService implements IUserDashboardService {
         double topPercent = totalUsers > 0 ? ((double) rank / totalUsers) * 100 : 0.0;
 
         // 2. Count distinct solved problems
-        long solvedCount = submissionRepository.countDistinctAcceptedProblemsByUserId(userId);
+        long solvedCount = submissionRepository.countDistinctAcceptedProblemsByUserId(userId, SubmissionStatus.AC);
 
         // 3. Calculate AC Rate
         long totalSubmissions = submissionRepository.countTotalSubmissionsByUserId(userId);
-        long acceptedSubmissions = submissionRepository.countAcceptedSubmissionsByUserId(userId);
+        long acceptedSubmissions = submissionRepository.countAcceptedSubmissionsByUserId(userId, SubmissionStatus.AC);
         double acRate = totalSubmissions > 0 ? ((double) acceptedSubmissions / totalSubmissions) * 100 : 0.0;
 
         // 4. Calculate Streak
-        List<Date> acDates = submissionRepository.findDistinctAcceptedDatesByUserIdDesc(userId);
+        List<Date> acDates = submissionRepository.findDistinctAcceptedDatesByUserIdDesc(userId, SubmissionStatus.AC);
         int streak = calculateStreak(acDates);
 
         return UserStatsResponse.builder()

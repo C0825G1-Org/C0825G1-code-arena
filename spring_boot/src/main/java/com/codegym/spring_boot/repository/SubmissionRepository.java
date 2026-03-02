@@ -42,15 +42,15 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     // --- User Dashboard Stat Queries ---
 
-    @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = 'ACCEPTED'")
-    long countDistinctAcceptedProblemsByUserId(@Param("userId") Integer userId);
+    @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
+    long countDistinctAcceptedProblemsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
 
     @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId")
     long countTotalSubmissionsByUserId(@Param("userId") Integer userId);
 
-    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = 'ACCEPTED'")
-    long countAcceptedSubmissionsByUserId(@Param("userId") Integer userId);
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
+    long countAcceptedSubmissionsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
 
-    @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = 'ACCEPTED' ORDER BY CAST(s.createdAt AS DATE) DESC")
-    List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId);
+    @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = :status ORDER BY CAST(s.createdAt AS DATE) DESC")
+    List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
 }
