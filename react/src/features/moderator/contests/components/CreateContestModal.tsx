@@ -27,8 +27,16 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
         e.preventDefault();
 
         // Basic frontend validation
-        if (formData.startTime >= formData.endTime) {
+        const start = new Date(formData.startTime).getTime();
+        const end = new Date(formData.endTime).getTime();
+
+        if (start >= end) {
             toast.error('Thời gian kết thúc phải sau thời gian bắt đầu.');
+            return;
+        }
+
+        if (end - start > 3 * 60 * 60 * 1000) {
+            toast.error('Thời gian diễn ra cuộc thi tối đa là 3 tiếng.');
             return;
         }
 

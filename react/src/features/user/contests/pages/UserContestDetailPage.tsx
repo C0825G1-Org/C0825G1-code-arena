@@ -57,6 +57,7 @@ export interface ContestDetailData {
     registered?: boolean; // Fallback for backend serialization
     serverTime: string;
     participantCount: number;
+    maxParticipants: number;
     problems?: ContestProblemData[];
 }
 
@@ -193,6 +194,17 @@ export const UserContestDetailPage = () => {
         }
 
         if (!userIsRegistered) {
+            const isFull = contest.participantCount >= contest.maxParticipants;
+            if (isFull) {
+                return (
+                    <button
+                        disabled
+                        className="w-full py-3.5 rounded-xl text-lg font-bold bg-slate-800 text-slate-400 border border-slate-700/50 cursor-not-allowed flex justify-center items-center gap-2"
+                    >
+                        Đã hết chỗ
+                    </button>
+                );
+            }
             return (
                 <button
                     onClick={handleRegister}
@@ -383,7 +395,7 @@ export const UserContestDetailPage = () => {
                                     </div>
                                     <span className="font-medium">Số thí sinh</span>
                                 </div>
-                                <span className="text-2xl font-bold text-white">{contest.participantCount}</span>
+                                <span className="text-2xl font-bold text-white"><span className="text-blue-400">{contest.participantCount}</span> / {contest.maxParticipants}</span>
                             </div>
 
                         </div>

@@ -15,6 +15,7 @@ interface Contest {
     startTime: string;
     endTime: string;
     participantCount: number;
+    maxParticipants: number;
 }
 
 export const ContestManagementPage = () => {
@@ -299,7 +300,7 @@ export const ContestManagementPage = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-3 text-slate-300 font-mono">
-                                            {contest.participantCount} <span className="text-slate-500 font-sans text-xs">thí sinh</span>
+                                            {contest.participantCount} / {contest.maxParticipants} <span className="text-slate-500 font-sans text-xs">thí sinh</span>
                                         </td>
                                         <td className="px-6 py-3 text-right space-x-1 whitespace-nowrap">
                                             {contest.status === 'active' && (

@@ -171,6 +171,17 @@ export const UserHomePage: React.FC = () => {
         }
 
         if (!userIsRegistered) {
+            const isFull = contest.participantCount >= contest.maxParticipants;
+            if (isFull) {
+                return (
+                    <button
+                        disabled
+                        className="px-6 py-2.5 rounded-lg font-medium bg-slate-800 text-slate-400 border border-slate-700/50 cursor-not-allowed flex justify-center items-center whitespace-nowrap"
+                    >
+                        Đã hết chỗ
+                    </button>
+                );
+            }
             return (
                 <button
                     onClick={() => handleRegister(contest.id)}
@@ -403,7 +414,7 @@ export const UserHomePage: React.FC = () => {
                                                 <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors line-clamp-1">{contest.title}</h3>
                                             </Link>
                                             <p className="text-slate-400 text-sm">
-                                                {contest.participantCount} người tham gia
+                                                {contest.participantCount} / {contest.maxParticipants} người tham gia
                                             </p>
                                         </div>
                                         <div className="shrink-0 mt-2 sm:mt-0">

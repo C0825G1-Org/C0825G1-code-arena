@@ -241,6 +241,17 @@ export const UserContestsPage = () => {
 
         // Condition 1: Not Registered -> Đăng ký
         if (!userIsRegistered) {
+            const isFull = contest.participantCount >= contest.maxParticipants;
+            if (isFull) {
+                return (
+                    <button
+                        disabled
+                        className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-medium bg-slate-800 text-slate-400 border border-slate-700/50 cursor-not-allowed flex justify-center items-center gap-2"
+                    >
+                        Đã hết chỗ
+                    </button>
+                );
+            }
             return (
                 <button
                     onClick={() => handleRegister(contest.id)}
@@ -493,7 +504,7 @@ export const UserContestsPage = () => {
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
                                                         <Users weight="duotone" className="text-lg text-slate-500" />
-                                                        {contest.participantCount} người tham gia
+                                                        {contest.participantCount} / {contest.maxParticipants} người tham gia
                                                     </div>
                                                     {contest.status === 'upcoming' && (
                                                         <div className="flex items-center gap-1.5 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
