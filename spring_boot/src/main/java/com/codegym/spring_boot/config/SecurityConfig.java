@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.codegym.spring_boot.security.CustomOAuth2AuthorizationRequestResolver;
 import org.springframework.security.config.Customizer;
 
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ public class SecurityConfig {
         private final JwtAuthenticationFilter jwtAuthFilter;
         private final AuthenticationProvider authenticationProvider;
         private final OAuth2SuccessHandler oAuth2SuccessHandler;
+        private final CustomOAuth2AuthorizationRequestResolver customOAuth2Resolver;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,6 +54,7 @@ public class SecurityConfig {
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint(restAuthenticationEntryPoint()))
                                 .oauth2Login(oauth2 -> oauth2
+                                                .authorizationEndpoint(auth -> auth.authorizationRequestResolver(customOAuth2Resolver))
                                                 .successHandler(oAuth2SuccessHandler))
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

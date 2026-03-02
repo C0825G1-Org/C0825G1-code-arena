@@ -8,8 +8,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': { target: 'http://localhost:8080', changeOrigin: true },
-      '/oauth2': { target: 'http://localhost:8080', xfwd: true },
-      '/login/oauth2': { target: 'http://localhost:8080', xfwd: true },
+      '/oauth2': { target: 'http://localhost:8080', changeOrigin: true, xfwd: true },
+      '/login/oauth2': { target: 'http://localhost:8080', changeOrigin: true, xfwd: true },
       '/socket.io': { target: 'http://localhost:9092', ws: true, changeOrigin: true, secure: false }
     },
     allowedHosts: true
@@ -17,8 +17,8 @@ export default defineConfig({
   preview: {
     proxy: {
       '/api': { target: 'http://localhost:8080', changeOrigin: true },
-      '/oauth2': { target: 'http://localhost:8080', xfwd: true },
-      '/login/oauth2': { target: 'http://localhost:8080', xfwd: true },
+      '/oauth2': { target: 'http://localhost:8080', changeOrigin: true, xfwd: true },
+      '/login/oauth2': { target: 'http://localhost:8080', changeOrigin: true, xfwd: true },
       '/socket.io': { target: 'http://localhost:9092', ws: true, changeOrigin: true, secure: false }
     }
   }
