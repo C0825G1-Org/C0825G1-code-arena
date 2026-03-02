@@ -289,7 +289,7 @@ export const UserHomePage: React.FC = () => {
                                 {user?.fullName || 'User'}
                             </div>
                             <div className="text-xs text-slate-400 font-mono">Rating: <span
-                                className="text-yellow-400">{userStats?.eloRanking || 1500}</span>
+                                className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
                             </div>
                         </div>
                         <img
@@ -374,7 +374,7 @@ export const UserHomePage: React.FC = () => {
                                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
                                     <Ranking weight="duotone" className="text-3xl mb-2 text-yellow-400" />
                                     <div className="text-2xl font-bold flex items-baseline gap-1">
-                                        {userStats?.eloRanking || 1500}
+                                        {userStats?.eloRanking ?? 0}
                                     </div>
                                     <div className="text-xs text-slate-400 mt-1">Elo Ranking</div>
                                 </div>

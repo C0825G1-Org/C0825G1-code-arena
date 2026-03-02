@@ -48,7 +48,7 @@ public class RatingService implements IRatingService {
         // 2. Tính toán Delta
         for (int i = 0; i < n; i++) {
             User userA = participants.get(i).getUser();
-            double ratingA = userA.getGlobalRating() != null ? userA.getGlobalRating() : 1500;
+            double ratingA = userA.getGlobalRating() != null ? userA.getGlobalRating() : 0;
             
             double expectedScore = 0;
             double actualScore = 0;
@@ -57,10 +57,18 @@ public class RatingService implements IRatingService {
                 if (i == j) continue;
                 
                 User userB = participants.get(j).getUser();
-                double ratingB = userB.getGlobalRating() != null ? userB.getGlobalRating() : 1500;
+                double ratingB = userB.getGlobalRating() != null ? userB.getGlobalRating() : 0;
 
-                // Xác suất A thắng B
-                expectedScore += 1.0 / (1.0 + Math.pow(10, (ratingB - ratingA) / 400.0));
+                // Caching difference
+                double diff = ratingB - ratingA;
+                
+                // Determine probability
+                double probA = 1.0 / (1.0 + Math.pow(10, diff / 400.0));
+                
+                // Boost probability calculation for absolute beginners to allow faster climbing
+                if (ratingA == 0 && ratingB > 0) probA = 0.2; // underdog boost
+                
+                expectedScore += probA;
 
                 // Xử lý đồng hạng (Ties)
                 if (participants.get(i).getTotalScore() > participants.get(j).getTotalScore()) {
@@ -89,7 +97,7 @@ public class RatingService implements IRatingService {
 
         for (int i = 0; i < n; i++) {
             User user = participants.get(i).getUser();
-            int oldRating = user.getGlobalRating() != null ? user.getGlobalRating() : 1500;
+            int oldRating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
             
             int finalChange = (int) Math.round(deltas[i] - adjustment);
             int newRating = Math.max(0, oldRating + finalChange);

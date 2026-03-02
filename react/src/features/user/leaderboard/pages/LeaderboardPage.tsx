@@ -1,0 +1,365 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Code, Bell, SignOut, ShieldStar } from '@phosphor-icons/react';
+import { RootState } from '../../../../app/store';
+import { logout } from '../../../auth/store/authSlice';
+import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
+import { userDashboardService, UserStats } from '../../home/services/userDashboardService';
+import toast from 'react-hot-toast';
+
+export const LeaderboardPage: React.FC = () => {
+    const { user } = useSelector((state: RootState) => state.auth);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
+    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
+
+    const [users, setUsers] = useState<LeaderboardUserResponse[]>([]);
+    const [top3, setTop3] = useState<LeaderboardUserResponse[]>([]);
+    const [search, setSearch] = useState('');
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const size = 10;
+
+    const handleLogout = () => {
+        navigate('/');
+        setTimeout(() => {
+            dispatch(logout());
+        }, 10);
+    };
+
+    const fetchLeaderboard = async () => {
+        setLoading(true);
+        try {
+            const data = await getLeaderboard(search, page, size);
+            setUsers(data.content);
+            setTotalPages(data.totalPages);
+            setTotalElements(data.totalElements);
+
+            // Fetch Top 3 unconditionally for the podium if we are on page 0 and no search
+            if (page === 0 && search.trim() === '') {
+                setTop3(data.content.slice(0, 3));
+            }
+        } catch (error) {
+            console.error('Failed to fetch leaderboard', error);
+            toast.error('Không thể tải dữ liệu bảng xếp hạng');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const fetchUserStats = async () => {
+            if (user) {
+                try {
+                    const stats = await userDashboardService.getUserStats();
+                    setUserStats(stats);
+                } catch (error) {
+                    console.error('Failed to fetch user stats', error);
+                }
+            }
+        };
+        fetchUserStats();
+    }, [user]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            fetchLeaderboard();
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [search, page]);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+        setPage(0); // Reset page on search
+    };
+
+    const renderPodium = () => {
+        if (top3.length === 0) return null;
+
+        const firstPlace = top3[0];
+        const secondPlace = top3[1];
+        const thirdPlace = top3[2];
+
+        return (
+            <div className="flex justify-center items-end gap-2 md:gap-6 w-full max-w-2xl mx-auto mb-16 h-64 mt-16">
+                {/* 2nd Place */}
+                {secondPlace && (
+                    <div className="flex flex-col items-center w-1/3 relative group animate-fade-in-up delay-100">
+                        <div className="absolute -top-10 text-2xl text-slate-400 font-bold opacity-50 group-hover:opacity-100 transition">
+                            <Medal weight="fill" className="text-slate-400" />
+                        </div>
+                        <img
+                            src={`https://i.pravatar.cc/150?u=${secondPlace.userId}`}
+                            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-slate-400 mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(148,163,184,0.4)] relative object-cover"
+                            alt={secondPlace.username}
+                        />
+                        <span className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center">{secondPlace.fullName}</span>
+                        <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
+                        <div className="w-full h-[100px] border-t-2 border-slate-400 bg-gradient-to-b from-slate-400/20 to-transparent rounded-t-xl flex justify-center items-start pt-4 shadow-xl">
+                            <span className="text-4xl font-black text-slate-500/50">2</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* 1st Place */}
+                {firstPlace && (
+                    <div className="flex flex-col items-center w-1/3 relative group animate-fade-in-up">
+                        <div className="absolute -top-12 text-3xl text-yellow-500 font-bold animate-bounce shadow-yellow-500/50">
+                            <Crown weight="fill" />
+                        </div>
+                        <img
+                            src={`https://i.pravatar.cc/150?u=${firstPlace.userId}`}
+                            className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-yellow-500 mb-3 z-10 bg-slate-800 shadow-[0_0_20px_rgba(234,179,8,0.5)] relative object-cover"
+                            alt={firstPlace.username}
+                        />
+                        <span className="font-bold text-white text-base md:text-lg truncate w-full px-2 text-center" >{firstPlace.fullName}</span>
+                        <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full mb-2 border border-yellow-500/20">
+                            {firstPlace.globalRating} ELO
+                        </span>
+                        <div className="w-full h-[140px] border-t-2 border-yellow-500 bg-gradient-to-b from-yellow-500/20 to-transparent rounded-t-xl flex justify-center items-start pt-6 shadow-xl relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-transparent to-yellow-500/10 w-full h-full"></div>
+                            <span className="text-5xl font-black text-yellow-600/50 z-10">1</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* 3rd Place */}
+                {thirdPlace && (
+                    <div className="flex flex-col items-center w-1/3 relative group animate-fade-in-up delay-200">
+                        <div className="absolute -top-10 text-2xl text-orange-600 font-bold opacity-50 group-hover:opacity-100 transition">
+                            <Medal weight="fill" className="text-orange-600" />
+                        </div>
+                        <img
+                            src={`https://i.pravatar.cc/150?u=${thirdPlace.userId}`}
+                            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-orange-600 mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(194,65,12,0.4)] relative object-cover"
+                            alt={thirdPlace.username}
+                        />
+                        <span className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center" >{thirdPlace.fullName}</span>
+                        <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
+                        <div className="w-full h-[80px] border-t-2 border-orange-600 bg-gradient-to-b from-orange-600/20 to-transparent rounded-t-xl flex justify-center items-start pt-2 shadow-xl">
+                            <span className="text-4xl font-black text-orange-700/50">3</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="min-h-screen flex flex-col relative overflow-x-hidden bg-[#0f172a] text-slate-100 font-sans">
+            {/* Background Decorative Elements */}
+            <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[120px]"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-teal-600/5 blur-[120px]"></div>
+            </div>
+
+            {/* Navbar */}
+            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
+                <div className="flex items-center gap-8">
+                    <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                        <Code weight="fill" className="text-blue-500 text-3xl" />
+                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
+                    </Link>
+                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+                        <Link to="/home" className="hover:text-blue-400 transition-colors">Trang chủ</Link>
+                        <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
+                        <Link to="/contests" className="hover:text-blue-400 transition-colors">Cuộc thi</Link>
+                        <Link to="/leaderboard" className="text-white hover:text-blue-400 transition-colors pointer-events-none">Bảng xếp hạng</Link>
+                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    {isModerator && (
+                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 transition-all text-sm font-medium border border-purple-500/20">
+                            <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
+                        </Link>
+                    )}
+                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"><Bell className="text-xl" /></button>
+                    <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                        <div className="text-right hidden sm:block">
+                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
+                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span></div>
+                        </div>
+                        <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
+                    </Link>
+                    <button onClick={handleLogout} className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5"><SignOut weight="bold" className="text-xl" /></button>
+                </div>
+            </nav>
+
+            <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl w-full flex flex-col z-10 relative">
+                <div className="text-center mb-8">
+                    <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 pb-3 mb-3">Bảng Vàng</h1>
+                    <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
+                </div>
+
+                {/* Show podium only if no search filter and on page 0 */}
+                {page === 0 && search.trim() === '' && renderPodium()}
+
+                {/* Table Container */}
+                <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 w-full mb-8">
+                    {/* Toolbar */}
+                    <div className="p-5 border-b border-slate-700/50 flex flex-wrap gap-4 justify-between items-center bg-slate-800/30">
+                        <div className="flex gap-2">
+                            <span className="text-xl font-bold text-slate-200">Danh Sách Xếp Hạng</span>
+                        </div>
+                        <div className="relative w-full sm:w-72">
+                            <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg" />
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên hoặc email..."
+                                value={search}
+                                onChange={handleSearchChange}
+                                className="w-full bg-slate-900/80 border border-slate-700 text-white rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 block pl-11 p-3 outline-none transition-all shadow-inner"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Table */}
+                    <div className="overflow-x-auto relative min-h-[400px]">
+                        {loading && (
+                            <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center z-20 backdrop-blur-sm">
+                                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        )}
+                        <table className="w-full text-sm text-left text-slate-400">
+                            <thead className="text-xs uppercase bg-slate-900/50 text-slate-300 border-b border-slate-700 py-4">
+                                <tr>
+                                    <th className="px-6 py-5 text-center w-20 font-bold tracking-wider">Hạng</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider">Lập trình viên</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-center hidden md:table-cell">AC / Số Bài</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-center hidden sm:table-cell">Tỉ lệ AC</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-right">Điểm ELO</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/50">
+                                {users.length > 0 ? users.map((u) => (
+                                    <tr key={u.userId} className={`hover:bg-slate-800/80 transition-colors group ${u.userId === user?.id ? 'bg-blue-900/20 border-l-4 border-blue-500' : 'border-l-4 border-transparent'}`}>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold
+                                                ${u.rank === 1 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.3)]'
+                                                    : u.rank === 2 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/50 shadow-[0_0_10px_rgba(148,163,184,0.3)]'
+                                                        : u.rank === 3 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.3)]'
+                                                            : 'text-slate-400 font-mono text-base'}`}>
+                                                {u.rank <= 3 ? '#' + u.rank : u.rank}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-white flex items-center gap-4">
+                                            <div className="relative">
+                                                <img src={`https://i.pravatar.cc/150?u=${u.userId}`} className="w-10 h-10 rounded-full border border-slate-600 bg-slate-900 object-cover group-hover:scale-110 transition-transform" alt={u.username} />
+                                                {u.rank === 1 && <Crown weight="fill" className="absolute -top-2 -right-2 text-yellow-500 text-lg drop-shadow-md" />}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className={`font-semibold text-base transition-colors ${u.userId === user?.id ? 'text-blue-400' : 'text-slate-200 group-hover:text-blue-400 cursor-pointer'}`}>
+                                                    {u.fullName || u.username} {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
+                                                </span>
+                                                <span className="text-xs text-slate-500 font-mono">{u.email}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center hidden md:table-cell font-mono">
+                                            <span className="text-emerald-400 font-bold">{u.solvedCount}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center hidden sm:table-cell font-mono">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <span className={u.acRate >= 50 ? 'text-emerald-400' : u.acRate >= 20 ? 'text-yellow-400' : 'text-rose-400'}>{u.acRate}%</span>
+                                                <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                                    <div className={`h-full rounded-full ${u.acRate >= 50 ? 'bg-emerald-500' : u.acRate >= 20 ? 'bg-yellow-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(100, u.acRate)}%` }}></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
+                                                ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
+                                                    : u.globalRating >= 2000 ? 'text-red-400' : u.globalRating >= 1700 ? 'text-purple-400' : u.globalRating >= 1600 ? 'text-blue-400' : 'text-slate-300'}`}>
+                                                {u.globalRating}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )) : !loading && (
+                                    <tr>
+                                        <td colSpan={5} className="py-16 text-center text-slate-500">
+                                            <div className="flex flex-col items-center justify-center gap-3">
+                                                <MagnifyingGlass className="text-4xl text-slate-600" />
+                                                <span className="text-lg">Không tìm thấy lập trình viên nào.</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="p-5 border-t border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/30">
+                        <span className="text-sm text-slate-400">
+                            Hiển thị <span className="font-bold text-white">{users.length > 0 ? page * size + 1 : 0}</span> đến <span className="font-bold text-white">{Math.min((page + 1) * size, totalElements)}</span> của <span className="font-bold text-white">{totalElements}</span> Coders
+                        </span>
+
+                        {totalPages > 1 && (
+                            <div className="flex gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/50 shadow-inner">
+                                <button
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition text-sm disabled:opacity-30 disabled:hover:bg-slate-800 font-bold flex items-center"
+                                >
+                                    <CaretLeft weight="bold" />
+                                </button>
+
+                                {Array.from({ length: Math.min(5, totalPages) }).map((_, idx) => {
+                                    let pageNum = page - 2 + idx;
+
+                                    // Adjust start boundary if close to the beginning
+                                    if (page < 2) {
+                                        pageNum = idx;
+                                    }
+                                    // Adjust end boundary if close to the end
+                                    else if (page > totalPages - 3) {
+                                        pageNum = Math.max(0, totalPages - 5) + idx;
+                                    }
+
+                                    // Final safety check
+                                    pageNum = Math.max(0, Math.min(pageNum, totalPages - 1));
+
+                                    // Prevent duplicate numbers from rendering if array math overlaps
+                                    if (pageNum < 0 || pageNum >= totalPages) return null;
+
+                                    // Calculate if we should render this specifically (React key uniquely maps elements)
+                                    return (
+                                        <React.Fragment key={`page-${pageNum}`}>
+                                            <button
+                                                onClick={() => setPage(pageNum)}
+                                                className={`w-9 h-8 rounded-lg transition text-sm font-bold flex items-center justify-center ${page === pageNum ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}
+                                            >
+                                                {pageNum + 1}
+                                            </button>
+                                        </React.Fragment>
+                                    );
+                                }).filter((item, index, self) =>
+                                    // Filter out duplicate pageNum renders
+                                    index === self.findIndex((t) => (t?.key === item?.key))
+                                )}
+
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                    className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg hover:bg-slate-700 hover:text-white transition text-sm disabled:opacity-30 disabled:hover:bg-slate-800 font-bold flex items-center"
+                                >
+                                    <CaretRight weight="bold" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default LeaderboardPage;

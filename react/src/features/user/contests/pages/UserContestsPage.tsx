@@ -11,6 +11,7 @@ import {
     CalendarStar, Users, Clock, ArrowRight,
     CircleNotch, Trophy, XCircle
 } from '@phosphor-icons/react';
+import { userDashboardService, UserStats } from "../../home/services/userDashboardService";
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
     active: { label: 'Đang diễn ra', bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
@@ -45,7 +46,7 @@ export const UserContestsPage = () => {
     const [contests, setContests] = useState<ContestListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [registeringId, setRegisteringId] = useState<number | null>(null);
-
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
     // Filter & Pagination States
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('');
@@ -91,6 +92,20 @@ export const UserContestsPage = () => {
     useEffect(() => {
         fetchContests();
     }, [filterStatus, page]);
+
+    useEffect(() => {
+        const fetchUserStats = async () => {
+            if (user) {
+                try {
+                    const stats = await userDashboardService.getUserStats();
+                    setUserStats(stats);
+                } catch (error) {
+                    console.error('Failed to fetch user stats', error);
+                }
+            }
+        };
+        fetchUserStats();
+    }, [user]);
 
     // WebSocket real-time updates for contest status
     const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
@@ -327,7 +342,7 @@ export const UserContestsPage = () => {
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">1550</span></div>
+                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span></div>
                         </div>
                         <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
                     </Link>
