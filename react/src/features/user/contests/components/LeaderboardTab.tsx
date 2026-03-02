@@ -88,14 +88,9 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                     </td>
                                     <td className="py-4 px-6">
                                         <div className="flex items-center gap-3">
-                                            <img
-                                                src={`https://ui-avatars.com/api/?name=${user.username}&background=random`}
-                                                alt="Avatar"
-                                                className="w-10 h-10 rounded-full border border-slate-600"
-                                            />
+                                            <img src={`https://i.pravatar.cc/150?u=${user?.userId || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
                                             <div>
-                                                <div className="font-bold text-slate-200 text-lg">{user.username}</div>
-                                                <div className="text-xs text-slate-400">{user.fullName || 'Thí sinh'}</div>
+                                                <div className="font-bold text-slate-200 text-lg">{user.fullName}</div>
                                             </div>
                                         </div>
                                     </td>
