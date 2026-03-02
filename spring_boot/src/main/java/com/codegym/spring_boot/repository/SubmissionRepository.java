@@ -39,4 +39,18 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     // Fetch all submissions for a contest to rebuild leaderboard details
     List<Submission> findByContestIdOrderByIdAsc(Integer contestId);
+
+    // --- User Dashboard Stat Queries ---
+
+    @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = 'ACCEPTED'")
+    long countDistinctAcceptedProblemsByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId")
+    long countTotalSubmissionsByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = 'ACCEPTED'")
+    long countAcceptedSubmissionsByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = 'ACCEPTED' ORDER BY CAST(s.createdAt AS DATE) DESC")
+    List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId);
 }

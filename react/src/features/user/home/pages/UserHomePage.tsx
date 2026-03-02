@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
 import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../services/contestService';
+import { userDashboardService, UserStats, TopCoder } from '../services/userDashboardService';
 import { useContestWebSocket } from '../../contests/hooks/useContestWebSocket';
 import {
     Code,
@@ -63,6 +64,26 @@ export const UserHomePage: React.FC = () => {
     const [loadingContests, setLoadingContests] = useState(true);
     const [registeringId, setRegisteringId] = useState<number | null>(null);
 
+    // Fetch User Stats and Top Coders
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
+    const [topCoders, setTopCoders] = useState<TopCoder[]>([]);
+    const [loadingStats, setLoadingStats] = useState(true);
+
+    const fetchDashboardData = useCallback(async () => {
+        try {
+            const [statsData, topCodersData] = await Promise.all([
+                userDashboardService.getUserStats(),
+                userDashboardService.getTopCoders()
+            ]);
+            setUserStats(statsData);
+            setTopCoders(topCodersData);
+        } catch (err) {
+            console.error('Failed to fetch dashboard data:', err);
+        } finally {
+            setLoadingStats(false);
+        }
+    }, []);
+
     const fetchContests = useCallback(async () => {
         try {
             const data = await contestService.getContests({ page: 0, size: 5 });
@@ -82,7 +103,10 @@ export const UserHomePage: React.FC = () => {
 
     useEffect(() => {
         fetchContests();
-    }, []);
+        if (user) {
+            fetchDashboardData();
+        }
+    }, [user]);
 
     // WebSocket real-time updates for contest status
     const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
@@ -265,7 +289,7 @@ export const UserHomePage: React.FC = () => {
                                 {user?.fullName || 'User'}
                             </div>
                             <div className="text-xs text-slate-400 font-mono">Rating: <span
-                                className="text-yellow-400">1550</span>
+                                className="text-yellow-400">{userStats.eloRanking}</span>
                             </div>
                         </div>
                         <img
@@ -334,35 +358,47 @@ export const UserHomePage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Stats Widget — chưa có API, hiển thị placeholder */}
+                    {/* Stats Widget */}
                     <div className="w-full md:w-[400px] bg-slate-800/40 backdrop-blur-lg p-6 rounded-2xl flex flex-col gap-6 relative overflow-hidden group border border-blue-500/20">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                         <div className="flex justify-between items-center relative z-10">
                             <h3 className="font-semibold text-lg text-white/90">Tiến Độ Của Bạn</h3>
-                            <span className="text-xs text-slate-500 italic">Sắp ra mắt</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 relative z-10 opacity-50">
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                <Ranking weight="duotone" className="text-3xl mb-2 text-yellow-400" />
-                                <div className="text-2xl font-bold">—</div>
-                                <div className="text-xs text-slate-400">Elo Ranking</div>
+
+                        {loadingStats ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <CircleNotch weight="bold" className="text-3xl animate-spin text-blue-500" />
                             </div>
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                <CheckCircle weight="duotone" className="text-3xl mb-2 text-emerald-400" />
-                                <div className="text-2xl font-bold">—</div>
-                                <div className="text-xs text-slate-400">Bài đã giải</div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4 relative z-10">
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
+                                    <Ranking weight="duotone" className="text-3xl mb-2 text-yellow-400" />
+                                    <div className="text-2xl font-bold flex items-baseline gap-1">
+                                        {userStats?.eloRanking || 1500}
+                                        <span className="text-xs text-slate-500 font-normal">Top {userStats?.topPercent || 0}%</span>
+                                    </div>
+                                    <div className="text-xs text-slate-400 mt-1">Elo Ranking</div>
+                                </div>
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
+                                    <CheckCircle weight="duotone" className="text-3xl mb-2 text-emerald-400" />
+                                    <div className="text-2xl font-bold text-white">{userStats?.solvedCount || 0}</div>
+                                    <div className="text-xs text-slate-400 mt-1">Bài đã giải</div>
+                                </div>
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
+                                    <Target weight="duotone" className="text-3xl mb-2 text-blue-400" />
+                                    <div className="text-2xl font-bold text-white">{userStats?.acRate || 0}%</div>
+                                    <div className="text-xs text-slate-400 mt-1">Tỉ lệ AC</div>
+                                </div>
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
+                                    <Fire weight="duotone" className="text-3xl mb-2 text-orange-400" />
+                                    <div className="text-2xl font-bold text-white flex items-baseline gap-1">
+                                        {userStats?.streak || 0}
+                                        <span className="text-xs text-slate-500 font-normal">ngày</span>
+                                    </div>
+                                    <div className="text-xs text-slate-400 mt-1">Chuỗi (Streak)</div>
+                                </div>
                             </div>
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                <Target weight="duotone" className="text-3xl mb-2 text-blue-400" />
-                                <div className="text-2xl font-bold">—</div>
-                                <div className="text-xs text-slate-400">Tỉ lệ AC</div>
-                            </div>
-                            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                                <Fire weight="duotone" className="text-3xl mb-2 text-orange-400" />
-                                <div className="text-2xl font-bold">—</div>
-                                <div className="text-xs text-slate-400">Chuỗi (Streak)</div>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
@@ -426,15 +462,47 @@ export const UserHomePage: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Top Coders — chưa có API, placeholder */}
+                    {/* Top Coders */}
                     <div className="space-y-6">
                         <h2 className="text-2xl font-bold flex items-center gap-2">
                             <Trophy weight="duotone" className="text-orange-500" /> Top Coders
                         </h2>
-                        <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl p-6 border border-slate-700/50 text-center">
-                            <Fire weight="duotone" className="text-5xl text-slate-600 mx-auto mb-4" />
-                            <p className="text-slate-400 text-sm mb-1">Bảng xếp hạng sẽ sớm ra mắt</p>
-                            <p className="text-slate-500 text-xs">Hãy bắt đầu giải bài để ghi tên trên bảng!</p>
+                        <div className="bg-slate-800/40 backdrop-blur-lg rounded-2xl border border-slate-700/50 overflow-hidden">
+                            {loadingStats ? (
+                                <div className="p-8 flex flex-col items-center justify-center text-slate-400">
+                                    <CircleNotch weight="bold" className="text-3xl animate-spin mb-2" />
+                                    <span>Đang tải...</span>
+                                </div>
+                            ) : topCoders.length === 0 ? (
+                                <div className="p-8 text-center">
+                                    <Fire weight="duotone" className="text-5xl text-slate-600 mx-auto mb-4" />
+                                    <p className="text-slate-400 text-sm mb-1">Chưa có dữ liệu Top Coders</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col divide-y divide-slate-700/50">
+                                    {topCoders.map((coder, index) => (
+                                        <div key={coder.userId} className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors">
+                                            <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm bg-slate-700 text-slate-300">
+                                                #{index + 1}
+                                            </div>
+                                            <img
+                                                src={`https://i.pravatar.cc/150?u=${coder.userId}`}
+                                                alt="Avatar"
+                                                className="w-10 h-10 rounded-full border border-slate-600"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-semibold text-white truncate">{coder.fullName || coder.username}</div>
+                                                <div className="text-xs text-slate-400">@{coder.username}</div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <div className="font-bold text-yellow-400 flex items-center justify-end gap-1">
+                                                    {coder.globalRating} <Ranking weight="bold" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
