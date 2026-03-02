@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { boilerplateMap } from "../constants";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../../app/store";
 
 export type Language = "javascript" | "java" | "python" | "cpp";
 
@@ -7,7 +9,11 @@ type CodeByLanguage = {
     [key in Language]?: string;
 };
 
-export function useArena(problemId: number) {
+export function useArena(problemId: number, contestId?: string | null) {
+    const { user } = useSelector((state: RootState) => state.auth);
+    const userId = user?.id || "guest";
+    const contextMode = contestId ? `contest:${contestId}` : "practice";
+
     const [language, setLanguage] = useState<Language>("javascript");
     const [codeMap, setCodeMap] = useState<CodeByLanguage>({});
     const [isUnsaved, setIsUnsaved] = useState<boolean>(false);
@@ -15,10 +21,22 @@ export function useArena(problemId: number) {
     const currentCode = codeMap[language] ?? "";
 
     /**
-     * Init and load code mapping from localStorage
+     * Reset codeMap when user, problem or contest changes
      */
     useEffect(() => {
-        const saved = localStorage.getItem(`arena:code:${problemId}:${language}`);
+        setCodeMap({});
+        setIsUnsaved(false);
+    }, [userId, problemId, contextMode]);
+
+    /**
+     * Init and load code mapping from localStorage
+     * Trong chế độ thi (có contestId), KHÔNG load từ localStorage → luôn bắt đầu với boilerplate trắng
+     */
+    useEffect(() => {
+        const isExamMode = !!contestId;
+        const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
+        const saved = !isExamMode ? localStorage.getItem(storageKey) : null; // Thi thì luôn trắng
+
         setCodeMap((prev) => {
             if (prev[language] !== undefined) return prev; // Đã load trong mapping memory
             return {
@@ -26,19 +44,21 @@ export function useArena(problemId: number) {
                 [language]: saved !== null ? saved : boilerplateMap[language]
             };
         });
-    }, [language, problemId]);
+    }, [language, problemId, userId]);
+
 
     /**
      * Auto save (debounce 2s)
      */
     useEffect(() => {
-        if (!currentCode) return; // Wait cho tới khi load xong memory
+        if (!currentCode) return;
         const timer = setTimeout(() => {
-            localStorage.setItem(`arena:code:${problemId}:${language}`, currentCode);
+            const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
+            localStorage.setItem(storageKey, currentCode);
         }, 2000);
 
         return () => clearTimeout(timer);
-    }, [currentCode, language, problemId]);
+    }, [currentCode, language, problemId, userId, contextMode]);
 
     /**
      * Set unsaved flag when code changes

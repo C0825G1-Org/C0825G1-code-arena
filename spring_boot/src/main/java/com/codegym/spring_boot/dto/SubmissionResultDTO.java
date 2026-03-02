@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @Builder
@@ -19,4 +20,19 @@ public class SubmissionResultDTO {
     private Integer score;
     private String errorMessage;
     private Boolean isRunOnly;
+    private List<TestCaseResultDTO> testCaseResults;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TestCaseResultDTO {
+        private Integer id;
+        private String status;
+        private Boolean isSample;
+        private String input;
+        private String actualOutput;
+        private String expectedOutput;
+        private Long executionTime;
+    }
 }

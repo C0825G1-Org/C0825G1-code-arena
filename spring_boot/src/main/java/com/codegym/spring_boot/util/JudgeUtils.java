@@ -54,6 +54,10 @@ public class JudgeUtils {
                     passed = compareWithExpected(actualOutput, problemPath, testId);
                     if (!passed)
                         status = "WA";
+                } else {
+                    // Nếu máy chấm báo SUCCESS mà không có output, coi như WA (Không in gì)
+                    status = "WA";
+                    passed = false;
                 }
             } else if (content.contains("STATUS: TLE")) {
                 status = "TLE";

@@ -10,9 +10,21 @@ export const useContestWebSocket = (onContestUpdate: (contestId: number, status:
     }, [onContestUpdate]);
 
     useEffect(() => {
+        let token = '';
+        const tokenStr = localStorage.getItem('token');
+        if (tokenStr) {
+            try {
+                const parsedToken = JSON.parse(tokenStr);
+                token = typeof parsedToken === 'string' ? parsedToken : (parsedToken?.token || parsedToken?.accessToken || '');
+            } catch (e) {
+                token = tokenStr;
+            }
+        }
+
         // Init Socket.IO Client
         // Note: The port 9092 is handled by Dev Nguyen's SocketIOServer
         const socket: Socket = io('http://localhost:9092', {
+            query: { token },
             transports: ['websocket'],
             reconnection: true,
             reconnectionAttempts: 10,

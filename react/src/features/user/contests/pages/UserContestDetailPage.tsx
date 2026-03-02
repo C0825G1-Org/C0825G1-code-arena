@@ -20,6 +20,22 @@ const statusConfig: Record<string, { label: string; bg: string; text: string; bo
     finished: { label: 'Đã kết thúc', bg: 'bg-slate-500/20', text: 'text-slate-400', border: 'border-slate-500/30' },
 };
 
+const getTimeLeft = (targetTime: string, serverTime?: string): string => {
+    const now = serverTime ? new Date(serverTime) : new Date();
+    const target = new Date(targetTime);
+    const diffMs = target.getTime() - now.getTime();
+
+    if (diffMs <= 0) return 'Đã hết';
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) return `${days} ngày ${hours}h nữa`;
+    if (hours > 0) return `${hours}h ${minutes}p nữa`;
+    return `${minutes} phút nữa`;
+};
+
 // Interface reflecting the API response
 export interface ContestProblemData {
     id: number;
@@ -60,11 +76,9 @@ export const UserContestDetailPage = () => {
     // Live Countdown state
     const [timeLeftStr, setTimeLeftStr] = useState<string>('');
 
-    // Tab state
-    const [activeTab, setActiveTab] = useState<'problems' | 'leaderboard'>('problems');
-
     const fetchContestDetail = async () => {
         try {
+            setLoading(true);
             const data = await contestService.getContestDetail(Number(id));
             setContest(data);
         } catch (err: any) {
@@ -322,6 +336,7 @@ export const UserContestDetailPage = () => {
                             </h2>
                             <LeaderboardTab contestId={contest.id} />
                         </div>
+                        {/* Problems List Section (Removed to prevent leaking questions) */}
                     </div>
 
                     {/* Right Column: Sticky Sidebar Area */}

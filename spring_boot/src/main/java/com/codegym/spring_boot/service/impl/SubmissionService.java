@@ -7,6 +7,7 @@ import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.entity.Contest;
+import java.time.Duration;
 import com.codegym.spring_boot.service.NotificationService;
 import com.codegym.spring_boot.entity.SubmissionTestResult;
 
@@ -22,10 +23,13 @@ import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,6 +46,7 @@ public class SubmissionService implements ISubmissionService {
         private final UserRepository userRepository;
         private final ITestCaseRepository testCaseRepository;
         private final ISubmissionTestResultRepository submissionTestResultRepository;
+        private final ContestParticipantRepository contestParticipantRepository;
         private final NotificationService notificationService;
         private final com.codegym.spring_boot.service.ILeaderboardService leaderboardService;
 
@@ -211,9 +216,39 @@ public class SubmissionService implements ISubmissionService {
                 submissionRepository.save(submission);
 
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
-                leaderboardService.updateScore(submission);
+                // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
+                if (submission.getContest() != null && !submission.getIsTestRun()) {
+                        leaderboardService.updateScore(submission);
+                }
 
                 // 4. Gửi Socket về ReactJS realtime
+                // Nếu là chạy thử, gửi kèm kết quả từng test case (để hiển thị output thực tế)
+                List<SubmissionResultDTO.TestCaseResultDTO> tcResultDTOs = null;
+                if (Boolean.TRUE.equals(submission.getIsTestRun()) && msg.getTestCaseResults() != null) {
+                        tcResultDTOs = msg.getTestCaseResults().stream().map(tcResult -> {
+                                String inputFilename = tcResult.getTestCaseNumber() + ".in";
+                                TestCase tcEntity = testCaseRepository.findByProblemIdAndInputFilename(
+                                                submission.getProblem().getId(), inputFilename);
+
+                                String input = tcEntity != null ? tcEntity.getSampleInput() : null;
+                                String expectedOutput = tcEntity != null ? tcEntity.getSampleOutput() : null;
+                                boolean isSample = tcEntity != null && Boolean.TRUE.equals(tcEntity.getIsSample());
+                                String actualStatus = tcResult.isPassed() ? "AC"
+                                                : (tcResult.getMessage() != null ? tcResult.getMessage() : "WA");
+
+                                return SubmissionResultDTO.TestCaseResultDTO.builder()
+                                                .id(tcEntity != null ? tcEntity.getId() : null)
+                                                .status(actualStatus)
+                                                .isSample(isSample)
+                                                .input(input)
+                                                .actualOutput(tcResult.getUserOutput())
+                                                .expectedOutput(isSample ? expectedOutput : null) // Ẩn expected của
+                                                                                                  // test ẩn
+                                                .executionTime(tcResult.getExecutionTime())
+                                                .build();
+                        }).collect(Collectors.toList());
+                }
+
                 SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                 .submissionId(msg.getSubmissionId())
                                 .problemId(submission.getProblem().getId())
@@ -223,8 +258,10 @@ public class SubmissionService implements ISubmissionService {
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
                                 .isRunOnly(submission.getIsTestRun())
+                                .testCaseResults(tcResultDTOs)
                                 .build();
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
+
         }
 
         private SubmissionStatus mapDockerStatusToTestCaseStatus(String status) {
@@ -244,7 +281,6 @@ public class SubmissionService implements ISubmissionService {
                         return SubmissionStatus.RE;
                 switch (dockerStatus) {
                         case "ACCEPTED":
-                        case "SUCCESS":
                                 return SubmissionStatus.AC;
                         case "judging":
                                 return SubmissionStatus.judging;

@@ -17,15 +17,17 @@ const ContestTimer: React.FC<ContestTimerProps> = ({ endTime, onTimeUp }) => {
             const diff = Math.max(0, Math.floor((target - now) / 1000));
             setTimeLeft(diff);
 
-            if (diff === 0 && onTimeUp) {
-                onTimeUp();
+            if (diff === 0) {
+                if (onTimeUp) onTimeUp();
             }
         };
 
         updateTimer();
         const interval = setInterval(updateTimer, 1000);
 
-        return () => clearInterval(interval);
+        return () => {
+            if (interval) clearInterval(interval);
+        };
     }, [endTime, onTimeUp]);
 
     const formatTime = (seconds: number) => {
@@ -46,8 +48,8 @@ const ContestTimer: React.FC<ContestTimerProps> = ({ endTime, onTimeUp }) => {
 
     return (
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded font-mono text-sm font-bold border transition-colors ${timeLeft < 300
-                ? 'bg-red-900/20 text-red-500 border-red-800 animate-pulse'
-                : 'bg-slate-800 text-green-400 border-slate-700'
+            ? 'bg-red-900/20 text-red-500 border-red-800 animate-pulse'
+            : 'bg-slate-800 text-green-400 border-slate-700'
             }`}>
             <Clock size={18} weight="fill" />
             <span>{formatTime(timeLeft)}</span>
