@@ -10,4 +10,5 @@ import java.util.List;
 public interface IProblemRepository extends JpaRepository<Problem, Integer> {
     Boolean existsBySlug(String slug);
     List<Problem> findAllByIsDeletedFalse();
+    List<Problem> findAllByCreatedByAndIsDeletedFalse(com.codegym.spring_boot.entity.User user);
 }

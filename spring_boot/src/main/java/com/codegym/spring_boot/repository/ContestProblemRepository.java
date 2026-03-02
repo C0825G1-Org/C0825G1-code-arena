@@ -18,4 +18,7 @@ public interface ContestProblemRepository extends JpaRepository<ContestProblem, 
 
     // Xóa tất cả bài tập của contest (dùng khi reset)
     void deleteByIdContestId(Integer contestId);
+
+    // Đếm số contest đang dùng problem này (dùng cho unlock logic)
+    long countByIdProblemId(Integer problemId);
 }

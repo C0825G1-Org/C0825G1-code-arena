@@ -23,15 +23,15 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
     (response) => response.data,
     (error) => {
+        const requestUrl = error.config?.url || '';
+        const isAuthRequest = requestUrl.startsWith('/auth/');
+
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            // Sau khi xóa token, thường frontend sẽ tự đá về login qua state auth
-        } else if (error.response?.status === 403) {
-            // Lỗi forbidden từ API
+        } else if (error.response?.status === 403 && !isAuthRequest) {
             window.location.href = '/err/403';
-        } else if (error.response?.status >= 500) {
-            // Lỗi server crash
+        } else if (error.response?.status >= 500 && !isAuthRequest) {
             window.location.href = '/err/500';
         }
         return Promise.reject(error);

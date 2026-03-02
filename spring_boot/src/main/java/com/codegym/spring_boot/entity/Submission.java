@@ -37,7 +37,7 @@ public class Submission extends BaseEntity {
 
     @NotBlank(message = "Mã nguồn không được để trống")
     @Lob
-    @Column(name = "source_code", nullable = false)
+    @Column(name = "source_code", columnDefinition = "LONGTEXT", nullable = false)
     private String sourceCode;
 
     @Enumerated(EnumType.STRING)
@@ -50,4 +50,11 @@ public class Submission extends BaseEntity {
     private Integer memoryUsed = 0;
 
     private Integer score = 0;
+
+    @Column(name = "is_test_run")
+    private Boolean isTestRun = false;
+
+    @Lob
+    @Column(name = "error_message", columnDefinition = "LONGTEXT")
+    private String errorMessage;
 }

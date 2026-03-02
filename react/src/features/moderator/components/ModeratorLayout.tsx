@@ -37,12 +37,21 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
 
                 <nav className="flex-1 px-4 space-y-2">
                     <NavLink
+                        to="/home"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all text-[#94a3b8] hover:bg-slate-800 hover:text-white"
+                        title="Quay lại trang người dùng"
+                    >
+                        <i className="ph-duotone ph-house-line text-xl text-indigo-400"></i> Trang chủ User
+                    </NavLink>
+
+                    <div className="h-px bg-[#1e293b] mt-3 mb-3 mx-4"></div>
+
+                    <NavLink
                         to="/moderator/dashboard"
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                                isActive
-                                    ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                    : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
                             }`
                         }
                     >
@@ -51,10 +60,9 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                     <NavLink
                         to="/moderator/problems"
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                                isActive || window.location.pathname.includes('/moderator/problems')
-                                    ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                    : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive || window.location.pathname.includes('/moderator/problems')
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
                             }`
                         }
                     >
@@ -63,46 +71,42 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                     <NavLink
                         to="/moderator/testcases"
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                                isActive
-                                    ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                    : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
                             }`
                         }
                     >
-                        <i className="ph-duotone ph-flask text-xl"></i> Kho Test Cases
+                        <i className="ph-duotone ph-flask text-xl"></i> Kho test cases
                     </NavLink>
                     <NavLink
                         to="/moderator/contests"
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                                isActive
-                                    ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                    : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
                             }`
                         }
                     >
-                        <i className="ph-duotone ph-trophy text-xl"></i> Quản lý Kỳ thi
+                        <i className="ph-duotone ph-trophy text-xl"></i> Quản lý kỳ thi
                     </NavLink>
                     <NavLink
                         to="/moderator/submissions"
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                                isActive
-                                    ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                    : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
                             }`
                         }
                     >
-                        <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử Chấm bài
+                        <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử chấm bài
                     </NavLink>
                     <NavLink
                         to="/moderator/candidates"
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                                isActive
-                                    ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                    : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
                             }`
                         }
                     >
@@ -130,8 +134,8 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                         <div className="flex items-center gap-3 text-sm">
                             <span className="font-semibold text-white">{user?.username || 'Moderator'}</span>
                             <img
-                                src="https://ui-avatars.com/api/?name=Mod&background=indigo&color=fff"
-                                className="w-9 h-9 rounded-full border border-indigo-500"
+                                src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
+                                className="w-10 h-10 rounded-full border border-indigo-500 object-cover"
                                 alt="Avatar"
                             />
                         </div>

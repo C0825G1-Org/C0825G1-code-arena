@@ -21,7 +21,7 @@ public class Contest extends BaseEntity {
     @NotBlank(message = "Tên cuộc thi không được để trống")
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
 
     @NotNull(message = "Thời gian bắt đầu không được để trống")
@@ -38,4 +38,10 @@ public class Contest extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
+
+    @Column(name = "is_frozen")
+    private Boolean isFrozen = false;
+
+    @Column(name = "frozen_reason", length = 500)
+    private String frozenReason;
 }

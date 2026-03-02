@@ -12,6 +12,8 @@ import java.util.List;
 public interface ITestCaseRepository extends JpaRepository<TestCase, Integer> {
     List<TestCase> findByProblemId(Integer problemId);
 
+    TestCase findByProblemIdAndInputFilename(Integer problemId, String inputFilename);
+
     // Tìm TestCase cuối cùng được upload của một problem (theo ID mới nhất)
     TestCase findFirstByProblemIdOrderByIdDesc(Integer problemId);
 

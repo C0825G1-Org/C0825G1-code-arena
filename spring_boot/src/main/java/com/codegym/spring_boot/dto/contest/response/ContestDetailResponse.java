@@ -19,6 +19,7 @@ public class ContestDetailResponse {
     private String status;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    @com.fasterxml.jackson.annotation.JsonProperty("isRegistered")
     private boolean isRegistered;
     private LocalDateTime serverTime;
     private String createdBy;
@@ -35,6 +36,9 @@ public class ContestDetailResponse {
         private Integer orderIndex;
         private String title;
         private String difficulty;
+        @com.fasterxml.jackson.annotation.JsonProperty("isFrozen")
+        private boolean isFrozen;
+        private String frozenReason;
     }
 
     @Data

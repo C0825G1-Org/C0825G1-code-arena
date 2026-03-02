@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 
+export type Theme = "vs-dark" | "vs-light" | "hc-black";
+export type EditorMode = "emacs" | "normal" | "vim";
+
 export type Settings = {
-    theme: "vs-dark" | "vs-light" | "hc-black";
+    theme: Theme;
     autoComplete: boolean;
-    editorMode: "emacs" | "normal" | "vim";
+    editorMode: EditorMode;
     tabSpaces: 2 | 4 | 8;
 };
 

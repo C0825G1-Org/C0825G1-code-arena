@@ -2,8 +2,7 @@ package com.codegym.spring_boot.config;
 
 import com.codegym.spring_boot.security.JwtAuthenticationFilter;
 import com.codegym.spring_boot.security.OAuth2SuccessHandler;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +24,6 @@ import org.springframework.security.config.Customizer;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -46,6 +44,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/**", "/api/test/public", "/error",
                                                                 "/login/oauth2/**")
                                                 .permitAll()
+                                                .requestMatchers("/api/submissions/**").authenticated()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/contests", "/api/contests/**")
                                                 .permitAll()
@@ -71,12 +70,11 @@ public class SecurityConfig {
                 return (request, response, authException) -> {
                         response.setContentType("application/json;charset=UTF-8");
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        Map<String, Object> body = Map.of(
-                                        "timestamp", LocalDateTime.now().toString(),
-                                        "status", 401,
-                                        "error", "Unauthorized",
-                                        "message", "Bạn cần đăng nhập để truy cập tài nguyên này.");
-                        new ObjectMapper().writeValue(response.getOutputStream(), body);
+                        String json = "{\"timestamp\":\"" + LocalDateTime.now() + "\","
+                                        + "\"status\":401,"
+                                        + "\"error\":\"Unauthorized\","
+                                        + "\"message\":\"Bạn cần đăng nhập để truy cập tài nguyên này.\"}";
+                        response.getWriter().write(json);
                 };
         }
 
