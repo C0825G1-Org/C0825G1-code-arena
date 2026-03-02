@@ -7,6 +7,7 @@ import com.codegym.spring_boot.dto.contest.response.ContestDetailResponse;
 import com.codegym.spring_boot.dto.contest.response.ContestListResponse;
 import com.codegym.spring_boot.entity.*;
 import com.codegym.spring_boot.entity.enums.ContestStatus;
+import com.codegym.spring_boot.entity.enums.TestCaseStatus;
 import com.codegym.spring_boot.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -199,6 +200,12 @@ public class ContestService {
                     throw new SecurityException(
                             "Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + entry.getProblemId() + " không thuộc về bạn.");
                 }
+            }
+
+            // Kiểm tra bài tập phải có testcase
+            if (problem.getTestcaseStatus() != TestCaseStatus.ready) {
+                throw new IllegalArgumentException(
+                        "Bài tập ID " + entry.getProblemId() + " chưa có testcase nào. Vui lòng thêm testcase trước khi đưa vào cuộc thi.");
             }
 
             // Kiểm tra trùng lặp

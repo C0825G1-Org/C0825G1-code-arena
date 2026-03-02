@@ -163,12 +163,19 @@ export const ManageProblemsModal = ({ isOpen, onClose, contestId, contestTitle, 
                                                 <div>
                                                     <span className="text-xs text-blue-400/80 font-mono block">#{p.id}</span>
                                                     <span className="text-sm text-slate-200 font-medium line-clamp-1">{p.title}</span>
+                                                    {p.testcaseStatus !== 'ready' && (
+                                                        <span className="text-[10px] text-amber-500 block mt-0.5">Chưa có testcase</span>
+                                                    )}
                                                 </div>
                                                 <button
                                                     onClick={() => handleAddProblem(p.id)}
-                                                    disabled={loading}
-                                                    className="p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded transition-colors"
-                                                    title="Thêm vào cuộc thi"
+                                                    disabled={loading || p.testcaseStatus !== 'ready'}
+                                                    className={`p-1.5 rounded transition-colors flex items-center justify-center ${
+                                                        p.testcaseStatus === 'ready'
+                                                            ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
+                                                            : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                                                    }`}
+                                                    title={p.testcaseStatus === 'ready' ? "Thêm vào cuộc thi" : "Bài tập chưa có testcase, không thể thêm"}
                                                 >
                                                     <PlusCircle weight="bold" className="text-lg" />
                                                 </button>

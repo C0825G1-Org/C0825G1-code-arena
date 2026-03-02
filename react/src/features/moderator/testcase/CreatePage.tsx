@@ -31,6 +31,7 @@ export const CreatePage = () => {
 
     // Form states
     const [isSample, setIsSample] = useState(true);
+    const [scoreWeight, setScoreWeight] = useState(1);
     const [inputContent, setInputContent] = useState('');
     const [outputContent, setOutputContent] = useState('');
 
@@ -91,6 +92,7 @@ export const CreatePage = () => {
     const handleSelectTestCase = (tc: TestCaseResponseDTO) => {
         setActiveTestCaseId(tc.id);
         setIsSample(tc.isSample);
+        setScoreWeight(tc.scoreWeight || 1);
         setInputContent(tc.sampleInput || '');
         setOutputContent(tc.sampleOutput || '');
     };
@@ -98,6 +100,7 @@ export const CreatePage = () => {
     const handleAddNewTestCase = () => {
         setActiveTestCaseId(null);
         setIsSample(false);
+        setScoreWeight(1);
         setInputContent('');
         setOutputContent('');
     };
@@ -119,7 +122,7 @@ export const CreatePage = () => {
                 inputContent: inputContent,
                 outputContent: outputContent,
                 isSample: isSample,
-                scoreWeight: 1
+                scoreWeight: scoreWeight || 1
             };
 
             if (activeTestCaseId) {
@@ -165,10 +168,18 @@ export const CreatePage = () => {
                 const data = await testcaseApi.getTestCasesByProblem(Number(selectedProblem));
                 setTestcases(data);
                 if (data.length > 0) handleSelectTestCase(data[data.length - 1]);
-            }
-            if (result.skipCount > 0) {
-                toast.warning(`Đã bỏ qua ${result.skipCount} mục không hợp lệ.`);
-                console.warn("Upload ZIP Errors:", result.errors);
+                
+                // Show warning if some succeeded but others failed
+                if (result.skipCount > 0) {
+                    toast.warning(`Đã bỏ qua ${result.skipCount} tệp không hợp lệ.`);
+                    console.warn("Upload ZIP Errors:", result.errors);
+                }
+            } else {
+                // Completely failed - 0 successes
+                toast.error(`Tải lên thất bại! Phát hiện ${result.skipCount} tệp không hợp lệ. Vui lòng xem đúng cấu trúc file ZIP yêu cầu.`);
+                if (result.errors?.length > 0) {
+                    console.error("Lý do thất bại:", result.errors.join(", "));
+                }
             }
         } catch (err: any) {
             console.error("Lỗi khi tải file ZIP:", err);
@@ -220,8 +231,8 @@ export const CreatePage = () => {
             <div className="flex-1 p-8 bg-[#0f172a] flex flex-col lg:flex-row gap-8 min-h-full z-0 relative">
 
                 {/* LIST OF TEST CASES (TRÁI) */}
-                <div className="w-full lg:w-1/3 flex flex-col">
-                    <div className="mb-4 relative">
+                <div className="w-full lg:w-1/3 flex flex-col relative z-20">
+                    <div className="mb-4 relative z-30">
                         <label className="block text-sm font-medium text-slate-400 mb-2">Đang thiết lập Test cho bài toán:</label>
                         
                         {/* Custom Searchable Dropdown */}
@@ -300,12 +311,13 @@ export const CreatePage = () => {
                         )}
                     </div>
 
-                    <div className="bg-[#1e293b]/70 backdrop-blur-md border border-white/5 rounded-xl flex-1 flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-[#334155] flex justify-between items-center bg-[#1e293b]/50">
+                    <div className="bg-[#1e293b]/70 backdrop-blur-md border border-white/5 rounded-xl flex-1 flex flex-col h-[400px] lg:h-[600px] max-h-[50vh] xl:max-h-[calc(100vh-200px)]">
+                        <div className="p-4 border-b border-[#334155] flex justify-between items-center bg-[#1e293b]/50 rounded-t-xl shrink-0">
                             <h3 className="font-bold text-white">Danh sách {testcases.length} Tests</h3>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
+                        {/* Vùng Scroll chứa danh sách Testcase */}
+                        <div className="flex-1 p-2 space-y-2 overflow-y-auto custom-scrollbar">
                             {loadingTestcases ? (
                                 <div className="p-4 text-center text-slate-400 text-sm">Đang tải testcases...</div>
                             ) : testcases.length === 0 ? (
@@ -348,7 +360,8 @@ export const CreatePage = () => {
                             )}
                         </div>
 
-                        <div className="p-4 border-t border-[#334155] bg-[#1e293b]/50 flex flex-col gap-2">
+                        {/* Footer Buttons Group (Fixed at bottom) */}
+                        <div className="p-4 border-t border-[#334155] bg-[#1e293b]/50 flex flex-col gap-2 rounded-b-xl relative z-10 shrink-0">
                             <button
                                 onClick={handleAddNewTestCase}
                                 className={`w-full border border-dashed rounded-lg py-2 transition text-sm flex items-center justify-center gap-2 ${
@@ -359,44 +372,63 @@ export const CreatePage = () => {
                             >
                                 <i className="ph-bold ph-plus"></i> Thêm Test Mới
                             </button>
-                            <label className={`w-full border border-dashed rounded-lg py-2 transition text-sm flex items-center justify-center gap-2 cursor-pointer ${
-                                isUploadingZip 
-                                    ? 'bg-emerald-600/10 border-emerald-500/50 text-emerald-500/50 cursor-not-allowed'
-                                    : 'border-emerald-500/50 hover:border-emerald-500 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10'
-                            }`}>
-                                {isUploadingZip ? (
-                                    <><i className="ph-bold ph-spinner animate-spin"></i> Đang tải lên...</>
-                                ) : (
-                                    <><i className="ph-bold ph-upload-simple"></i> Upload file ZIP</>
-                                )}
-                                <input 
-                                    type="file" 
-                                    accept=".zip" 
-                                    className="hidden" 
-                                    onChange={handleZipUpload}
-                                    disabled={isUploadingZip || !selectedProblem}
-                                />
-                            </label>
+                            <div className="flex items-center gap-2 w-full">
+                                <label className={`flex-1 min-w-0 border border-dashed rounded-lg py-2 transition text-sm flex items-center justify-center gap-2 cursor-pointer ${
+                                    isUploadingZip 
+                                        ? 'bg-emerald-600/10 border-emerald-500/50 text-emerald-500/50 cursor-not-allowed'
+                                        : 'border-emerald-500/50 hover:border-emerald-500 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10'
+                                }`}>
+                                    {isUploadingZip ? (
+                                        <><i className="ph-bold ph-spinner animate-spin shrink-0"></i> <span className="truncate">Đang tải lên...</span></>
+                                    ) : (
+                                        <><i className="ph-bold ph-upload-simple shrink-0"></i> <span className="truncate">Upload ZIP</span></>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        accept=".zip" 
+                                        className="hidden" 
+                                        onChange={handleZipUpload}
+                                        disabled={isUploadingZip || !selectedProblem}
+                                    />
+                                </label>
+                                
+                                <div className="relative group cursor-help shrink-0">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-[#334155] transition-colors">
+                                        <i className="ph-bold ph-info text-lg"></i>
+                                    </div>
+                                    {/* Tooltip */}
+                                    <div className="absolute z-[9999] bottom-10 -left-1 sm:bottom-full sm:left-1/2 sm:-translate-x-1/2 sm:mb-2 w-72 bg-slate-800 border border-slate-700 text-sm text-slate-300 rounded-lg p-3 shadow-[0_0_20px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none">
+                                        <p className="font-semibold text-white mb-1">Cấu trúc file ZIP:</p>
+                                        <ul className="list-disc pl-4 space-y-1 text-xs">
+                                            <li>Tên file tuỳ ý, nhưng phải bắt cặp với nhau: <code className="bg-slate-900 px-1 rounded text-blue-400">1.in</code> đi với <code className="bg-slate-900 px-1 rounded text-emerald-400">1.out</code>, <code className="bg-slate-900 px-1 rounded text-blue-400">test.in</code> đi với <code className="bg-slate-900 px-1 rounded text-emerald-400">test.out</code>...</li>
+                                            <li><code className="bg-slate-900 px-1 rounded text-blue-400">.in</code>: Dữ liệu đầu vào (Input)</li>
+                                            <li><code className="bg-slate-900 px-1 rounded text-emerald-400">.out</code>: Kết quả mong đợi (Output)</li>
+                                        </ul>
+                                        <div className="hidden sm:block absolute left-1/2 -bottom-2 -translate-x-1/2 border-8 border-transparent border-t-slate-800"></div>
+                                        <div className="sm:hidden absolute left-3 -bottom-2 border-8 border-transparent border-t-slate-800"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* EDITOR TEST CASES (PHẢI) */}
                 <div className="w-full lg:w-2/3 flex flex-col bg-[#1e293b]/70 backdrop-blur-md border border-white/5 rounded-xl p-6">
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                    <div className="flex flex-col xl:flex-row justify-between xl:items-starst gap-4 mb-6">
+                        <div className="flex-1 min-w-[200px] xl:pr-4">
+                            <h2 className="text-xl md:text-2xl font-bold text-white flex flex-wrap items-center gap-2 md:gap-3 leading-tight">
                                 {activeTestCaseId ? (
-                                    <>Chi tiết Test <span className="text-blue-400 font-mono">#{testcases.findIndex(tc => tc.id === activeTestCaseId) + 1}</span></>
+                                    <>Chi tiết Test <span className="text-blue-400 font-mono whitespace-nowrap">#{testcases.findIndex(tc => tc.id === activeTestCaseId) + 1}</span></>
                                 ) : (
                                     <span className="text-emerald-400">Tạo Test Mới</span>
                                 )}
                             </h2>
-                            <p className="text-sm text-slate-400 mt-1">Sửa nội dung đầu vào (Input) và đầu ra mong muốn (Expected Output).</p>
+                            <p className="text-xs md:text-sm text-slate-400 mt-2 line-clamp-2 md:line-clamp-none">Sửa nội dung đầu vào, đầu ra và cấu hình điểm cho Test.</p>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <label className="inline-flex items-center cursor-pointer">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-2 xl:mt-0 shrink-0">
+                            <label className="inline-flex items-center cursor-pointer shrink-0">
                                 <input
                                     type="checkbox"
                                     className="sr-only peer"
@@ -407,31 +439,52 @@ export const CreatePage = () => {
                                 <span className="ml-3 text-sm font-medium text-slate-300 whitespace-nowrap">Test Mẫu (Public)</span>
                             </label>
                             
-                            {activeTestCaseId && (
-                                <button
-                                    onClick={() => setIsDeleteModalOpen(true)}
-                                    disabled={isDeleting || !selectedProblem}
-                                    className="bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 disabled:opacity-50"
+                            <div className="flex w-full sm:w-auto gap-3 shrink-0">
+                                {activeTestCaseId && (
+                                    <button
+                                        onClick={() => setIsDeleteModalOpen(true)}
+                                        disabled={isDeleting || !selectedProblem}
+                                        className="flex-1 sm:flex-none justify-center bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                                    >
+                                        {isDeleting ? (
+                                            <><i className="ph ph-spinner animate-spin text-lg"></i> Xóa...</>
+                                        ) : (
+                                            <><i className="ph-bold ph-trash text-lg"></i> Xóa Test</>
+                                        )}
+                                    </button>
+                                )}
+
+                                <button 
+                                    onClick={handleSaveTest}
+                                    disabled={isSaving || !selectedProblem}
+                                    className="flex-1 sm:flex-none justify-center bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-lg transition flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
                                 >
-                                    {isDeleting ? (
-                                        <><i className="ph ph-spinner animate-spin text-lg"></i> Xóa...</>
+                                    {isSaving ? (
+                                        <><i className="ph ph-spinner animate-spin text-lg"></i> Đang lưu...</>
                                     ) : (
-                                        <><i className="ph-bold ph-trash text-lg"></i> Xóa Test</>
+                                        <><i className="ph-bold ph-floppy-disk text-lg"></i> Lưu Test</>
                                     )}
                                 </button>
-                            )}
-
-                            <button 
-                                onClick={handleSaveTest}
-                                disabled={isSaving || !selectedProblem}
-                                className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-lg text-sm font-medium shadow-lg transition flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {isSaving ? (
-                                    <><i className="ph ph-spinner animate-spin text-lg"></i> Đang lưu...</>
-                                ) : (
-                                    <><i className="ph-bold ph-floppy-disk text-lg"></i> Lưu Test</>
-                                )}
-                            </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Test configuration (Score Weight) */}
+                    <div className="mb-6 bg-[#0f172a]/50 border border-[#334155] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h3 className="text-sm font-semibold text-white">Điểm TestCase </h3>
+                            <p className="text-xs text-slate-400 mt-1">Hệ số dùng để tính điểm nếu user vượt qua test này.</p>
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="number"
+                                min="1"
+                                max="100"
+                                value={scoreWeight}
+                                onChange={(e) => setScoreWeight(parseInt(e.target.value) || 1)}
+                                className="w-24 bg-[#1e293b] border border-[#334155] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-white text-sm rounded-l-lg p-2 font-mono text-center"
+                            />
+                            <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2 rounded-r-lg text-sm">Điểm</span>
                         </div>
                     </div>
 

@@ -69,7 +69,7 @@ export const CreatePage = () => {
 
     return (
         <ModeratorLayout>
-            <header className="h-16 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+            <header className="min-h-[64px] py-3 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex flex-wrap justify-between items-center gap-4 px-8 z-10 sticky top-0 shrink-0">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate('/moderator/problems')} className="text-slate-400 hover:text-white transition-colors">
                         <i className="ph-bold ph-arrow-left text-xl"></i>
@@ -79,7 +79,7 @@ export const CreatePage = () => {
                 <button
                     onClick={handleSave}
                     disabled={isSubmitting}
-                    className={`bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20 ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20 whitespace-nowrap ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isSubmitting ? (
                         <i className="ph-bold ph-spinner animate-spin"></i>
@@ -228,6 +228,7 @@ export const CreatePage = () => {
                                             </div>
                                         )}
                                     </div>
+                                </div>
 
                                 <hr className="border-slate-700/50" />
 
@@ -238,9 +239,9 @@ export const CreatePage = () => {
                                             type="number"
                                             value={timeLimit}
                                             onChange={(e) => setTimeLimit(Number(e.target.value))}
-                                            className="flex-1 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono"
+                                            className="flex-1 min-w-0 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono"
                                         />
-                                        <span className="bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">ms</span>
+                                        <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">ms</span>
                                     </div>
                                 </div>
 
@@ -251,16 +252,15 @@ export const CreatePage = () => {
                                             type="number"
                                             value={memoryLimit}
                                             onChange={(e) => setMemoryLimit(Number(e.target.value))}
-                                            className="flex-1 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono"
+                                            className="flex-1 min-w-0 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono"
                                         />
-                                        <span className="bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">MB</span>
+                                        <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">MB</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                </div>
                 </div>
             </div>
         </ModeratorLayout>
