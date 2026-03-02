@@ -207,7 +207,7 @@ export default function Home() {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post('http://localhost:8080/api/submissions', {
+            const response = await axios.post('/api/submissions', {
                 problemId: problemId,
                 languageId: langId,
                 sourceCode: code,

@@ -23,7 +23,7 @@ export const useLeaderboardSocket = (contestId: number, onUpdate: (data: Leaderb
             }
         }
 
-        const socket: Socket = io('http://localhost:9092', {
+        const socket: Socket = io('/', {
             query: { token },
             transports: ['websocket'],
             reconnection: true,

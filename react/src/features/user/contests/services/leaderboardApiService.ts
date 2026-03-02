@@ -20,7 +20,7 @@ export interface LeaderboardDTO {
     problemDetails: LeaderboardProblemDetail[];
 }
 
-const API_URL = 'http://localhost:8080/api/contests';
+const API_URL = '/api/contests';
 
 export const leaderboardApiService = {
     getLeaderboard: async (contestId: number): Promise<LeaderboardDTO[]> => {

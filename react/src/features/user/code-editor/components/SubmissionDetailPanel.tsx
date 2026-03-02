@@ -25,7 +25,7 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`http://localhost:8080/api/submissions/${submissionId}`, {
+                const response = await axios.get(`/api/submissions/${submissionId}`, {
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
                 setData(response.data);

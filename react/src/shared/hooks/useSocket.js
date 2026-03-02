@@ -24,7 +24,7 @@ export const useSocket = (onMessage) => {
             console.warn('Socket.IO: No token found. Connection might be rejected.');
         }
 
-        const socket = io('http://localhost:9092', {
+        const socket = io('/', {
             query: { token },
             transports: ['websocket'],
             reconnection: true,

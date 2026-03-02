@@ -99,7 +99,7 @@ export const LoginPage = () => {
                     </div>
 
                     <div className="flex justify-center mt-2">
-                        <a href="http://localhost:8080/oauth2/authorization/google" className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2.5 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-lg text-white font-medium transition-colors">
+                        <a href="/oauth2/authorization/google" className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2.5 bg-slate-800/50 hover:bg-slate-700 border border-slate-700 rounded-lg text-white font-medium transition-colors">
                             <GoogleLogo weight="fill" className="text-xl text-red-500" /> Google
                         </a>
                     </div>
