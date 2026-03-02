@@ -5,15 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/react/src/features/user/problem/ListPage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/controller/ProblemUserController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/problem/ProblemUserDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/IProblemUserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/IProblemUserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemUserService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/contests/components/ManageProblemsModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/contests/components/ManageProblemsModal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/EditPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/EditPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/SubmissionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/SubmissionRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/ContestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/ContestService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/app/router.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/app/router.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/SubmissionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/SubmissionRepository.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,7 +136,7 @@
       <workItem from="1772209366219" duration="4121000" />
       <workItem from="1772293097970" duration="3612000" />
       <workItem from="1772419698147" duration="1575000" />
-      <workItem from="1772422058804" duration="2770000" />
+      <workItem from="1772422058804" duration="4401000" />
     </task>
     <servers />
   </component>

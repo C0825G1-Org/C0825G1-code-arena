@@ -5,6 +5,7 @@ import { RootState } from './store';
 import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { UserHomePage } from '../features/user/home/pages/UserHomePage';
+import { ListPage as UserProblemListPage } from '../features/user/problem/ListPage';
 import { ModDashboardPage } from '../features/moderator/dashboard/pages/ModDashboardPage';
 import { ContestManagementPage } from '../features/moderator/contests/pages/ContestManagementPage';
 import { ListPage as ModeratorProblemListPage } from '../features/moderator/problem/ListPage';
@@ -116,6 +117,10 @@ export const router = createBrowserRouter([
                 <UserContestsPage />
             </ProtectedRoute>
         )
+    },
+    {
+        path: '/problems',
+        element: <UserProblemListPage />
     },
     {
         path: '/contests/:id',
