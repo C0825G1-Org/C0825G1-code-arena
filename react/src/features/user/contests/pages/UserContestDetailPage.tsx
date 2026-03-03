@@ -9,7 +9,8 @@ import { toast } from 'react-hot-toast';
 import {
     Code, Bell, SignOut, ShieldStar, ArrowLeft,
     CalendarStar, Users, Clock, ArrowRight,
-    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar
+    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar,
+    FacebookLogo, TwitterLogo, GithubLogo
 } from '@phosphor-icons/react';
 import { LeaderboardTab } from '../components/LeaderboardTab';
 
@@ -241,7 +242,7 @@ export const UserContestDetailPage = () => {
     };
 
     return (
-        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-x-hidden">
+        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
             {/* Background Effects */}
             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-purple-900/20 to-transparent pointer-events-none" />
             <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
@@ -257,14 +258,14 @@ export const UserContestDetailPage = () => {
                     <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
                         <Link to="/home" className="hover:text-blue-400 transition-colors">Trang chủ</Link>
                         <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
-                        <Link to="/contests" className="text-blue-400 hover:text-blue-300 transition-colors border-b-2 border-blue-400 pb-1">Cuộc thi</Link>
+                        <Link to="/contests" className="text-white hover:text-blue-400 transition-colors">Cuộc thi</Link>
                         <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
                         <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {isModerator && (
-                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 transition-all text-sm font-medium border border-purple-500/20">
+                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20">
                             <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
                         </Link>
                     )}
@@ -276,7 +277,7 @@ export const UserContestDetailPage = () => {
                         </div>
                         <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
                     </Link>
-                    <button onClick={handleLogout} className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5"><SignOut weight="bold" className="text-xl" /></button>
+                    <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
                 </div>
             </nav>
 
@@ -416,6 +417,30 @@ export const UserContestDetailPage = () => {
 
                 </div>
             </main>
+
+            {/* Footer */}
+            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
+                <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                        <Code weight="fill" className="text-blue-500 text-3xl" />
+                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
+                    </div>
+                    <div className="text-slate-500 text-sm">
+                        &copy; 2026 Code Arena Platform. All rights reserved.
+                    </div>
+                    <div className="flex gap-4">
+                        <a href="https://www.facebook.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-colors">
+                            <FacebookLogo weight="fill" className="text-xl" />
+                        </a>
+                        <a href="https://x.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-400 transition-colors">
+                            <TwitterLogo weight="fill" className="text-xl" />
+                        </a>
+                        <a href="https://github.com/C0825G1-Org/C0825G1-code-arena" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+                            <GithubLogo weight="fill" className="text-xl" />
+                        </a>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };
