@@ -53,4 +53,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = :status ORDER BY CAST(s.createdAt AS DATE) DESC")
     List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.contest.createdBy.id = :modId AND s.createdAt >= :cutoff")
+    long countSubmissionsForModRecent(@Param("modId") Integer modId, @Param("cutoff") java.time.LocalDateTime cutoff);
 }

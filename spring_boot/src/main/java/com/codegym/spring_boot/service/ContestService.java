@@ -63,6 +63,31 @@ public class ContestService {
         contest.setCreatedBy(currentUser);
 
         contest = contestRepository.save(contest);
+
+        // Add problems to the contest
+        int orderIndex = 1;
+        for (Integer problemId : request.getProblemIds()) {
+            Problem problem = iProblemRepository.findById(problemId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bài tập với ID: " + problemId));
+
+            if (Boolean.TRUE.equals(problem.getIsDeleted())) {
+                throw new IllegalArgumentException("Bài tập ID " + problemId + " đã bị xóa.");
+            }
+
+            if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
+                if (problem.getCreatedBy() == null || !problem.getCreatedBy().getId().equals(currentUser.getId())) {
+                    throw new SecurityException("Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + problemId + " không thuộc về bạn.");
+                }
+            }
+
+            ContestProblem cp = new ContestProblem();
+            cp.setId(new ContestProblemId(contest.getId(), problemId));
+            cp.setContest(contest);
+            cp.setProblem(problem);
+            cp.setOrderIndex(orderIndex++);
+            problemRepository.save(cp);
+        }
+
         contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
         contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
         return mapToDetailResponse(contest, false);
@@ -250,6 +275,12 @@ public class ContestService {
         if (!problemRepository.existsById(cpId)) {
             throw new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này.");
         }
+
+        long currentProblemCount = problemRepository.countByIdContestId(contestId);
+        if (currentProblemCount <= 1) {
+            throw new IllegalStateException("Không thể xóa. Cần ít nhất 1 bài tập trong cuộc thi.");
+        }
+
         problemRepository.deleteById(cpId);
 
         // Unlock problem nếu không còn trong contest ACTIVE/UPCOMING nào khác

@@ -35,4 +35,6 @@ public interface ContestRepository extends JpaRepository<Contest, Integer>, JpaS
 
     // Cho Hard Delete Scheduler: tìm contest CANCELLED quá hạn
     List<Contest> findByStatusAndUpdatedAtBefore(ContestStatus status, LocalDateTime cutoffTime);
+
+    long countByCreatedById(Integer createdById);
 }
