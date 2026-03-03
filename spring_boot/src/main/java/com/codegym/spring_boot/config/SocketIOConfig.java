@@ -64,6 +64,19 @@ public class SocketIOConfig {
             }
         });
 
+        // Moderator Monitor Rooms
+        server.addEventListener("join_monitor", String.class, (client, contestId, ackSender) -> {
+            String room = "contest_monitor_" + contestId;
+            client.joinRoom(room);
+            log.info("Client {} joined monitor room: {}", client.getSessionId(), room);
+        });
+
+        server.addEventListener("leave_monitor", String.class, (client, contestId, ackSender) -> {
+            String room = "contest_monitor_" + contestId;
+            client.leaveRoom(room);
+            log.info("Client {} left monitor room: {}", client.getSessionId(), room);
+        });
+
         return server;
     }
 }

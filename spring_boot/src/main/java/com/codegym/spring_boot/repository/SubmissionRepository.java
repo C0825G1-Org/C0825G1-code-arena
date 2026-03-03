@@ -56,4 +56,13 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     @Query("SELECT COUNT(s) FROM Submission s WHERE s.contest.createdBy.id = :modId AND s.createdAt >= :cutoff")
     long countSubmissionsForModRecent(@Param("modId") Integer modId, @Param("cutoff") java.time.LocalDateTime cutoff);
+
+    // --- Monitor Dashboard Queries ---
+    int countByContestId(Integer contestId);
+
+    long countByUserIdAndContestId(Integer userId, Integer contestId);
+
+    long countByUserIdAndContestIdAndStatus(Integer userId, Integer contestId, SubmissionStatus status);
+
+    org.springframework.data.domain.Page<Submission> findByContestIdOrderByCreatedAtDesc(Integer contestId, org.springframework.data.domain.Pageable pageable);
 }
