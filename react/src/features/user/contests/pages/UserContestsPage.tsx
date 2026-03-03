@@ -55,6 +55,17 @@ export const UserContestsPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
 
+    // Notifications state
+    const [notifications, setNotifications] = useState<{
+        id: number;
+        message: string;
+        contestId: number;
+        time: Date;
+        read: boolean;
+    }[]>([]);
+    const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+    const unreadCount = notifications.filter(n => !n.read).length;
+
     const fetchContests = useCallback(async () => {
         try {
             setLoading(true);
@@ -98,7 +109,41 @@ export const UserContestsPage = () => {
         fetchContestsRef.current();
     }, []);
 
-    useContestWebSocket(handleContestStatusUpdate);
+    const handleContestReminder = useCallback((data: {
+        contestId: number;
+        contestTitle: string;
+        minutesLeft: number;
+    }) => {
+        const message =
+            data.minutesLeft >= 60
+                ? `Cuộc thi "${data.contestTitle}" sẽ bắt đầu sau ${Math.floor(
+                    data.minutesLeft / 60
+                )} giờ nữa!`
+                : `Cuộc thi "${data.contestTitle}" sẽ bắt đầu sau ${data.minutesLeft} phút nữa!`;
+
+        setNotifications(prev => [{
+            id: Date.now(),
+            message,
+            contestId: data.contestId,
+            time: new Date(),
+            read: false,
+        }, ...prev]);
+
+        toast(message, {
+            icon: data.minutesLeft <= 1 ? '🚨' : '⏰',
+            duration: 8000,
+            style: {
+                background: data.minutesLeft <= 5 ? '#7c3aed' : '#1e293b',
+                color: '#fff',
+                border: `1px solid ${
+                    data.minutesLeft <= 5 ? '#a855f7' : '#475569'
+                }`,
+            },
+        });
+    }, []);
+
+
+    useContestWebSocket(handleContestStatusUpdate, handleContestReminder);
 
     // Fallback realtime: when local time passes contest start/end, refetch once.
     useEffect(() => {
@@ -312,7 +357,67 @@ export const UserContestsPage = () => {
                             <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
                         </Link>
                     )}
-                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"><Bell className="text-xl" /></button>
+                    <div className="relative">
+                        {/* Bell Button */}
+                        <button
+                            onClick={() => setShowNotifDropdown(v => !v)}
+                            className="relative p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"
+                        >
+                            <Bell className="text-xl" />
+                            {/* Badge hiển thị số thông báo chưa đọc */}
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+                            )}
+                        </button>
+                        {/* Dropdown thông báo */}
+                        {showNotifDropdown && (
+                            <div className="absolute right-0 top-12 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                {/* Header */}
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+                                    <span className="font-bold text-white">Thông báo</span>
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                                            className="text-xs text-blue-400 hover:text-blue-300"
+                                        >
+                                            Đánh dấu tất cả đã đọc
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Danh sách thông báo */}
+                                <div className="max-h-72 overflow-y-auto">
+                                    {notifications.length === 0 ? (
+                                        <div className="py-8 text-center text-slate-500 text-sm">
+                                            Không có thông báo nào
+                                        </div>
+                                    ) : (
+                                        notifications.map(notif => (
+                                            <div
+                                                key={notif.id}
+                                                onClick={() => {
+                                                    setNotifications(prev => prev.map(n =>
+                                                        n.id === notif.id ? { ...n, read: true } : n
+                                                    ));
+                                                    navigate(`/contests/${notif.contestId}`);
+                                                    setShowNotifDropdown(false);
+                                                }}
+                                                className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors ${!notif.read ? 'bg-purple-500/10' : ''}`}
+                                            >
+                                                <p className={`text-sm ${!notif.read ? 'text-white font-medium' : 'text-slate-400'}`}>
+                                                    {notif.message}
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    {notif.time.toLocaleTimeString('vi-VN')}
+                                                </p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
