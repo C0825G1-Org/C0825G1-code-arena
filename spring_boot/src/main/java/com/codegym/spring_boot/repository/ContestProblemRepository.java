@@ -21,4 +21,7 @@ public interface ContestProblemRepository extends JpaRepository<ContestProblem, 
 
     // Đếm số contest đang dùng problem này (dùng cho unlock logic)
     long countByIdProblemId(Integer problemId);
+
+    // Đếm tổng số bài tập đang có trong một cuộc thi
+    long countByIdContestId(Integer contestId);
 }

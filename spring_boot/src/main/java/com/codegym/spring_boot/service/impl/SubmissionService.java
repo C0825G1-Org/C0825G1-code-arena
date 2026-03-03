@@ -216,8 +216,7 @@ public class SubmissionService implements ISubmissionService {
                 submissionRepository.save(submission);
 
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
-                // Ủy quyền việc cập nhật Penalty, Điểm số bài thi và Real-time cho
-                // LeaderboardService
+                // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
                 if (submission.getContest() != null && !submission.getIsTestRun()) {
                         leaderboardService.updateScore(submission);
                 }

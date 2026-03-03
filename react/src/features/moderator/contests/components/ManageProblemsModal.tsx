@@ -80,8 +80,10 @@ export const ManageProblemsModal = ({ isOpen, onClose, contestId, contestTitle, 
         }
     };
 
-    // Filter available problems to those not already in the contest, and matching search query
-    const availableProblems = allProblems.filter(p => !contestProblems.some(cp => cp.id === p.id))
+    // Filter available problems to those not already in the contest, matching search query, and HAVING AT LEAST 1 TESTCASE ('ready')
+    const availableProblems = allProblems
+        .filter(p => p.testcaseStatus === 'ready')
+        .filter(p => !contestProblems.some(cp => cp.id === p.id))
         .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toString() === searchQuery);
 
     if (!isOpen || !contestId) return null;
@@ -126,9 +128,9 @@ export const ManageProblemsModal = ({ isOpen, onClose, contestId, contestTitle, 
                                                 </div>
                                                 <button
                                                     onClick={() => handleRemoveProblem(cp.id)}
-                                                    disabled={loading}
-                                                    className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
-                                                    title="Xóa khỏi cuộc thi"
+                                                    disabled={loading || contestProblems.length <= 1}
+                                                    className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title={contestProblems.length <= 1 ? "Không thể xóa bài tập cuối cùng" : "Xóa khỏi cuộc thi"}
                                                 >
                                                     <Trash weight="bold" />
                                                 </button>

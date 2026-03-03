@@ -7,6 +7,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import { Code, Bell, ShieldStar, SignOut } from '@phosphor-icons/react';
+import { NotificationBell } from '../../../shared/components/NotificationBell';
 
 interface TagDTO {
     id: number;
@@ -178,9 +179,8 @@ export const ListPage = () => {
                         </div>
                     ) : (
                         <>
-                            <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300">
-                                <Bell className="text-xl" />
-                            </button>
+                            <NotificationBell />
+
 
                             <Link
                                 to="/profile"

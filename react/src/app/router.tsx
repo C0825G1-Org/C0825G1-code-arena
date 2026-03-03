@@ -22,6 +22,7 @@ import { CodeEditorPage } from '../features/user/code-editor';
 import { UserContestsPage } from '../features/user/contests/pages/UserContestsPage';
 import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
 import { UserContestResultsPage } from '../features/user/contests/pages/UserContestResultsPage';
+import { LeaderboardPage } from '../features/user/leaderboard/pages/LeaderboardPage';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -135,6 +136,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
                 <UserContestResultsPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/leaderboard',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <LeaderboardPage />
             </ProtectedRoute>
         )
     },

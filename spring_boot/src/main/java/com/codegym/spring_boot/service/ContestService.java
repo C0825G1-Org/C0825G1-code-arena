@@ -51,6 +51,10 @@ public class ContestService {
         if (!request.getEndTime().isAfter(request.getStartTime())) {
             throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
         }
+        // Validate: Thời gian thi tối đa 3 tiếng
+        if (java.time.Duration.between(request.getStartTime(), request.getEndTime()).toMinutes() > 180) {
+            throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
+        }
 
         Contest contest = new Contest();
         contest.setTitle(request.getTitle());
@@ -61,6 +65,31 @@ public class ContestService {
         contest.setCreatedBy(currentUser);
 
         contest = contestRepository.save(contest);
+
+        // Add problems to the contest
+        int orderIndex = 1;
+        for (Integer problemId : request.getProblemIds()) {
+            Problem problem = iProblemRepository.findById(problemId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bài tập với ID: " + problemId));
+
+            if (Boolean.TRUE.equals(problem.getIsDeleted())) {
+                throw new IllegalArgumentException("Bài tập ID " + problemId + " đã bị xóa.");
+            }
+
+            if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
+                if (problem.getCreatedBy() == null || !problem.getCreatedBy().getId().equals(currentUser.getId())) {
+                    throw new SecurityException("Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + problemId + " không thuộc về bạn.");
+                }
+            }
+
+            ContestProblem cp = new ContestProblem();
+            cp.setId(new ContestProblemId(contest.getId(), problemId));
+            cp.setContest(contest);
+            cp.setProblem(problem);
+            cp.setOrderIndex(orderIndex++);
+            problemRepository.save(cp);
+        }
+
         contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
         contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
 
@@ -103,6 +132,10 @@ public class ContestService {
                         if (request.getEndTime().isBefore(LocalDateTime.now()) || request.getEndTime().equals(LocalDateTime.now())) {
                             throw new IllegalArgumentException("Thời gian kết thúc mới phải ở tương lai.");
                         }
+                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
+                        if (java.time.Duration.between(effectiveStart, request.getEndTime()).toMinutes() > 180) {
+                            throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
+                        }
                         contest.setEndTime(request.getEndTime());
                     }
                 }
@@ -137,6 +170,9 @@ public class ContestService {
                         LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
                         if (request.getEndTime().isBefore(effectiveStart) || request.getEndTime().equals(effectiveStart)) {
                             throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
+                        }
+                        if (java.time.Duration.between(effectiveStart, request.getEndTime()).toMinutes() > 180) {
+                            throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
                         }
                         contest.setEndTime(request.getEndTime());
                     }
@@ -269,6 +305,12 @@ public class ContestService {
         if (!problemRepository.existsById(cpId)) {
             throw new IllegalArgumentException("Bài tập không tồn tại trong cuộc thi này.");
         }
+
+        long currentProblemCount = problemRepository.countByIdContestId(contestId);
+        if (currentProblemCount <= 1) {
+            throw new IllegalStateException("Không thể xóa. Cần ít nhất 1 bài tập trong cuộc thi.");
+        }
+
         problemRepository.deleteById(cpId);
 
         // Unlock problem nếu không còn trong contest ACTIVE/UPCOMING nào khác
@@ -441,6 +483,10 @@ public class ContestService {
         ContestParticipantId cpId = new ContestParticipantId(contestId, currentUser.getId());
         if (participantRepository.existsById(cpId)) {
             throw new IllegalStateException("Bạn đã đăng ký cuộc thi này trước đó.");
+        }
+
+        if (participantRepository.countByIdContestId(contestId) >= 10) {
+            throw new IllegalStateException("Cuộc thi đã đủ số lượng người tham gia tối đa (10 người).");
         }
 
         ContestParticipant participant = new ContestParticipant();

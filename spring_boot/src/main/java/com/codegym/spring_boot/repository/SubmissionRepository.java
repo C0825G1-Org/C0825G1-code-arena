@@ -52,4 +52,21 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     @Query("SELECT DISTINCT s.problem.id FROM Submission s WHERE s.user.id = :userId AND s.problem.id IN :problemIds")
     List<Integer> findAttemptedProblemIdsByUserIdAndProblemIds(@Param("userId") Integer userId, @Param("problemIds") Collection<Integer> problemIds);
+
+    // --- User Dashboard Stat Queries ---
+
+    @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
+    long countDistinctAcceptedProblemsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId")
+    long countTotalSubmissionsByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
+    long countAcceptedSubmissionsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = :status ORDER BY CAST(s.createdAt AS DATE) DESC")
+    List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.contest.createdBy.id = :modId AND s.createdAt >= :cutoff")
+    long countSubmissionsForModRecent(@Param("modId") Integer modId, @Param("cutoff") java.time.LocalDateTime cutoff);
 }
