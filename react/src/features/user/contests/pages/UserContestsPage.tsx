@@ -167,8 +167,8 @@ export const UserContestsPage = () => {
             <div
                 className={`flex items-start gap-3 px-4 py-3 rounded-xl shadow-2xl border transition-all
             ${data.minutesLeft <= 5
-                    ? 'bg-purple-900 border-purple-500 text-white'
-                    : 'bg-slate-800 border-slate-600 text-white'}
+                        ? 'bg-purple-900 border-purple-500 text-white'
+                        : 'bg-slate-800 border-slate-600 text-white'}
             ${t.visible ? 'animate-enter' : 'animate-leave'}`}
                 style={{ minWidth: 280, maxWidth: 360 }}
             >
@@ -420,8 +420,8 @@ export const UserContestsPage = () => {
                             {/* Badge hiển thị số thông báo chưa đọc */}
                             {unreadCount > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
                             )}
                         </button>
                         {/* Dropdown thông báo */}
@@ -555,6 +555,7 @@ export const UserContestsPage = () => {
                             <div className="flex items-center gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide w-full lg:w-auto">
                                 {[
                                     { val: '', label: '⚡ Tất cả' },
+                                    { val: 'registered', label: '🌟 Đã đăng ký' },
                                     { val: 'active', label: '🔥 Đang mở' },
                                     { val: 'upcoming', label: '⏳ Sắp tới' },
                                     { val: 'finished', label: '🏁 Đã xong' }
@@ -633,7 +634,7 @@ export const UserContestsPage = () => {
                                                     </span>
                                                     {contest.isRegistered && (
                                                         <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                                                            🌟 Đã tham gia
+                                                            🌟 Đã đăng ký
                                                         </span>
                                                     )}
                                                 </div>

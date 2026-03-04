@@ -1,6 +1,14 @@
-import { defineConfig } from 'vite'
+import { defineConfig, createLogger } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+
+// Custom logger that silences benign WebSocket proxy disconnect errors
+const logger = createLogger()
+const originalError = logger.error.bind(logger)
+logger.error = (msg, options) => {
+  if (typeof msg === 'string' && (msg.includes('ECONNABORTED') || msg.includes('ECONNRESET'))) return;
+  originalError(msg, options)
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -8,6 +16,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  customLogger: logger,
   define: {
     global: 'window',
   },
@@ -31,8 +40,9 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
+          proxy.on('error', () => { });
+          proxy.on('proxyReqWs', (_proxyReq, _req, socket) => {
+            socket.on('error', () => { });
           });
         }
       }

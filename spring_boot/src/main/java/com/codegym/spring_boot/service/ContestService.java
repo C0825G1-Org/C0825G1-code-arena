@@ -430,15 +430,22 @@ public class ContestService {
             Boolean manage, Pageable pageable, User currentUser) {
 
         ContestStatus status = null;
+        boolean filterRegistered = false;
+
         if (statusFilter != null && !statusFilter.isBlank()) {
-            try {
-                status = ContestStatus.valueOf(statusFilter.toLowerCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Trạng thái lọc không hợp lệ: " + statusFilter);
+            if (statusFilter.equalsIgnoreCase("registered")) {
+                filterRegistered = true;
+            } else {
+                try {
+                    status = ContestStatus.valueOf(statusFilter.toLowerCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Trạng thái lọc không hợp lệ: " + statusFilter);
+                }
             }
         }
 
         final ContestStatus finalStatus = status;
+        final boolean finalFilterRegistered = filterRegistered;
 
         Specification<Contest> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -467,6 +474,17 @@ public class ContestService {
                 if (finalStatus == null) {
                     predicates.add(cb.notEqual(root.get("status"), ContestStatus.cancelled));
                 }
+            }
+
+            if (finalFilterRegistered && currentUser != null) {
+                // Subquery to find if the user has registered for this contest
+                jakarta.persistence.criteria.Subquery<Integer> subquery = query.subquery(Integer.class);
+                jakarta.persistence.criteria.Root<com.codegym.spring_boot.entity.ContestParticipant> participantRoot = subquery.from(com.codegym.spring_boot.entity.ContestParticipant.class);
+                subquery.select(cb.literal(1)).where(
+                        cb.equal(participantRoot.get("contest").get("id"), root.get("id")),
+                        cb.equal(participantRoot.get("user").get("id"), currentUser.getId())
+                );
+                predicates.add(cb.exists(subquery));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
