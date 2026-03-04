@@ -191,7 +191,7 @@ export const ContestManagementPage = () => {
                     </div>
                 </div>
 
-                {/* Filters container matching Minh's ListPage */}
+                {/* Filters container matching Minh's AdminUserListPage */}
                 <div className="flex justify-between items-center mb-6 gap-4">
                     {/* Search & Filter */}
                     <div className="flex gap-4 items-center flex-wrap flex-1">

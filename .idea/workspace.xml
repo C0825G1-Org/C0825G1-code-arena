@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="" />
+    <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/app/router.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/app/router.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/dashboard/pages/AdminDashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/dashboard/pages/AdminDashboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/contests/pages/ContestManagementPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/contests/pages/ContestManagementPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/AdminDashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/AdminDashboardService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -128,7 +138,8 @@
       <workItem from="1772422058804" duration="4401000" />
       <workItem from="1772474403879" duration="561000" />
       <workItem from="1772515418141" duration="5152000" />
-      <workItem from="1772587923083" duration="1762000" />
+      <workItem from="1772587923083" duration="4625000" />
+      <workItem from="1772631556669" duration="2164000" />
     </task>
     <servers />
   </component>
