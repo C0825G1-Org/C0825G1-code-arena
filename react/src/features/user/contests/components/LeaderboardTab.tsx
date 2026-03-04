@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LeaderboardDTO, leaderboardApiService } from '../services/leaderboardApiService';
 import { useLeaderboardSocket } from '../hooks/useLeaderboardSocket';
-import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info } from '@phosphor-icons/react';
+import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info, UserCircle } from '@phosphor-icons/react';
 import { toast } from 'react-hot-toast';
 
 interface LeaderboardTabProps {
@@ -33,10 +33,10 @@ const computeAndSort = (data: LeaderboardDTO[]) => {
 
 /** Quy phút sang giờ nếu lớn hơn 60 phút */
 const formatMinutes = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} m`;
+    if (minutes < 60) return `${minutes} p`;
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+    return m > 0 ? `${h}h ${m}p` : `${h}h`;
 };
 
 const getRankStyle = (rank: number) => {
@@ -187,11 +187,18 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                         {/* Thí sinh */}
                                         <td className="py-4 px-5">
                                             <div className="flex items-center gap-3">
-                                                <img
-                                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=random&size=40`}
-                                                    alt="Avatar"
-                                                    className="w-9 h-9 rounded-full border border-slate-600 shrink-0"
-                                                />
+                                                <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border-2 border-blue-500/40">
+                                                    <img
+                                                        src={user.avatarUrl || `https://i.pravatar.cc/150?u=${user.userId}`}
+                                                        alt={user.username}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.onerror = null;
+                                                            e.currentTarget.style.display = 'none';
+                                                            e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" viewBox="0 0 256 256" fill="currentColor"><path d="M172,120a44,44,0,1,1-44-44A44,44,0,0,1,172,120Zm60,8A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88,88.1,88.1,0,0,0,88-88Z"/></svg>';
+                                                        }}
+                                                    />
+                                                </div>
                                                 <div>
                                                     <div className="font-semibold text-slate-100">{user.username}</div>
                                                     {user.fullName && (
@@ -237,15 +244,23 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                                     <div className="flex flex-wrap gap-1 justify-center">
                                                         {user.problemDetails
                                                             .filter(p => p.isAccepted)
-                                                            .map((p, i) => (
-                                                                <span
-                                                                    key={p.problemId}
-                                                                    title={`Bài ${i + 1}: thời gian giải ${formatMinutes(p.solvedTimeMinutes)}${p.failedAttempts > 0 ? ` + ${p.failedAttempts} lần sai ×20 phút = ${formatMinutes(p.failedAttempts * 20)} phạt)` : ''}`}
-                                                                    className="px-2 py-0.5 text-[10px] bg-slate-700/60 text-slate-400 rounded-md border border-slate-600/50 font-mono cursor-help hover:bg-slate-700 transition-colors"
-                                                                >
-                                                                    B{i + 1}: {formatMinutes(p.score)}
-                                                                </span>
-                                                            ))}
+                                                            .map((p) => {
+                                                                // Tìm đúng vị trí bài trong danh sách gốc (chưa filter)
+                                                                // để "B1, B2..." không bị nhảy số khi có bài chưa giải
+                                                                const allProblems = user.problemDetails ?? [];
+                                                                const sortedProblems = [...allProblems].sort((a, b) => a.problemId - b.problemId);
+                                                                const trueIndex = sortedProblems.findIndex(pd => pd.problemId === p.problemId);
+                                                                const label = trueIndex >= 0 ? trueIndex + 1 : '?';
+                                                                return (
+                                                                    <span
+                                                                        key={p.problemId}
+                                                                        title={`Bài ${label}: thời gian giải ${formatMinutes(p.solvedTimeMinutes)}${p.failedAttempts > 0 ? ` + ${p.failedAttempts} lần sai ×20 phút = ${formatMinutes(p.failedAttempts * 20)} phạt)` : ''}`}
+                                                                        className="px-2 py-0.5 text-[10px] bg-slate-700/60 text-slate-400 rounded-md border border-slate-600/50 font-mono cursor-help hover:bg-slate-700 transition-colors"
+                                                                    >
+                                                                        B{label}: {formatMinutes(p.score)}
+                                                                    </span>
+                                                                );
+                                                            })}
                                                     </div>
                                                 )}
                                             </div>

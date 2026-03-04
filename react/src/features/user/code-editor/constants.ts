@@ -45,3 +45,17 @@ int main() {
     return 0;
 }`
 };
+
+export const LANGUAGE_NAME_TO_ID: Record<string, number> = {
+    'cpp': 1,
+    'java': 2,
+    'python': 3,
+    'javascript': 4
+};
+
+export const BACKEND_LANGUAGE_TO_EDITOR: Record<string, string> = {
+    'JavaScript': 'javascript', 'Java': 'java',
+    'Python': 'python', 'C++': 'cpp',
+    'javascript': 'javascript', 'java': 'java',
+    'python': 'python', 'cpp': 'cpp', 'c++': 'cpp'
+};

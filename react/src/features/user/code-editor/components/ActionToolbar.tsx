@@ -93,9 +93,10 @@ export const ActionToolbar: React.FC<ActionToolbarProps> = ({
                 </button>
 
                 <button
-                    onClick={onResetCode}
-                    className="tour-reset-btn text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors tooltip flex items-center justify-center w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-700"
-                    title="Làm mới code"
+                    onClick={disabled ? undefined : onResetCode}
+                    disabled={disabled}
+                    className={`tour-reset-btn transition-colors tooltip flex items-center justify-center w-8 h-8 rounded ${disabled ? 'text-slate-600 cursor-not-allowed opacity-40' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700'}`}
+                    title={disabled ? "Không thể reset ở chế độ chỉ xem" : "Làm mới code"}
                 >
                     <Clock size={20} weight="bold" />
                 </button>
@@ -122,10 +123,17 @@ export const ActionToolbar: React.FC<ActionToolbarProps> = ({
             </div>
 
             {isExamMode && participantStatus !== 'JOINED' && (
-                <div className="absolute top-10 inset-x-0 z-[30] bg-orange-500/90 backdrop-blur-sm py-1.5 px-4 flex items-center justify-center gap-2 text-white font-bold text-xs shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="p-0.5 bg-white/20 rounded"><Warning size={14} weight="fill" /></div>
-                    <span>BẠN ĐÃ KẾT THÚC LƯỢT THI - CHẾ ĐỘ CHỈ XEM</span>
-                </div>
+                participantStatus === 'DISQUALIFIED' ? (
+                    <div className="absolute top-10 inset-x-0 z-[30] bg-red-600/95 backdrop-blur-sm py-2 px-4 flex items-center justify-center gap-2 text-white font-bold text-xs shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="p-0.5 bg-white/20 rounded"><Warning size={14} weight="fill" /></div>
+                        <span>BẠN ĐÃ BỊ TRỤC XUẤT DO VI PHẠM - CHẾ ĐỘ CHỈ XEM - Bấm nút Thoát để rời khỏi phòng thi</span>
+                    </div>
+                ) : (
+                    <div className="absolute top-10 inset-x-0 z-[30] bg-orange-500/90 backdrop-blur-sm py-1.5 px-4 flex items-center justify-center gap-2 text-white font-bold text-xs shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="p-0.5 bg-white/20 rounded"><Warning size={14} weight="fill" /></div>
+                        <span>BẠN ĐÃ KẾT THÚC LƯỢT THI - CHẾ ĐỘ CHỈ XEM</span>
+                    </div>
+                )
             )}
         </div>
     );

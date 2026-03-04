@@ -23,7 +23,7 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
             setError(null);
             try {
                 const response = await axiosClient.get(`/submissions/${submissionId}`);
-                setData(response.data);
+                setData(response);
             } catch (err: any) {
                 console.error("Lỗi khi lấy chi tiết bài nộp:", err);
                 setError(err.response?.data?.message || "Không thể tải chi tiết bài nộp.");

@@ -38,10 +38,12 @@ export async function getSampleTestCases(problemId: number): Promise<TestCase[]>
         headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
-    }); // Mock or real endpoint if backend supports
+    });
     if (!res.ok) {
         const errText = await res.text();
         throw new Error(`HTTP ${res.status}: ${errText}`);
     }
-    return res.json();
+    const all: TestCase[] = await res.json();
+    // Chỉ trả về testcase mẫu (isSample=true) để không lộ testcase ẩn
+    return all.filter(tc => tc.isSample === true);
 }

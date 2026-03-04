@@ -17,15 +17,18 @@ import { contestService } from "../../home/services/contestService";
 import { getSampleTestCases, TestCase } from "../services/problemService";
 
 import { useArena, Language } from "../hooks/useArena";
+import { boilerplateMap, BACKEND_LANGUAGE_TO_EDITOR } from "../constants";
 import { useSettings } from "../hooks/useSettings";
 import { useCameraSnapshot } from '../hooks/useCameraSnapshot';
 import { useAntiCheat } from '../hooks/useAntiCheat';
 import { useContestSync } from '../hooks/useContestSync';
+import { useWaitingRoomTimer } from '../hooks/useWaitingRoomTimer';
+import { useContestSubmit } from '../hooks/useContestSubmit';
 
 import { EditorHeader } from '../components/EditorHeader';
 import { ProblemStrip } from '../components/ProblemStrip';
 import { ActionToolbar } from '../components/ActionToolbar';
-import { Clock, LockKey } from '@phosphor-icons/react';
+import { Clock, LockKey, PlayCircle } from '@phosphor-icons/react';
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -34,7 +37,10 @@ export default function Home() {
 
     const { problemId: problemIdStr } = useParams<{ problemId: string }>();
     const problemId = problemIdStr ? parseInt(problemIdStr, 10) : 1;
-    const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId, contestId);
+    // Biết ngay từ đầu (từ localStorage) nếu đây là lượt xem lại bài thi
+    // Để chặn useArena auto-load localStorage đè lên code do API trả về
+    const examReadOnly = isExamMode && !!localStorage.getItem(`arena:contest_finished:${contestId || '0'}`);
+    const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId, contestId, examReadOnly);
 
     const { settings, updateSettings } = useSettings();
     const navigate = useNavigate();
@@ -46,13 +52,10 @@ export default function Home() {
     const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmittingExit, setIsSubmittingExit] = useState(false);
-    const [isConfirmExitOpen, setIsConfirmExitOpen] = useState(false);
-    const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'problem' | 'submissions' | 'hints' | 'discussions'>('problem');
 
     const [problemStatus, setProblemStatus] = useState<Record<number, { submitCount: number, isAC: boolean }>>({});
     const [contest, setContest] = useState<ContestDetailData | null>(null);
-    const [isTimeUp, setIsTimeUp] = useState(false);
 
     // Sử dụng Custom Hooks mới tách
     const isWaitingRoom = isExamMode && contest?.status === 'upcoming';
@@ -64,18 +67,67 @@ export default function Home() {
         contestId: contestId || undefined
     });
 
+    const {
+        isConfirmExitOpen, setIsConfirmExitOpen,
+        isConfirmSubmitOpen, setIsConfirmSubmitOpen,
+        handleConfirmExit, handleManualExit, submitLogic, submitAllProblems
+    } = useContestSubmit({
+        contestId, problemId, language, code, userId,
+        isExamMode, isWaitingRoom, contest,
+        blockerState: blocker.state,
+        blockerProceed: () => blocker.proceed && blocker.proceed(),
+        setProblemStatus, setActiveTab,
+        setIsSubmitting, setIsSubmittingExit
+    });
+
+    const { serverOffset, waitingTimeLeftStr, isTimeUp, setIsTimeUp } = useWaitingRoomTimer({
+        contest,
+        onTimeUp: () => {
+            if (contestId) {
+                contestService.getContestDetail(parseInt(contestId))
+                    .then(data => {
+                        setContest(data);
+                        if (data?.problems) {
+                            const statusMap: Record<number, { submitCount: number, isAC: boolean }> = {};
+                            data.problems.forEach((p: any) => {
+                                statusMap[p.id] = { submitCount: p.submitCount ?? 0, isAC: !!p.isAC };
+                            });
+                            setProblemStatus(statusMap);
+                        }
+                        toast.success("Kỳ thi đã bắt đầu. Chúc bạn thi tốt!");
+                    })
+                    .catch(e => {
+                        console.error("API Error", e);
+                        toast.error("Vui lòng tải lại trang (F5)!");
+                    });
+            }
+        }
+    });
+
     const { initViolations, triggerViolation } = useAntiCheat({
-        isExamMode,
+        isExamMode: isExamMode && !!contest && contest.status === 'active',
         contestId: contestId || undefined,
-        onDisqualified: () => {
+        onDisqualified: async () => {
+            if (!contestId || !contest) return;
+            const currentContestId = parseInt(contestId);
+
+            // Bước 1: Cập nhật state local để UI chuyển sang read-only ngay lập tức
             setIsTimeUp(true);
-            handleConfirmExit('DISQUALIFIED');
+            setContest(prev => prev ? { ...prev, participantStatus: 'DISQUALIFIED' } : prev);
+
+            // Bước 2: Nộp tất cả bài + gọi API finish ở nền (không redirect)
+            try {
+                await submitAllProblems(currentContestId, 'DISQUALIFIED');
+            } catch (e) {
+                console.warn('Disqualified API error:', e);
+            }
+            // Không navigate - ở lại trang read-only, thí sinh tự bấm Exit
         }
     });
 
     const { isCapturing } = useCameraSnapshot({
         contestId: contestId ? parseInt(contestId) : 0,
-        enabled: isExamMode && !!contest && contest.participantStatus === 'JOINED' && !isTimeUp,
+        enabled: isExamMode && !!contest && contest.status === 'active' && contest.participantStatus === 'JOINED' && !isTimeUp,
         interval: 60000,
         onCameraRefused: () => triggerViolation()
     });
@@ -99,7 +151,7 @@ export default function Home() {
                 .then(data => {
                     setContest(data);
                     if (data.violationCount !== undefined) {
-                        initViolations(data.violationCount, !!data.hasScorePenalty);
+                        initViolations(data.violationCount, !!data.hasScorePenalty, data.participantStatus);
                     }
 
                     if (data?.problems) {
@@ -112,6 +164,28 @@ export default function Home() {
 
                     if (data.participantStatus === 'FINISHED' || data.participantStatus === 'DISQUALIFIED') {
                         toast.info(data.participantStatus === 'DISQUALIFIED' ? "Bài thi đã bị khóa do vi phạm. Chế độ chỉ xem." : "Bạn đã hoàn thành lượt thi. Chế độ chỉ xem.", { toastId: 'contest-done-status' });
+                        // Đặt flag vào localStorage để examReadOnly = true khi component re-render
+                        localStorage.setItem(`arena:contest_finished:${contestId}`, Date.now().toString());
+                        // Lấy code từ lần nộp cuối cùng của bài này trong cuộc thi
+                        axiosClient.get(`/submissions/me`, {
+                            params: { problemId, contestId: parseInt(contestId!) }
+                        }).then((submissions: any) => {
+                            const list: any[] = Array.isArray(submissions) ? submissions : (submissions?.data ?? []);
+                            if (list.length > 0) {
+                                const last = list[0]; // Đã sắp xếp DESC từ API
+                                const mappedLang = BACKEND_LANGUAGE_TO_EDITOR[last.languageName] as any;
+                                // Đổi ngôn ngữ trước
+                                if (mappedLang) changeLanguage(mappedLang);
+                                // Set code SAU (timeout nhỏ để tránh bị effect localStorage overwrite)
+                                setTimeout(() => {
+                                    // Nếu code rỗng/trắng thì dùng boilerplate mặc định
+                                    const codeToShow = last.sourceCode?.trim()
+                                        ? last.sourceCode
+                                        : (boilerplateMap[mappedLang as Language] ?? '');
+                                    setCode(codeToShow);
+                                }, 100);
+                            }
+                        }).catch(console.warn);
                     }
                 })
                 .catch(err => console.error("API Error:", err));
@@ -282,149 +356,8 @@ export default function Home() {
         }
     }, [blocker.state]);
 
-    // Lấy offset thời gian server vs local
-    const [serverOffset, setServerOffset] = useState<number>(0);
-    const [waitingTimeLeftStr, setWaitingTimeLeftStr] = useState<string>('');
 
-    useEffect(() => {
-        if (contest && contest.status === 'upcoming' && contest.serverTime && contest.startTime) {
-            const local = new Date().getTime();
-            const server = new Date(contest.serverTime).getTime();
-            setServerOffset(server - local);
-        }
-    }, [contest]);
 
-    useEffect(() => {
-        if (!contest || contest.status !== 'upcoming') return;
-        const targetMs = new Date(contest.startTime).getTime();
-
-        const timer = setInterval(() => {
-            const nowReal = new Date().getTime() + serverOffset;
-            const diff = targetMs - nowReal;
-            if (diff <= 0) {
-                clearInterval(timer);
-                setWaitingTimeLeftStr('Bắt đầu!');
-                // Reload lại trang để vào chế độ thi chính thức
-                window.location.reload();
-            } else {
-                const m = Math.floor(diff / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                setWaitingTimeLeftStr(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-            }
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [contest, serverOffset]);
-
-    const handleConfirmExit = async (status: string = 'FINISHED') => {
-        if (!contestId) {
-            blocker.proceed?.();
-            return;
-        }
-
-        setIsSubmittingExit(true);
-        try {
-            const currentContestId = parseInt(contestId);
-            const alreadyDone = contest?.participantStatus === 'FINISHED' || contest?.participantStatus === 'DISQUALIFIED';
-
-            if (!alreadyDone) {
-                const languageIdMap: Record<string, number> = { 'cpp': 1, 'java': 2, 'python': 3, 'javascript': 4 };
-                const allLanguages = Object.keys(languageIdMap) as Language[];
-                const problemsToSubmit = contest?.problems || [];
-
-                const submissionPromises = problemsToSubmit.map(async (p) => {
-                    const contextMode = `contest:${currentContestId}`;
-                    let bestLang: Language = language;
-                    let bestCode = '';
-                    for (const lang of allLanguages) {
-                        const key = `arena:code:${userId}:${contextMode}:${p.id}:${lang}`;
-                        const saved = localStorage.getItem(key);
-                        if (saved && saved.length > bestCode.length) {
-                            bestCode = saved;
-                            bestLang = lang;
-                        }
-                    }
-                    const finalLangId = languageIdMap[bestLang] ?? 1;
-                    return axiosClient.post('/submissions', {
-                        problemId: p.id,
-                        languageId: finalLangId,
-                        sourceCode: bestCode,
-                        isRunOnly: false,
-                        contestId: currentContestId
-                    }).catch(() => { });
-                });
-
-                await Promise.allSettled(submissionPromises);
-                await contestService.finishContest(currentContestId, status);
-                localStorage.setItem(`arena:contest_finished:${currentContestId}`, Date.now().toString());
-                toast.success(status === 'DISQUALIFIED' ? "Bài thi đã bị khóa do vi phạm!" : "Đã nộp bài và kết thúc lượt thi!");
-            }
-
-            setIsConfirmExitOpen(false);
-            if (blocker.state === "blocked") {
-                blocker.proceed?.();
-            } else if (status === 'DISQUALIFIED') {
-                contestService.getContestDetail(currentContestId).then(setContest).catch(console.error);
-                setIsSubmittingExit(false);
-            } else {
-                navigate(`/contests/${contestId}`, { replace: true });
-            }
-        } catch (error: any) {
-            toast.error(`Không thể thoát: ${error.message}`);
-            setIsSubmittingExit(false);
-        }
-    };
-
-    const handleManualExit = () => {
-        if (isExamMode) {
-            const isDone = contest?.participantStatus === 'FINISHED' || contest?.participantStatus === 'DISQUALIFIED';
-            if (isDone || isWaitingRoom) {
-                navigate(`/contests/${contestId}`);
-            } else {
-                setIsConfirmExitOpen(true);
-            }
-        } else {
-            navigate('/contests');
-        }
-    };
-
-    const submitLogic = async (isRunOnly: boolean) => {
-        if (!isAuthenticated) {
-            toast.info("Vui lòng đăng nhập để nộp bài!");
-            navigate('/login');
-            return;
-        }
-
-        const langId = { 'cpp': 1, 'java': 2, 'python': 3, 'javascript': 4 }[language] ?? 1;
-        setIsSubmitting(true);
-        try {
-            await axiosClient.post('/submissions', {
-                problemId,
-                languageId: langId,
-                sourceCode: code,
-                isRunOnly,
-                ...(isExamMode ? { contestId: parseInt(contestId!) } : {})
-            });
-
-            toast.success(isRunOnly ? "Đang chạy thử..." : "Đã nộp bài, đang chờ hệ thống chấm...");
-            setActiveTab('submissions');
-
-            if (isExamMode && !isRunOnly) {
-                setProblemStatus(prev => {
-                    const cur = prev[problemId] ?? { submitCount: 0, isAC: false };
-                    return { ...prev, [problemId]: { ...cur, submitCount: cur.submitCount + 1 } };
-                });
-            }
-        } catch (error: any) {
-            if (error?.response?.data?.message?.includes("50 lần")) {
-                toast.error("⚠️ Bạn đã đạt giới hạn 50 lần nộp bài!");
-                setProblemStatus(prev => ({ ...prev, [problemId]: { ...(prev[problemId] ?? { isAC: false }), submitCount: 50 } }));
-            } else {
-                toast.error("Có lỗi xảy ra khi nộp bài. Vui lòng thử lại!");
-            }
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     const problemsList = contest?.problems?.sort((a, b) => a.orderIndex - b.orderIndex) || [];
     const currentProblemIndex = problemsList.findIndex(p => p.id === problemId);
@@ -468,6 +401,7 @@ export default function Home() {
                     isCapturing={isCapturing}
                     contestTitle={contest?.title}
                     contestEndTime={contest?.endTime}
+                    isWaitingRoom={isWaitingRoom}
                     isTimeUp={isTimeUp}
                     onTimeUp={() => {
                         if (!isTimeUp) {
@@ -491,9 +425,9 @@ export default function Home() {
                 />
             )}
 
-            <div className="flex-1 w-full relative bg-[#0f172a] p-2">
+            <div className="flex-1 w-full relative bg-[#0f172a] p-2 overflow-hidden">
                 {isWaitingRoom ? (
-                    <div className="h-full flex flex-col items-center justify-center relative rounded-xl border border-white/5 bg-[#1e293b] overflow-hidden shadow-2xl">
+                    <div className="h-full flex flex-col items-center justify-center relative rounded-xl border border-white/5 bg-[#1e293b] overflow-y-auto shadow-2xl">
                         <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-amber-900/10 to-transparent pointer-events-none" />
                         <div className="absolute top-[20%] left-[30%] w-[40%] h-[40%] bg-amber-600/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -513,6 +447,13 @@ export default function Home() {
                                 <Clock size={20} weight="fill" className="animate-pulse" />
                                 <span>Hệ thống sẽ tự động tải lại khi đến giờ</span>
                             </div>
+
+                            <button
+                                onClick={() => navigate('/tutorial')}
+                                className="mt-6 flex items-center gap-2 px-6 py-2.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-xl border border-blue-500/30 transition-all font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105"
+                            >
+                                <PlayCircle weight="fill" className="text-xl animate-pulse" /> Xem hướng dẫn thi giả lập
+                            </button>
                         </div>
                     </div>
                 ) : (
@@ -564,7 +505,7 @@ export default function Home() {
                                         participantStatus={contest?.participantStatus}
                                         submitCount={problemStatus[problemId]?.submitCount ?? 0}
                                         isAC={problemStatus[problemId]?.isAC ?? false}
-                                        onRunCode={() => submitLogic(true)}
+                                        onRunCode={() => submitLogic(true, isAuthenticated)}
                                         onSubmit={() => setIsConfirmSubmitOpen(true)}
                                         onResetCode={resetCode}
                                         isSettingsOpen={isSettingsOpen}
@@ -598,11 +539,11 @@ export default function Home() {
                                                         <div className="mb-2 text-slate-500 font-bold uppercase tracking-wider text-[10px] md:text-xs">Case {idx + 1}</div>
                                                         <div className="mb-2 md:mb-3">
                                                             <div className="text-slate-400 mb-1 text-[10px] md:text-xs">Input:</div>
-                                                            <div className="bg-[#0f172a] text-slate-300 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).inputData}</div>
+                                                            <div className="bg-[#0f172a] text-slate-300 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).inputData ?? (tc as any).sampleInput}</div>
                                                         </div>
                                                         <div>
                                                             <div className="text-slate-400 mb-1 text-[10px] md:text-xs">Expected:</div>
-                                                            <div className="bg-[#0f172a] text-emerald-400 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).expectedOutput}</div>
+                                                            <div className="bg-[#0f172a] text-emerald-400 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).expectedOutput ?? (tc as any).sampleOutput}</div>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -637,7 +578,7 @@ export default function Home() {
                 isExamMode={isExamMode}
                 onConfirm={() => {
                     setIsConfirmSubmitOpen(false);
-                    submitLogic(false);
+                    submitLogic(false, isAuthenticated);
                 }}
                 onCancel={() => setIsConfirmSubmitOpen(false)}
             />

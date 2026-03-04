@@ -404,6 +404,8 @@ public class SubmissionService implements ISubmissionService {
                                 .memoryUsed(sub.getMemoryUsed())
                                 .score(sub.getScore())
                                 .createdAt(sub.getCreatedAt())
+                                .sourceCode(sub.getSourceCode())
+                                .languageName(sub.getLanguage() != null ? sub.getLanguage().getName() : null)
                                 .build()).collect(Collectors.toList());
         }
 

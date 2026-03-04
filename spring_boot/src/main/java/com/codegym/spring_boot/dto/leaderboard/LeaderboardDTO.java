@@ -16,9 +16,10 @@ public class LeaderboardDTO {
     private Integer userId;
     private String username;
     private String fullName;
-    private Integer totalScore;    // Number of AC problems
-    private Integer totalPenalty;  // Total time penalty
-    private Integer totalSolved;   // Added
+    private String avatarUrl;
+    private Integer totalScore; // Number of AC problems
+    private Integer totalPenalty; // Total time penalty
+    private Integer totalSolved; // Added
     private List<ProblemDetail> problemDetails;
 
     @Data

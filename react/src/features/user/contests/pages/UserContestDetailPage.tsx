@@ -85,6 +85,13 @@ export const UserContestDetailPage = () => {
 
     // Live Countdown state
     const [timeLeftStr, setTimeLeftStr] = useState<string>('');
+    const [serverOffset, setServerOffset] = useState<number>(0);
+
+    useEffect(() => {
+        if (contest && contest.serverTime) {
+            setServerOffset(new Date(contest.serverTime).getTime() - Date.now());
+        }
+    }, [contest]);
 
     const fetchContestDetail = async () => {
         try {
@@ -120,15 +127,10 @@ export const UserContestDetailPage = () => {
     useEffect(() => {
         if (!contest || contest.status !== 'upcoming') return;
 
-        // Calculate offset between local 'now' and serverTime once
-        const localTimeAtFetch = new Date().getTime();
-        const serverTimeAtFetch = new Date(contest.serverTime).getTime();
-        const offset = serverTimeAtFetch - localTimeAtFetch;
-
         const targetTime = new Date(contest.startTime).getTime();
 
         const timer = setInterval(() => {
-            const currentRealTime = new Date().getTime() + offset;
+            const currentRealTime = new Date().getTime() + serverOffset;
             const diffMs = targetTime - currentRealTime;
 
             if (diffMs <= 0) {
@@ -237,9 +239,9 @@ export const UserContestDetailPage = () => {
         }
 
         if (contest.status === 'upcoming') {
-            const serverTimeMs = new Date(contest.serverTime).getTime();
             const startMs = new Date(contest.startTime).getTime();
-            const diffMs = startMs - serverTimeMs;
+            const currentRealTime = Date.now() + serverOffset;
+            const diffMs = startMs - currentRealTime;
 
             // Nếu còn <= 15 phút (15 * 60 * 1000 ms) thì cho phép vào phòng chờ
             if (diffMs > 0 && diffMs <= 15 * 60 * 1000) {
@@ -264,9 +266,22 @@ export const UserContestDetailPage = () => {
         }
 
         if (contest.participantStatus === 'FINISHED' || contest.participantStatus === 'DISQUALIFIED') {
+            const firstProblem = contest.problems?.sort((a, b) => a.orderIndex - b.orderIndex)?.[0];
+            const isDisqualified = contest.participantStatus === 'DISQUALIFIED';
             return (
-                <div className="w-full p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center gap-2 font-bold italic">
-                    <WarningCircle size={20} weight="fill" /> Bạn đã kết thúc lượt thi này.
+                <div className="w-full flex flex-col gap-2">
+                    <div className={`w-full p-4 rounded-xl border flex items-center justify-center gap-2 font-bold italic ${isDisqualified ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-orange-500/10 border-orange-500/20 text-orange-400'}`}>
+                        <WarningCircle size={20} weight="fill" />
+                        {isDisqualified ? 'Bài thi đã bị khóa do vi phạm.' : 'Bạn đã kết thúc lượt thi này.'}
+                    </div>
+                    {firstProblem && (
+                        <button
+                            onClick={() => navigate(`/code-editor/${firstProblem.id}?contestId=${contest.id}`)}
+                            className="w-full py-3 rounded-xl font-semibold bg-slate-700/50 hover:bg-slate-600/60 text-slate-300 border border-slate-600/50 transition-colors flex justify-center items-center gap-2"
+                        >
+                            Xem lại bài thi
+                        </button>
+                    )}
                 </div>
             );
         }
@@ -376,12 +391,6 @@ export const UserContestDetailPage = () => {
                                         Kết thúc: <span className="text-white">{new Date(contest.endTime).toLocaleString('vi-VN')}</span>
                                     </span>
                                 </div>
-                                <button
-                                    onClick={() => navigate('/tutorial')}
-                                    className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl border border-blue-500/20 transition-all font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105"
-                                >
-                                    <PlayCircle weight="fill" className="text-xl animate-pulse" /> Xem hướng dẫn (Giả lập)
-                                </button>
                             </div>
                         </div>
 
