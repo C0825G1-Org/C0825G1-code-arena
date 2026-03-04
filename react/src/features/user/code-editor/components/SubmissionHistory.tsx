@@ -129,7 +129,7 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
                             {(sub.status === 'AC' || sub.status === 'WA' || sub.status === 'TLE' || sub.status === 'MLE') && (
                                 <div className="flex gap-4 text-xs font-medium text-slate-400 bg-black/20 p-2.5 rounded-lg border border-white/5">
                                     <span className="flex items-center gap-1.5"><Clock size={14} /> {sub.executionTime || 0} ms</span>
-                                    <span className="flex items-center gap-1.5 border-l border-white/10 pl-4">💾 {sub.memoryUsed || 0} MB</span>
+                                    <span className="flex items-center gap-1.5 border-l border-white/10 pl-4">💾 {sub.memoryUsed || 0} KB</span>
                                     <span className="flex items-center gap-1.5 border-l border-white/10 pl-4 text-amber-400">🏆 {sub.score || 0} pts</span>
                                 </div>
                             )}

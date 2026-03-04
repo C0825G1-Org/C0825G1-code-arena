@@ -469,15 +469,28 @@ export const UserContestDetailPage = () => {
                         </div>
 
                         {/* Rules / Notes Placeholder */}
-                        <div className="bg-slate-800/30 rounded-3xl p-6 border border-slate-700/30">
-                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-slate-200">
-                                <WarningCircle weight="bold" className="text-yellow-500" /> Lưu ý quan trọng
+                        <div className="bg-slate-800/40 backdrop-blur-md rounded-3xl p-6 border border-slate-700/50 shadow-xl overflow-hidden relative group">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500/50 group-hover:bg-yellow-500 transition-colors" />
+                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-white">
+                                <WarningCircle weight="fill" className="text-yellow-500 animate-pulse" /> Lưu ý quan trọng
                             </h3>
-                            <ul className="text-sm text-slate-400 space-y-3 list-disc pl-5">
-                                <li>Nghiêm cấm mọi hành vi gian lận, sao chép code.</li>
-                                <li>Hệ thống tự động chấm bằng trình biên dịch chuẩn.</li>
-                                <li>Chỉ tính điểm cho submissions hoàn toàn đúng (AC).</li>
-                                <li>Penalty tính theo số lần nộp sai và thời gian giải.</li>
+                            <ul className="text-sm text-slate-400 space-y-4 font-medium">
+                                <li className="flex gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
+                                    <span>Nghiêm cấm sao chép code hoặc sử dụng AI. Hệ thống quét <b>Plagiarism</b> tự động bằng thuật toán MOSS.</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
+                                    <span>Vi phạm <b>rời khỏi trang quá 3 lần</b> sẽ bị truất quyền thi ngay lập tức (Nhấn F11 để vào Toàn màn hình).</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
+                                    <span>Giới hạn nộp bài: <b>50 lần/bài tập</b>. Penalty 20 phút cho mỗi lượt nộp sai (nếu bài đó AC sau này) theo chuẩn <b>ICPC</b>.</span>
+                                </li>
+                                <li className="flex gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
+                                    <span>Yêu cầu bật <b>Camera</b> để hệ thống Snapshot ngẫu nhiên xác minh danh tính suốt thời gian thi.</span>
+                                </li>
                             </ul>
                         </div>
                     </div>

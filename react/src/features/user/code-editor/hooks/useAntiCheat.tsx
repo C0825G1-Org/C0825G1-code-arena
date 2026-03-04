@@ -24,10 +24,12 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         onDisqualifiedRef.current = onDisqualified;
     }, [onDisqualified]);
 
-    const initViolations = (count: number, hasPenalty: boolean, status: string = 'JOINED') => {
+    const initViolations = (count: number, hasPenalty: boolean, status: string = 'JOINED', silent: boolean = false) => {
         setViolationCount(count);
         violationRef.current = count;
         setScorePenalty(hasPenalty);
+
+        if (silent) return;
 
         if (status === 'JOINED') {
             if (count === 1 || count === 2) {

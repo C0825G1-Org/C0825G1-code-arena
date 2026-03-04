@@ -34,15 +34,17 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
      */
     useEffect(() => {
         const isExamMode = !!contestId;
-        if (isReadOnly) return; // Không load từ localStorage khi read-only, code sẽ được set từ API
         const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
-        const saved = localStorage.getItem(storageKey);
+        const saved = isReadOnly ? null : localStorage.getItem(storageKey);
 
         setCodeMap((prev) => {
+            // Nếu đã có code cho ngôn ngữ này trong memory rồi thì không ghi đè (tránh mất code vừa gõ khi sync)
             if (prev[language] !== undefined) return prev;
+
+            // Ưu tiên: code từ localStorage (nếu không read-only) -> boilerplate
             return {
                 ...prev,
-                [language]: saved !== null ? saved : boilerplateMap[language]
+                [language]: saved !== null ? saved : (boilerplateMap[language] ?? "")
             };
         });
     }, [language, problemId, userId, contestId, contextMode, isReadOnly]);
@@ -144,6 +146,7 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
         language,
         code: currentCode,
         setCode: handleCodeChange,
+        setRawCode: (newCode: string) => setCodeMap(prev => ({ ...prev, [language]: newCode })),
         changeLanguage,
         submit,
         resetCode,

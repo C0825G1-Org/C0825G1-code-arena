@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { contestService } from '../../home/services/contestService';
 import { Language } from './useArena';
-import { LANGUAGE_NAME_TO_ID } from '../constants';
+import { LANGUAGE_NAME_TO_ID, boilerplateMap } from '../constants';
 import { ContestDetailData } from '../../contests/pages/UserContestDetailPage';
 
 interface UseContestSubmitProps {
@@ -143,6 +143,13 @@ export const useContestSubmit = ({
                     bestLang = lang;
                 }
             }
+
+            // Nếu không tìm thấy code đã lưu, lấy boilerplate mặc định của ngôn ngữ hiện tại
+            if (!bestCode || bestCode.trim() === "") {
+                bestCode = boilerplateMap[language] ?? "";
+                bestLang = language;
+            }
+
             const finalLangId = LANGUAGE_NAME_TO_ID[bestLang] ?? 1;
             return axiosClient.post('/submissions', {
                 problemId: p.id,

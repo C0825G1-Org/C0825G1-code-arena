@@ -66,7 +66,7 @@ const TestCaseItem: React.FC<TestCaseItemProps> = React.memo(({
                 </div>
                 <div className="text-slate-400 text-sm flex gap-4">
                     <span>⏱️ {executionTime}ms</span>
-                    <span>💾 {memoryUsed}MB</span>
+                    <span>💾 {memoryUsed}KB</span>
                     <span className="text-xl">{isOpen ? '▾' : '▸'}</span>
                 </div>
             </div>
