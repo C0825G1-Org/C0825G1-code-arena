@@ -10,6 +10,7 @@ interface EditorHeaderProps {
     isCapturing: boolean;
     contestTitle?: string;
     contestEndTime?: string;
+    isWaitingRoom?: boolean;
     isTimeUp: boolean;
     onTimeUp: () => void;
     onManualExit: () => void;
@@ -22,6 +23,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
     isCapturing,
     contestTitle,
     contestEndTime,
+    isWaitingRoom = false,
     isTimeUp,
     onTimeUp,
     onManualExit
@@ -56,7 +58,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                     </span>
                 )}
 
-                {isExamMode && (
+                {isExamMode && !isWaitingRoom && (
                     <div className={`flex items-center gap-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-tighter text-white bg-emerald-600 rounded-md shadow-sm transition-all duration-500 ${isCapturing ? 'opacity-50' : 'opacity-100'}`}>
                         <ShieldCheck size={14} weight="fill" />
                         <span>SECURE MODE</span>
@@ -66,7 +68,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
 
             {/* Middle: Title or Contest Time */}
             <div className="tour-contest-timer flex items-center justify-center flex-1">
-                {isExamMode && contestEndTime && (
+                {isExamMode && contestEndTime && !isWaitingRoom && (
                     <div className="flex items-center gap-3 bg-[#1e293b] px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
                         <List size={20} weight="bold" className="text-blue-400" />
                         <span className="text-slate-200 font-semibold truncate max-w-[200px]">{contestTitle}</span>
@@ -85,7 +87,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                     onClick={onManualExit}
                     className="tour-exit-btn flex items-center gap-2 px-4 py-2 hover:bg-red-500/10 text-red-400 font-bold rounded-xl transition-all border border-red-500/10 hover:border-red-500/30"
                 >
-                    <SignOut size={20} weight="bold" /> {isExamMode ? 'Kết thúc thi' : 'Thoát'}
+                    <SignOut size={20} weight="bold" /> {isExamMode && !isWaitingRoom ? 'Kết thúc thi' : 'Thoát'}
                 </button>
             </div>
         </header>

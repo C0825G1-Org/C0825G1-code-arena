@@ -9,7 +9,7 @@ type CodeByLanguage = {
     [key in Language]?: string;
 };
 
-export function useArena(problemId: number, contestId?: string | null) {
+export function useArena(problemId: number, contestId?: string | null, isReadOnly = false) {
     const { user } = useSelector((state: RootState) => state.auth);
     const userId = user?.id || "guest";
     const contextMode = contestId ? `contest:${contestId}` : "practice";
@@ -34,36 +34,39 @@ export function useArena(problemId: number, contestId?: string | null) {
      */
     useEffect(() => {
         const isExamMode = !!contestId;
+        if (isReadOnly) return; // Không load từ localStorage khi read-only, code sẽ được set từ API
         const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
-        const saved = localStorage.getItem(storageKey); // Khôi phục code từ localStorage cho cả Practice và Contest
+        const saved = localStorage.getItem(storageKey);
 
         setCodeMap((prev) => {
-            if (prev[language] !== undefined) return prev; // Đã load trong mapping memory
+            if (prev[language] !== undefined) return prev;
             return {
                 ...prev,
                 [language]: saved !== null ? saved : boilerplateMap[language]
             };
         });
-    }, [language, problemId, userId, contestId, contextMode]);
+    }, [language, problemId, userId, contestId, contextMode, isReadOnly]);
 
 
     /**
      * Auto save (debounce 2s)
      */
     useEffect(() => {
-        if (!currentCode) return;
+        if (!currentCode || isReadOnly) return; // Không lưu khi read-only để tránh ghi đè code rỗng
         const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
 
         const timer = setTimeout(() => {
             localStorage.setItem(storageKey, currentCode);
-        }, 1500); // Giảm xuống 1.5s để lưu nhanh hơn
+        }, 1500);
 
         return () => {
             clearTimeout(timer);
-            // Lưu ngay lập tức khi unmount hoặc đổi bài/ngôn ngữ (đặc biệt quan trọng cho Contest)
-            localStorage.setItem(storageKey, currentCode);
+            if (!isReadOnly) {
+                // Lưu ngay khi unmount (không lưu khi read-only)
+                localStorage.setItem(storageKey, currentCode);
+            }
         };
-    }, [currentCode, language, problemId, userId, contextMode]);
+    }, [currentCode, language, problemId, userId, contextMode, isReadOnly]);
 
     /**
      * Set unsaved flag when code changes
