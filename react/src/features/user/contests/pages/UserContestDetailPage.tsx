@@ -357,7 +357,7 @@ export const UserContestDetailPage = () => {
                     <div className="w-full lg:w-[380px] shrink-0 space-y-6">
 
                         {/* Registration Card */}
-                        <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-600/40 sticky top-[100px] shadow-2xl">
+                        <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-600/40 top-[100px] shadow-2xl">
 
                             {/* Countdown / Status emphasis */}
                             <div className="text-center mb-8 pb-8 border-b border-slate-700/50">

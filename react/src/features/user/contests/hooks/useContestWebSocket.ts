@@ -39,7 +39,7 @@ export const useContestWebSocket = (
 
         // Init Socket.IO Client
         // Note: The port 9092 is handled by Dev Nguyen's SocketIOServer
-        const socket: Socket = io('http://localhost:9092', {
+        const socket: Socket = io('/', {
             query: { token },
             transports: ['websocket'],
             reconnection: true,

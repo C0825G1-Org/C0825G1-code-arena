@@ -18,6 +18,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../app/store";
 import { contestService } from "../../home/services/contestService";
 import { ContestDetailData } from "../../contests/pages/UserContestDetailPage";
+import { useSocket } from "../../../../shared/hooks/useSocket";
+import { getIceServers } from "../../../../shared/config/webrtcConfig";
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -39,6 +41,14 @@ export default function Home() {
     const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
     const location = useLocation();
     const [contest, setContest] = useState<ContestDetailData | null>(null);
+
+    // WebRTC Real-time proctoring state
+    const webRTCSocket: any = useSocket();
+    const [isLiveMonitoring, setIsLiveMonitoring] = useState(false);
+    const localStreamRef = useRef<MediaStream | null>(null);
+    const peerRef = useRef<RTCPeerConnection | null>(null);
+    const isConnectingRef = useRef<boolean>(false);
+    const pendingSignals = useRef<any[]>([]);
 
     useEffect(() => {
         // Guard: Nếu là bài thi mà chưa đăng nhập thì chuyển hướng sang login
@@ -70,6 +80,150 @@ export default function Home() {
     const [violationCount, setViolationCount] = useState(0);  // Số lần rời màn hình thi
     const [scorePenalty, setScorePenalty] = useState(false);  // Lần 2: chia đôi điểm
     const violationRef = useRef(0);                      // Ref để tránh stale closure
+
+    // WebRTC Passive Mode Effect
+    useEffect(() => {
+        // Only trigger inside an exam session
+        if (!isExamMode || !webRTCSocket) return;
+
+        const stopProctoringLocally = (reason?: string) => {
+            setIsLiveMonitoring(false);
+            isConnectingRef.current = false;
+
+            // Notify moderator that proctoring has ended
+            if (currentModeratorId && webRTCSocket) {
+                webRTCSocket.emit('proctoring-disconnected', {
+                    toUserId: currentModeratorId,
+                    reason: reason || 'Thí sinh đã ngắt kết nối camera.'
+                });
+            }
+
+            if (peerRef.current) {
+                try { peerRef.current.close(); } catch (e) { }
+                peerRef.current = null;
+            }
+
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+                localStreamRef.current = null;
+            }
+            pendingSignals.current = [];
+        };
+
+        // Track which moderator we're currently connected to
+        let currentModeratorId: number | null = null;
+
+        const handleRequestCam = async (moderatorId: number) => {
+            if (isConnectingRef.current) {
+                console.log("[Contestant] Ignored duplicate camera request, currently connecting.");
+                return;
+            }
+
+            try {
+                isConnectingRef.current = true;
+                stopProctoringLocally();
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                localStreamRef.current = stream;
+                setIsLiveMonitoring(true);
+                currentModeratorId = moderatorId;
+
+                const iceServers = await getIceServers();
+                const pc = new RTCPeerConnection({ iceServers });
+                peerRef.current = pc;
+
+                // Add local camera tracks to the connection
+                stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+                // Send ICE candidates to moderator
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        console.log("[Contestant] Sending ICE candidate to Mod", moderatorId);
+                        webRTCSocket.emit('webrtc-signal', {
+                            toUserId: moderatorId,
+                            signal: event.candidate.toJSON()
+                        });
+                    }
+                };
+
+                pc.onconnectionstatechange = () => {
+                    console.log("[Contestant] Connection state:", pc.connectionState);
+                    if (pc.connectionState === 'connected') {
+                        console.log("[Contestant] WebRTC P2P Connection ESTABLISHED with Mod!");
+                        isConnectingRef.current = false;
+                    }
+                    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected' || pc.connectionState === 'closed') {
+                        console.log("[Contestant] WebRTC connection ENDED:", pc.connectionState);
+                        stopProctoringLocally('Kết nối WebRTC đã bị ngắt (' + pc.connectionState + ').');
+                    }
+                };
+
+                // Process any queued offer signals
+                if (pendingSignals.current.length > 0) {
+                    console.log(`[Contestant] Processing ${pendingSignals.current.length} queued signals after Peer creation`);
+                    for (const signal of pendingSignals.current) {
+                        await processSignal(pc, signal, moderatorId);
+                    }
+                    pendingSignals.current = [];
+                }
+
+                // Safety timeout
+                setTimeout(() => { isConnectingRef.current = false; }, 10000);
+
+            } catch (err) {
+                console.error("[Contestant] Camera access denied or missing:", err);
+                toast.error("Không thể bật Camera. Hệ thống giám sát có thể sẽ báo vi phạm.");
+                // Notify moderator that camera was denied
+                webRTCSocket.emit('camera-denied', {
+                    toUserId: moderatorId,
+                    reason: 'Thí sinh đã từ chối quyền truy cập Camera hoặc không có thiết bị Camera.'
+                });
+                isConnectingRef.current = false;
+            }
+        };
+
+        const processSignal = async (pc: RTCPeerConnection, signal: any, moderatorId: number) => {
+            try {
+                if (signal.type === 'offer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(signal));
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    console.log("[Contestant] Created answer, sending to Mod", moderatorId);
+                    webRTCSocket.emit('webrtc-signal', {
+                        toUserId: moderatorId,
+                        signal: pc.localDescription
+                    });
+                } else if (signal.candidate) {
+                    await pc.addIceCandidate(new RTCIceCandidate(signal));
+                    console.log("[Contestant] Added ICE candidate from Mod");
+                }
+            } catch (err) {
+                console.error("[Contestant] Signal processing error:", err);
+            }
+        };
+
+        const handleWebrtcSignal = async (data: any) => {
+            console.log("[Contestant] Received WebRTC signal from Mod", data.fromUserId, ":", data.signal.type || "candidate");
+            const pc = peerRef.current;
+            if (pc) {
+                await processSignal(pc, data.signal, data.fromUserId);
+            } else {
+                console.log("[Contestant] Queueing incoming signal because peer is not ready");
+                pendingSignals.current.push(data.signal);
+            }
+        };
+
+        webRTCSocket.on('moderator-request-cam', handleRequestCam);
+        webRTCSocket.on('webrtc-signal', handleWebrtcSignal);
+        webRTCSocket.on('stop-proctoring', stopProctoringLocally);
+
+        return () => {
+            webRTCSocket.off('moderator-request-cam', handleRequestCam);
+            webRTCSocket.off('webrtc-signal', handleWebrtcSignal);
+            webRTCSocket.off('stop-proctoring', stopProctoringLocally);
+            stopProctoringLocally();
+        };
+    }, [webRTCSocket, isExamMode]);
 
     // Anti-cheat & Fullscreen logic
     useEffect(() => {
@@ -207,7 +361,7 @@ export default function Home() {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post('http://localhost:8080/api/submissions', {
+            const response = await axios.post('/api/submissions', {
                 problemId: problemId,
                 languageId: langId,
                 sourceCode: code,
@@ -290,6 +444,12 @@ export default function Home() {
                         <span className="text-slate-600">/</span>
                         <span className="text-slate-200">Problem {problemId}</span>
                     </div>
+                    {isLiveMonitoring && (
+                        <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-500 bg-[#450a0a] border border-red-500/30 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)] ml-4">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            Live Proctoring
+                        </span>
+                    )}
                     {isExamMode ? (
                         <span className="px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-red-400 bg-red-500/10 border border-red-500/20 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                             <span className="relative flex h-2 w-2">

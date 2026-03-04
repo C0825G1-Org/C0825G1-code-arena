@@ -16,7 +16,7 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
     useEffect(() => {
         const fetchSubmissions = async () => {
             try {
-                let apiUrl = `http://localhost:8080/api/submissions/me?problemId=${problemId}`;
+                let apiUrl = `/api/submissions/me?problemId=${problemId}`;
                 if (contestId) {
                     apiUrl += `&contestId=${contestId}`;
                 }

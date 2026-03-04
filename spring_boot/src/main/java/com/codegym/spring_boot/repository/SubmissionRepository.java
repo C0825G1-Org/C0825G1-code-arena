@@ -107,4 +107,13 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
          + "com.codegym.spring_boot.entity.enums.SubmissionStatus.judging) "
          + "GROUP BY s.status")
     List<Object[]> countByStatus();
+
+    // --- Monitor Dashboard Queries ---
+    int countByContestId(Integer contestId);
+
+    long countByUserIdAndContestId(Integer userId, Integer contestId);
+
+    long countByUserIdAndContestIdAndStatus(Integer userId, Integer contestId, SubmissionStatus status);
+
+    org.springframework.data.domain.Page<Submission> findByContestIdOrderByCreatedAtDesc(Integer contestId, org.springframework.data.domain.Pageable pageable);
 }
