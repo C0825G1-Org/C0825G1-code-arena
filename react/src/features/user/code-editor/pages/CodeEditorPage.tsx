@@ -19,8 +19,7 @@ import { RootState } from "../../../../app/store";
 import { contestService } from "../../home/services/contestService";
 import { ContestDetailData } from "../../contests/pages/UserContestDetailPage";
 import { useSocket } from "../../../../shared/hooks/useSocket";
-import Peer from "simple-peer";
-import { iceServers } from "../../../../shared/config/webrtcConfig";
+import { getIceServers } from "../../../../shared/config/webrtcConfig";
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -45,10 +44,11 @@ export default function Home() {
 
     // WebRTC Real-time proctoring state
     const webRTCSocket: any = useSocket();
-    const peerRef = useRef<any>(null);
-    const localStreamRef = useRef<MediaStream | null>(null);
-    const pendingSignals = useRef<any[]>([]);
     const [isLiveMonitoring, setIsLiveMonitoring] = useState(false);
+    const localStreamRef = useRef<MediaStream | null>(null);
+    const peerRef = useRef<RTCPeerConnection | null>(null);
+    const isConnectingRef = useRef<boolean>(false);
+    const pendingSignals = useRef<any[]>([]);
 
     useEffect(() => {
         // Guard: Nếu là bài thi mà chưa đăng nhập thì chuyển hướng sang login
@@ -88,72 +88,112 @@ export default function Home() {
 
         const stopProctoringLocally = () => {
             setIsLiveMonitoring(false);
+            isConnectingRef.current = false;
+
             if (peerRef.current) {
-                try { peerRef.current.destroy(); } catch (e) { }
+                try { peerRef.current.close(); } catch (e) { }
                 peerRef.current = null;
             }
+
             if (localStreamRef.current) {
                 localStreamRef.current.getTracks().forEach(track => track.stop());
                 localStreamRef.current = null;
             }
+            pendingSignals.current = [];
         };
 
+        // Track which moderator we're currently connected to
+        let currentModeratorId: number | null = null;
+
         const handleRequestCam = async (moderatorId: number) => {
+            if (isConnectingRef.current) {
+                console.log("[Contestant] Ignored duplicate camera request, currently connecting.");
+                return;
+            }
+
             try {
-                // Ensure any previous is dead
+                isConnectingRef.current = true;
                 stopProctoringLocally();
 
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 localStreamRef.current = stream;
                 setIsLiveMonitoring(true);
+                currentModeratorId = moderatorId;
 
-                const peer = new Peer({
-                    initiator: false,
-                    stream: stream,
-                    config: { iceServers }
-                });
-                peerRef.current = peer;
+                const iceServers = await getIceServers();
+                const pc = new RTCPeerConnection({ iceServers });
+                peerRef.current = pc;
 
-                peer.on('signal', (signalData: any) => {
-                    console.log("[Contestant] Generated WebRTC signal, sending to Mod", moderatorId, ":", signalData.type || "candidate");
-                    webRTCSocket.emit('webrtc-signal', {
-                        toUserId: moderatorId,
-                        signal: signalData
-                    });
-                });
+                // Add local camera tracks to the connection
+                stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-                peer.on('connect', () => {
-                    console.log("[Contestant] WebRTC P2P Connection ESTABLISHED with Mod!");
-                });
+                // Send ICE candidates to moderator
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        console.log("[Contestant] Sending ICE candidate to Mod", moderatorId);
+                        webRTCSocket.emit('webrtc-signal', {
+                            toUserId: moderatorId,
+                            signal: event.candidate.toJSON()
+                        });
+                    }
+                };
 
-                peer.on('close', () => {
-                    console.log("[Contestant] WebRTC P2P Connection CLOSED");
-                    stopProctoringLocally();
-                });
-                peer.on('error', (err: any) => {
-                    console.error('[Contestant] WebRTC Error:', err);
-                    stopProctoringLocally();
-                });
+                pc.onconnectionstatechange = () => {
+                    console.log("[Contestant] Connection state:", pc.connectionState);
+                    if (pc.connectionState === 'connected') {
+                        console.log("[Contestant] WebRTC P2P Connection ESTABLISHED with Mod!");
+                        isConnectingRef.current = false;
+                    }
+                    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected' || pc.connectionState === 'closed') {
+                        console.log("[Contestant] WebRTC connection ENDED:", pc.connectionState);
+                        stopProctoringLocally();
+                    }
+                };
 
-                // Process any signals that arrived early
+                // Process any queued offer signals
                 if (pendingSignals.current.length > 0) {
-                    console.log(`[Contestant] Processing ${pendingSignals.current.length} queued signals immediately after Peer creation`);
-                    pendingSignals.current.forEach(signal => {
-                        if (!peer.destroyed) peer.signal(signal);
-                    });
+                    console.log(`[Contestant] Processing ${pendingSignals.current.length} queued signals after Peer creation`);
+                    for (const signal of pendingSignals.current) {
+                        await processSignal(pc, signal, moderatorId);
+                    }
                     pendingSignals.current = [];
                 }
+
+                // Safety timeout
+                setTimeout(() => { isConnectingRef.current = false; }, 10000);
 
             } catch (err) {
                 console.error("[Contestant] Camera access denied or missing:", err);
                 toast.error("Không thể bật Camera. Hệ thống giám sát có thể sẽ báo vi phạm.");
+                isConnectingRef.current = false;
             }
         };
 
-        const handleWebrtcSignal = (data: any) => {
+        const processSignal = async (pc: RTCPeerConnection, signal: any, moderatorId: number) => {
+            try {
+                if (signal.type === 'offer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(signal));
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    console.log("[Contestant] Created answer, sending to Mod", moderatorId);
+                    webRTCSocket.emit('webrtc-signal', {
+                        toUserId: moderatorId,
+                        signal: pc.localDescription
+                    });
+                } else if (signal.candidate) {
+                    await pc.addIceCandidate(new RTCIceCandidate(signal));
+                    console.log("[Contestant] Added ICE candidate from Mod");
+                }
+            } catch (err) {
+                console.error("[Contestant] Signal processing error:", err);
+            }
+        };
+
+        const handleWebrtcSignal = async (data: any) => {
             console.log("[Contestant] Received WebRTC signal from Mod", data.fromUserId, ":", data.signal.type || "candidate");
-            if (peerRef.current && !peerRef.current.destroyed) {
-                peerRef.current.signal(data.signal);
+            const pc = peerRef.current;
+            if (pc) {
+                await processSignal(pc, data.signal, data.fromUserId);
             } else {
                 console.log("[Contestant] Queueing incoming signal because peer is not ready");
                 pendingSignals.current.push(data.signal);

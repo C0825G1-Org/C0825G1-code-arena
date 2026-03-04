@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../../../shared/hooks/useSocket';
-import Peer from 'simple-peer';
-import { iceServers } from '../../../../shared/config/webrtcConfig';
+import { getIceServers } from '../../../../shared/config/webrtcConfig';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
@@ -30,9 +29,10 @@ export const MonitorPanelPage = () => {
     // WebRTC Active Proctoring State
     const [viewingUser, setViewingUser] = useState<any | null>(null);
     const viewingUserRef = React.useRef<any>(null);
-    const peerRef = React.useRef<any>(null);
+    const peerRef = React.useRef<RTCPeerConnection | null>(null);
     const videoRef = React.useRef<HTMLVideoElement>(null);
     const [streamToPlay, setStreamToPlay] = useState<MediaStream | null>(null);
+    const [isInitiatingCamera, setIsInitiatingCamera] = useState(false);
 
     useEffect(() => {
         if (streamToPlay && videoRef.current) {
@@ -101,17 +101,29 @@ export const MonitorPanelPage = () => {
             toast.success(`Một thí sinh mới vừa tham gia vòng thi!`, { icon: '👋' });
         });
 
-        const handleWebrtcSignal = (data: any) => {
+        const handleWebrtcSignal = async (data: any) => {
             console.log("[Moderator] Received WebRTC signal from Contestant", data.fromUserId, ":", data.signal.type || "candidate");
-            if (peerRef.current && !peerRef.current.destroyed) {
-                // Important: Verify the signal is from the person we are CURRENTLY viewing
-                if (viewingUserRef.current && data.fromUserId === viewingUserRef.current.userId) {
-                    peerRef.current.signal(data.signal);
-                } else {
-                    console.log("[Moderator] Ignored signal from User", data.fromUserId, "because viewing User is", viewingUserRef.current?.userId);
+            const pc = peerRef.current;
+            if (!pc) {
+                console.warn("[Moderator] Received signal but peerRef is not active.");
+                return;
+            }
+            // Verify signal is from the person we are CURRENTLY viewing
+            if (!viewingUserRef.current || data.fromUserId !== viewingUserRef.current.userId) {
+                console.log("[Moderator] Ignored signal from User", data.fromUserId, "because viewing User is", viewingUserRef.current?.userId);
+                return;
+            }
+            try {
+                const signal = data.signal;
+                if (signal.type === 'answer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(signal));
+                    console.log("[Moderator] Set remote description (answer)");
+                } else if (signal.candidate) {
+                    await pc.addIceCandidate(new RTCIceCandidate(signal));
+                    console.log("[Moderator] Added ICE candidate");
                 }
-            } else {
-                console.warn("[Moderator] Received signal but peerRef is not active or is destroyed.");
+            } catch (err) {
+                console.error("[Moderator] Signal processing error:", err);
             }
         };
 
@@ -190,62 +202,84 @@ export const MonitorPanelPage = () => {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const startViewingCamera = (user: any) => {
+    const startViewingCamera = async (user: any) => {
+        if (isInitiatingCamera) {
+            toast.error('Vui lòng đợi 3 giây trước khi gọi Camera tiếp theo.', { id: 'web-rtc-wait' });
+            return;
+        }
+
         // Enforce single thread: Kill previous connection if any
         if (viewingUserRef.current && viewingUserRef.current.userId !== user.userId) {
             stopViewingCamera();
         }
 
+        setIsInitiatingCamera(true);
+        setTimeout(() => setIsInitiatingCamera(false), 5000);
+
         viewingUserRef.current = user;
         setViewingUser(user);
         setStreamToPlay(null);
-        toast('Đang thiết lập kết nối mã hóa...', { icon: '🔒' });
+        toast('Đang thiết lập kết nối ...', { icon: '🔒' });
 
-        // Let React state update phase finish before refs access the modal
-        setTimeout(() => {
+        // STEP 1: Tell contestant to open camera FIRST
+        socket.emit('request-camera', { toUserId: user.userId });
+
+        // STEP 2: Wait for contestant to create RTCPeerConnection before sending offer
+        setTimeout(async () => {
             try {
-                // Removing strict relay policy since free TURN servers often drop video packets
-                const peer = new Peer({
-                    initiator: true,
-                    config: { iceServers }
-                });
-                peerRef.current = peer;
+                // Check if we're still viewing this user (might have cancelled)
+                if (viewingUserRef.current?.userId !== user.userId) return;
 
-                peer.on('signal', (signalData: any) => {
-                    console.log("[Moderator] Generated WebRTC signal, sending to Contestant", user.userId, ":", signalData.type || "candidate");
-                    socket.emit('webrtc-signal', {
-                        toUserId: user.userId,
-                        signal: signalData
-                    });
-                });
+                const iceServers = await getIceServers();
+                const pc = new RTCPeerConnection({ iceServers });
+                peerRef.current = pc;
 
-                peer.on('connect', () => {
-                    console.log("[Moderator] WebRTC P2P Connection ESTABLISHED with", user.userId);
-                    toast.success('Đã kết nối luồng Live Video trực tiếp!', { icon: '🟢' });
-                });
+                // Send ICE candidates to contestant
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        console.log("[Moderator] ICE candidate type:", event.candidate.type, "| protocol:", event.candidate.protocol, "| address:", event.candidate.address);
+                        socket.emit('webrtc-signal', {
+                            toUserId: user.userId,
+                            signal: event.candidate.toJSON()
+                        });
+                    } else {
+                        console.log("[Moderator] ICE gathering complete");
+                    }
+                };
 
-                peer.on('stream', (stream: any) => {
-                    console.log("[Moderator] Received MediaStream from Contestant!", stream.id, "Audio Tracks:", stream.getAudioTracks().length, "Video Tracks:", stream.getVideoTracks().length);
-                    setStreamToPlay(stream);
-                });
+                // Receive remote video stream
+                pc.ontrack = (event) => {
+                    console.log("[Moderator] Received remote track from Contestant!", event.streams[0]?.id);
+                    if (event.streams && event.streams[0]) {
+                        setStreamToPlay(event.streams[0]);
+                        toast.success('Đã kết nối luồng Live Video trực tiếp!', { icon: '🟢' });
+                    }
+                };
 
-                peer.on('close', () => {
-                    console.log("[Moderator] WebRTC connection CLOSED with Contestant", user.userId);
-                    stopViewingCamera();
-                });
+                pc.onconnectionstatechange = () => {
+                    console.log("[Moderator] Connection state:", pc.connectionState);
+                    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+                        console.log("[Moderator] WebRTC connection FAILED/DISCONNECTED");
+                        toast.error('Mất kết nối Camera với thí sinh.');
+                        stopViewingCamera();
+                    }
+                };
 
-                peer.on('error', (err: any) => {
-                    console.error('[Moderator] WebRTC Error:', err);
-                    toast.error('Lỗi khi thiết lập Camera: Thí sinh từ chối hoặc mạng yếu.');
-                    stopViewingCamera();
-                });
+                // Create offer requesting video
+                const offer = await pc.createOffer({ offerToReceiveVideo: true, offerToReceiveAudio: false });
+                await pc.setLocalDescription(offer);
+                console.log("[Moderator] Created and set local offer, sending to Contestant", user.userId);
 
-                // Emit start signal backend router
-                socket.emit('request-camera', { toUserId: user.userId });
+                socket.emit('webrtc-signal', {
+                    toUserId: user.userId,
+                    signal: pc.localDescription
+                });
             } catch (err) {
-                console.error("Initiator Peer creation failed", err);
+                console.error("[Moderator] RTCPeerConnection creation failed", err);
+                toast.error('Lỗi khi khởi tạo kết nối WebRTC.');
+                stopViewingCamera();
             }
-        }, 100);
+        }, 1000); // Wait 1 second for contestant to open camera & create peer
     };
 
     const stopViewingCamera = () => {
@@ -255,10 +289,12 @@ export const MonitorPanelPage = () => {
         viewingUserRef.current = null;
         setViewingUser(null);
         setStreamToPlay(null);
+
         if (peerRef.current) {
-            try { peerRef.current.destroy(); } catch (e) { }
+            try { peerRef.current.close(); } catch (e) { }
             peerRef.current = null;
         }
+
         if (videoRef.current) {
             videoRef.current.srcObject = null;
         }
@@ -381,10 +417,11 @@ export const MonitorPanelPage = () => {
                                         <td className="py-4 px-4 text-center">
                                             <button
                                                 onClick={() => startViewingCamera(user)}
-                                                className={`p-2 rounded-lg transition-colors border ${viewingUser?.userId === user.userId ? 'bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.3)] text-rose-400 border-rose-500/50' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border-blue-500/20'}`}
+                                                disabled={isInitiatingCamera && viewingUser?.userId !== user.userId}
+                                                className={`p-2 rounded-lg transition-colors border ${viewingUser?.userId === user.userId ? 'bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.3)] text-rose-400 border-rose-500/50' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed'}`}
                                                 title="Xem WebRTC Camera (Live)"
                                             >
-                                                <i className={`ph-fill ${viewingUser?.userId === user.userId ? 'ph-video-camera-slash' : 'ph-video-camera'} text-xl`}></i>
+                                                <i className={`ph-bold ${viewingUser?.userId === user.userId ? 'ph-video-camera-slash animate-pulse' : 'ph-video-camera'}`}></i>
                                             </button>
                                         </td>
                                     </tr>
