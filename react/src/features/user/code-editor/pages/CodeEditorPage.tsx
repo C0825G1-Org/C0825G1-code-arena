@@ -86,9 +86,17 @@ export default function Home() {
         // Only trigger inside an exam session
         if (!isExamMode || !webRTCSocket) return;
 
-        const stopProctoringLocally = () => {
+        const stopProctoringLocally = (reason?: string) => {
             setIsLiveMonitoring(false);
             isConnectingRef.current = false;
+
+            // Notify moderator that proctoring has ended
+            if (currentModeratorId && webRTCSocket) {
+                webRTCSocket.emit('proctoring-disconnected', {
+                    toUserId: currentModeratorId,
+                    reason: reason || 'Thí sinh đã ngắt kết nối camera.'
+                });
+            }
 
             if (peerRef.current) {
                 try { peerRef.current.close(); } catch (e) { }
@@ -146,7 +154,7 @@ export default function Home() {
                     }
                     if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected' || pc.connectionState === 'closed') {
                         console.log("[Contestant] WebRTC connection ENDED:", pc.connectionState);
-                        stopProctoringLocally();
+                        stopProctoringLocally('Kết nối WebRTC đã bị ngắt (' + pc.connectionState + ').');
                     }
                 };
 
@@ -165,6 +173,11 @@ export default function Home() {
             } catch (err) {
                 console.error("[Contestant] Camera access denied or missing:", err);
                 toast.error("Không thể bật Camera. Hệ thống giám sát có thể sẽ báo vi phạm.");
+                // Notify moderator that camera was denied
+                webRTCSocket.emit('camera-denied', {
+                    toUserId: moderatorId,
+                    reason: 'Thí sinh đã từ chối quyền truy cập Camera hoặc không có thiết bị Camera.'
+                });
                 isConnectingRef.current = false;
             }
         };

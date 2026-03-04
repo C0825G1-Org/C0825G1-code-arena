@@ -132,8 +132,28 @@ export const MonitorPanelPage = () => {
             stopViewingCamera();
         };
 
+        const handleCameraDenied = (data: any) => {
+            console.log("[Moderator] Camera denied by contestant:", data.reason);
+            toast.error(data.reason || 'Thí sinh đã từ chối bật Camera.', {
+                icon: '🚫',
+                duration: 5000,
+            });
+            stopViewingCamera();
+        };
+
+        const handleProctoringDisconnected = (data: any) => {
+            console.log("[Moderator] Proctoring disconnected:", data.reason);
+            toast.error(data.reason || 'Thí sinh đã ngắt kết nối camera.', {
+                icon: '⚠️',
+                duration: 5000,
+            });
+            stopViewingCamera();
+        };
+
         socket.on('webrtc-signal', handleWebrtcSignal);
         socket.on('stop-proctoring', handleStopProctoring);
+        socket.on('camera-denied', handleCameraDenied);
+        socket.on('proctoring-disconnected', handleProctoringDisconnected);
 
         return () => {
             socket.emit('leave_monitor', id);
@@ -144,6 +164,8 @@ export const MonitorPanelPage = () => {
             socket.off('monitor_new_participant');
             socket.off('webrtc-signal', handleWebrtcSignal);
             socket.off('stop-proctoring', handleStopProctoring);
+            socket.off('camera-denied', handleCameraDenied);
+            socket.off('proctoring-disconnected', handleProctoringDisconnected);
             stopViewingCamera();
         };
     }, [socket, id]);
