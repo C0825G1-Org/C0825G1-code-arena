@@ -14,7 +14,7 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
 
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 
-    @Value("${app.ngrok.url}")
+    @Value("${app.ngrok.url:}")
     private String ngrokUrl;
 
     public CustomOAuth2AuthorizationRequestResolver(ClientRegistrationRepository clientRegistrationRepository) {
@@ -39,12 +39,14 @@ public class CustomOAuth2AuthorizationRequestResolver implements OAuth2Authoriza
             return null;
         }
 
+        // If ngrokUrl is not configured (running locally), use default redirect URI
+        if (ngrokUrl == null || ngrokUrl.isBlank()) {
+            return req;
+        }
+
         // Use the explicit Ngrok URL from properties to build the redirect URI
-        // Fallback to removing trailing slash if user added it
         String cleanNgrokUrl = ngrokUrl.endsWith("/") ? ngrokUrl.substring(0, ngrokUrl.length() - 1) : ngrokUrl;
         String customRedirectUri = cleanNgrokUrl + "/login/oauth2/code/" + req.getAttribute("registration_id");
-
-        System.out.println("DEBUG OAUTH2 REDIRECT URI: " + customRedirectUri);
 
         return OAuth2AuthorizationRequest.from(req)
                 .redirectUri(customRedirectUri)
