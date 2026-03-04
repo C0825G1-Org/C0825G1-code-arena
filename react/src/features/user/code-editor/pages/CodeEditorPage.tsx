@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -38,7 +38,7 @@ export default function Home() {
     // Biết ngay từ đầu (từ localStorage) nếu đây là lượt xem lại bài thi
     // Để chặn useArena auto-load localStorage đè lên code do API trả về
     const examReadOnly = isExamMode && !!localStorage.getItem(`arena:contest_finished:${contestId || '0'}`);
-    const { language, code, setCode, changeLanguage, resetCode } = useArena(problemId, contestId, examReadOnly);
+    const { language, code, setCode, setRawCode, changeLanguage, resetCode } = useArena(problemId, contestId, examReadOnly);
 
     const { settings, updateSettings } = useSettings();
     const navigate = useNavigate();
@@ -54,6 +54,7 @@ export default function Home() {
 
     const [problemStatus, setProblemStatus] = useState<Record<number, { submitCount: number, isAC: boolean }>>({});
     const [contest, setContest] = useState<ContestDetailData | null>(null);
+    const hasInitViolations = useRef(false);
 
     // Sử dụng Custom Hooks mới tách
     const isWaitingRoom = isExamMode && contest?.status === 'upcoming';
@@ -141,7 +142,8 @@ export default function Home() {
                 .then(data => {
                     setContest(data);
                     if (data.violationCount !== undefined) {
-                        initViolations(data.violationCount, !!data.hasScorePenalty, data.participantStatus);
+                        initViolations(data.violationCount, !!data.hasScorePenalty, data.participantStatus, hasInitViolations.current);
+                        hasInitViolations.current = true;
                     }
 
                     if (data?.problems) {
@@ -164,16 +166,15 @@ export default function Home() {
                             if (list.length > 0) {
                                 const last = list[0]; // Đã sắp xếp DESC từ API
                                 const mappedLang = BACKEND_LANGUAGE_TO_EDITOR[last.languageName] as any;
-                                // Đổi ngôn ngữ trước
+
+                                // Nếu code rỗng/trắng thì dùng boilerplate mặc định
+                                const codeToShow = last.sourceCode?.trim()
+                                    ? last.sourceCode
+                                    : (boilerplateMap[mappedLang as Language] ?? '');
+
                                 if (mappedLang) changeLanguage(mappedLang);
-                                // Set code SAU (timeout nhỏ để tránh bị effect localStorage overwrite)
-                                setTimeout(() => {
-                                    // Nếu code rỗng/trắng thì dùng boilerplate mặc định
-                                    const codeToShow = last.sourceCode?.trim()
-                                        ? last.sourceCode
-                                        : (boilerplateMap[mappedLang as Language] ?? '');
-                                    setCode(codeToShow);
-                                }, 100);
+                                // Set code trực tiếp qua setRawCode (đã thêm vào useArena) để tránh lỗi sync
+                                setRawCode(codeToShow);
                             }
                         }).catch(console.warn);
                     }
