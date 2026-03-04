@@ -63,7 +63,7 @@ export default function Home() {
     });
 
     const { initViolations, triggerViolation } = useAntiCheat({
-        isExamMode,
+        isExamMode: isExamMode && !isWaitingRoom,
         contestId: contestId || undefined,
         onDisqualified: () => {
             setIsTimeUp(true);
@@ -73,7 +73,7 @@ export default function Home() {
 
     const { isCapturing } = useCameraSnapshot({
         contestId: contestId ? parseInt(contestId) : 0,
-        enabled: isExamMode && !!contest && contest.participantStatus === 'JOINED' && !isTimeUp,
+        enabled: isExamMode && !isWaitingRoom && !!contest && contest.participantStatus === 'JOINED' && !isTimeUp,
         interval: 60000,
         onCameraRefused: () => triggerViolation()
     });
