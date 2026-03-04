@@ -47,18 +47,34 @@ export const useContestSync = ({
         }
     );
 
-    // 1. BEFORE UNLOAD: Cảnh báo khi F5 hoặc Đóng tab
+    // 1. BEFORE UNLOAD: Cảnh báo + tính vi phạm khi F5, đóng tab, hoặc đổi URL
     useEffect(() => {
-        if (!isExamMode || isSubmittingExit) return;
+        // Chỉ kích hoạt khi đang thi (JOINED) và không phải đang submit/thoát chính thức
+        const isDone = contestStatus === 'FINISHED' || contestStatus === 'DISQUALIFIED';
+        if (!isExamMode || isSubmittingExit || isWaitingRoom || isDone || !contestId) return;
 
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            // Dùng fetch với keepalive:true – đảm bảo request gửi được dù page đang unload
+            // axios/axiosClient bị hủy khi page unload, fetch+keepalive thì không
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch(`http://localhost:8080/api/contests/${contestId}/violation`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    keepalive: true  // Key: request tiếp tục dù page đã unload
+                }).catch(() => { });
+            }
+            // Hiển thị dialog xác nhận của trình duyệt
             e.preventDefault();
-            e.returnValue = ''; // Hiển thị dialog mặc định của trình duyệt
+            e.returnValue = '';
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isExamMode, isSubmittingExit]);
+    }, [isExamMode, isSubmittingExit, isWaitingRoom, contestStatus, contestId]);
 
     // 2. CROSS-TAB SYNC: Thoát nếu đã thoát ở Tab khác
     useEffect(() => {
