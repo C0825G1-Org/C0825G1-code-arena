@@ -18,6 +18,9 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../app/store";
 import { contestService } from "../../home/services/contestService";
 import { ContestDetailData } from "../../contests/pages/UserContestDetailPage";
+import { useSocket } from "../../../../shared/hooks/useSocket";
+import Peer from "simple-peer";
+import { iceServers } from "../../../../shared/config/webrtcConfig";
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -39,6 +42,13 @@ export default function Home() {
     const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
     const location = useLocation();
     const [contest, setContest] = useState<ContestDetailData | null>(null);
+
+    // WebRTC Real-time proctoring state
+    const webRTCSocket: any = useSocket();
+    const peerRef = useRef<any>(null);
+    const localStreamRef = useRef<MediaStream | null>(null);
+    const pendingSignals = useRef<any[]>([]);
+    const [isLiveMonitoring, setIsLiveMonitoring] = useState(false);
 
     useEffect(() => {
         // Guard: Nếu là bài thi mà chưa đăng nhập thì chuyển hướng sang login
@@ -70,6 +80,97 @@ export default function Home() {
     const [violationCount, setViolationCount] = useState(0);  // Số lần rời màn hình thi
     const [scorePenalty, setScorePenalty] = useState(false);  // Lần 2: chia đôi điểm
     const violationRef = useRef(0);                      // Ref để tránh stale closure
+
+    // WebRTC Passive Mode Effect
+    useEffect(() => {
+        // Only trigger inside an exam session
+        if (!isExamMode || !webRTCSocket) return;
+
+        const stopProctoringLocally = () => {
+            setIsLiveMonitoring(false);
+            if (peerRef.current) {
+                try { peerRef.current.destroy(); } catch (e) { }
+                peerRef.current = null;
+            }
+            if (localStreamRef.current) {
+                localStreamRef.current.getTracks().forEach(track => track.stop());
+                localStreamRef.current = null;
+            }
+        };
+
+        const handleRequestCam = async (moderatorId: number) => {
+            try {
+                // Ensure any previous is dead
+                stopProctoringLocally();
+
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                localStreamRef.current = stream;
+                setIsLiveMonitoring(true);
+
+                const peer = new Peer({
+                    initiator: false,
+                    stream: stream,
+                    config: { iceServers }
+                });
+                peerRef.current = peer;
+
+                peer.on('signal', (signalData: any) => {
+                    console.log("[Contestant] Generated WebRTC signal, sending to Mod", moderatorId, ":", signalData.type || "candidate");
+                    webRTCSocket.emit('webrtc-signal', {
+                        toUserId: moderatorId,
+                        signal: signalData
+                    });
+                });
+
+                peer.on('connect', () => {
+                    console.log("[Contestant] WebRTC P2P Connection ESTABLISHED with Mod!");
+                });
+
+                peer.on('close', () => {
+                    console.log("[Contestant] WebRTC P2P Connection CLOSED");
+                    stopProctoringLocally();
+                });
+                peer.on('error', (err: any) => {
+                    console.error('[Contestant] WebRTC Error:', err);
+                    stopProctoringLocally();
+                });
+
+                // Process any signals that arrived early
+                if (pendingSignals.current.length > 0) {
+                    console.log(`[Contestant] Processing ${pendingSignals.current.length} queued signals immediately after Peer creation`);
+                    pendingSignals.current.forEach(signal => {
+                        if (!peer.destroyed) peer.signal(signal);
+                    });
+                    pendingSignals.current = [];
+                }
+
+            } catch (err) {
+                console.error("[Contestant] Camera access denied or missing:", err);
+                toast.error("Không thể bật Camera. Hệ thống giám sát có thể sẽ báo vi phạm.");
+            }
+        };
+
+        const handleWebrtcSignal = (data: any) => {
+            console.log("[Contestant] Received WebRTC signal from Mod", data.fromUserId, ":", data.signal.type || "candidate");
+            if (peerRef.current && !peerRef.current.destroyed) {
+                peerRef.current.signal(data.signal);
+            } else {
+                console.log("[Contestant] Queueing incoming signal because peer is not ready");
+                pendingSignals.current.push(data.signal);
+            }
+        };
+
+        webRTCSocket.on('moderator-request-cam', handleRequestCam);
+        webRTCSocket.on('webrtc-signal', handleWebrtcSignal);
+        webRTCSocket.on('stop-proctoring', stopProctoringLocally);
+
+        return () => {
+            webRTCSocket.off('moderator-request-cam', handleRequestCam);
+            webRTCSocket.off('webrtc-signal', handleWebrtcSignal);
+            webRTCSocket.off('stop-proctoring', stopProctoringLocally);
+            stopProctoringLocally();
+        };
+    }, [webRTCSocket, isExamMode]);
 
     // Anti-cheat & Fullscreen logic
     useEffect(() => {
@@ -290,6 +391,12 @@ export default function Home() {
                         <span className="text-slate-600">/</span>
                         <span className="text-slate-200">Problem {problemId}</span>
                     </div>
+                    {isLiveMonitoring && (
+                        <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-500 bg-[#450a0a] border border-red-500/30 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)] ml-4">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            Live Proctoring
+                        </span>
+                    )}
                     {isExamMode ? (
                         <span className="px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-red-400 bg-red-500/10 border border-red-500/20 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
                             <span className="relative flex h-2 w-2">

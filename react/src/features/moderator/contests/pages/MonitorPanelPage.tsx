@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../../../shared/hooks/useSocket';
+import Peer from 'simple-peer';
+import { iceServers } from '../../../../shared/config/webrtcConfig';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
@@ -24,6 +26,23 @@ export const MonitorPanelPage = () => {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const size = 5;
+
+    // WebRTC Active Proctoring State
+    const [viewingUser, setViewingUser] = useState<any | null>(null);
+    const viewingUserRef = React.useRef<any>(null);
+    const peerRef = React.useRef<any>(null);
+    const videoRef = React.useRef<HTMLVideoElement>(null);
+    const [streamToPlay, setStreamToPlay] = useState<MediaStream | null>(null);
+
+    useEffect(() => {
+        if (streamToPlay && videoRef.current) {
+            console.log("[Moderator] Binding stream to video element...", streamToPlay.id);
+            videoRef.current.srcObject = streamToPlay;
+            videoRef.current.onloadedmetadata = () => {
+                videoRef.current?.play().catch(e => console.error("[Moderator] AutoPlay prevented:", e));
+            };
+        }
+    }, [streamToPlay]);
 
     useEffect(() => {
         fetchInitialData();
@@ -82,6 +101,28 @@ export const MonitorPanelPage = () => {
             toast.success(`Một thí sinh mới vừa tham gia vòng thi!`, { icon: '👋' });
         });
 
+        const handleWebrtcSignal = (data: any) => {
+            console.log("[Moderator] Received WebRTC signal from Contestant", data.fromUserId, ":", data.signal.type || "candidate");
+            if (peerRef.current && !peerRef.current.destroyed) {
+                // Important: Verify the signal is from the person we are CURRENTLY viewing
+                if (viewingUserRef.current && data.fromUserId === viewingUserRef.current.userId) {
+                    peerRef.current.signal(data.signal);
+                } else {
+                    console.log("[Moderator] Ignored signal from User", data.fromUserId, "because viewing User is", viewingUserRef.current?.userId);
+                }
+            } else {
+                console.warn("[Moderator] Received signal but peerRef is not active or is destroyed.");
+            }
+        };
+
+        const handleStopProctoring = () => {
+            // If the student closes their stream or hardware disconnects
+            stopViewingCamera();
+        };
+
+        socket.on('webrtc-signal', handleWebrtcSignal);
+        socket.on('stop-proctoring', handleStopProctoring);
+
         return () => {
             socket.emit('leave_monitor', id);
             socket.off('connect', handleConnect);
@@ -89,6 +130,9 @@ export const MonitorPanelPage = () => {
             socket.off('monitor_submission_update');
             socket.off('monitor_leaderboard_update');
             socket.off('monitor_new_participant');
+            socket.off('webrtc-signal', handleWebrtcSignal);
+            socket.off('stop-proctoring', handleStopProctoring);
+            stopViewingCamera();
         };
     }, [socket, id]);
 
@@ -144,6 +188,80 @@ export const MonitorPanelPage = () => {
         const m = Math.floor((seconds % 3600) / 60);
         const s = seconds % 60;
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const startViewingCamera = (user: any) => {
+        // Enforce single thread: Kill previous connection if any
+        if (viewingUserRef.current && viewingUserRef.current.userId !== user.userId) {
+            stopViewingCamera();
+        }
+
+        viewingUserRef.current = user;
+        setViewingUser(user);
+        setStreamToPlay(null);
+        toast('Đang thiết lập kết nối mã hóa...', { icon: '🔒' });
+
+        // Let React state update phase finish before refs access the modal
+        setTimeout(() => {
+            try {
+                // Removing strict relay policy since free TURN servers often drop video packets
+                const peer = new Peer({
+                    initiator: true,
+                    config: { iceServers }
+                });
+                peerRef.current = peer;
+
+                peer.on('signal', (signalData: any) => {
+                    console.log("[Moderator] Generated WebRTC signal, sending to Contestant", user.userId, ":", signalData.type || "candidate");
+                    socket.emit('webrtc-signal', {
+                        toUserId: user.userId,
+                        signal: signalData
+                    });
+                });
+
+                peer.on('connect', () => {
+                    console.log("[Moderator] WebRTC P2P Connection ESTABLISHED with", user.userId);
+                    toast.success('Đã kết nối luồng Live Video trực tiếp!', { icon: '🟢' });
+                });
+
+                peer.on('stream', (stream: any) => {
+                    console.log("[Moderator] Received MediaStream from Contestant!", stream.id, "Audio Tracks:", stream.getAudioTracks().length, "Video Tracks:", stream.getVideoTracks().length);
+                    setStreamToPlay(stream);
+                });
+
+                peer.on('close', () => {
+                    console.log("[Moderator] WebRTC connection CLOSED with Contestant", user.userId);
+                    stopViewingCamera();
+                });
+
+                peer.on('error', (err: any) => {
+                    console.error('[Moderator] WebRTC Error:', err);
+                    toast.error('Lỗi khi thiết lập Camera: Thí sinh từ chối hoặc mạng yếu.');
+                    stopViewingCamera();
+                });
+
+                // Emit start signal backend router
+                socket.emit('request-camera', { toUserId: user.userId });
+            } catch (err) {
+                console.error("Initiator Peer creation failed", err);
+            }
+        }, 100);
+    };
+
+    const stopViewingCamera = () => {
+        if (viewingUserRef.current && socket) {
+            socket.emit('stop-proctoring', { toUserId: viewingUserRef.current.userId });
+        }
+        viewingUserRef.current = null;
+        setViewingUser(null);
+        setStreamToPlay(null);
+        if (peerRef.current) {
+            try { peerRef.current.destroy(); } catch (e) { }
+            peerRef.current = null;
+        }
+        if (videoRef.current) {
+            videoRef.current.srcObject = null;
+        }
     };
 
     const getStatusColor = (status: string) => {
@@ -234,8 +352,9 @@ export const MonitorPanelPage = () => {
                                     <th className="py-4 px-4 font-semibold rounded-l-lg">Hạng</th>
                                     <th className="py-4 px-4 font-semibold">Thí sinh</th>
                                     <th className="py-4 px-4 font-semibold text-center">Tỉ lệ AC</th>
-                                    <th className="py-4 px-4 font-semibold text-right">Penalty</th>
-                                    <th className="py-4 px-4 font-semibold text-right rounded-r-lg">Tổng điểm</th>
+                                    <th className="py-4 px-4 font-semibold text-center">Penalty</th>
+                                    <th className="py-4 px-4 font-semibold text-center">Tổng điểm</th>
+                                    <th className="py-4 px-4 font-semibold text-center rounded-r-lg">Ghi hình</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -253,11 +372,20 @@ export const MonitorPanelPage = () => {
                                         <td className="py-4 px-4 text-center">
                                             <span className="text-sm text-emerald-400 font-mono">{user.acRate.toFixed(1)}%</span>
                                         </td>
-                                        <td className="py-4 px-4 text-right">
+                                        <td className="py-4 px-4 text-center">
                                             <span className="text-rose-400 font-mono text-sm">{user.totalPenalty}</span>
                                         </td>
-                                        <td className="py-4 px-4 text-right">
-                                            <span className="font-bold text-blue-400 text-lg">{user.totalScore}</span>
+                                        <td className="py-4 px-4 text-center">
+                                            <span className="font-mono text-blue-400 text-sm">{user.totalScore}</span>
+                                        </td>
+                                        <td className="py-4 px-4 text-center">
+                                            <button
+                                                onClick={() => startViewingCamera(user)}
+                                                className={`p-2 rounded-lg transition-colors border ${viewingUser?.userId === user.userId ? 'bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.3)] text-rose-400 border-rose-500/50' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border-blue-500/20'}`}
+                                                title="Xem WebRTC Camera (Live)"
+                                            >
+                                                <i className={`ph-fill ${viewingUser?.userId === user.userId ? 'ph-video-camera-slash' : 'ph-video-camera'} text-xl`}></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -340,6 +468,39 @@ export const MonitorPanelPage = () => {
                 </div>
 
             </div>
+
+            {/* FLOATING PROCTORING VIDEO CASTER */}
+            {viewingUser && (
+                <div className="fixed bottom-6 right-6 w-[22rem] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.6)] overflow-hidden z-[100] animate-slide-up flex flex-col">
+                    <div className="bg-slate-800/80 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-slate-700">
+                        <div className="flex items-center gap-2">
+                            <i className="ph-fill ph-video-camera text-blue-400 animate-pulse text-lg"></i>
+                            <div>
+                                <h4 className="text-sm font-bold text-white tracking-wide truncate max-w-[150px] leading-tight">{viewingUser.fullname}</h4>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-widest leading-none mt-1">Live Proctoring</p>
+                            </div>
+                        </div>
+                        <button onClick={stopViewingCamera} className="text-slate-400 hover:text-white transition-all w-8 h-8 flex items-center justify-center bg-slate-700/50 hover:bg-rose-500 rounded-lg">
+                            <i className="ph-bold ph-x text-sm"></i>
+                        </button>
+                    </div>
+                    {/* 4:3 Aspect Ratio for Webcams */}
+                    <div className="relative aspect-[4/3] bg-black flex items-center justify-center border-t border-white/5">
+                        <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+
+                        {!streamToPlay && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-slate-500 bg-slate-900/80 backdrop-blur-sm z-10">
+                                <i className="ph-duotone ph-spinner-gap text-3xl animate-spin text-blue-500 drop-shadow-lg"></i>
+                                <span className="text-xs font-semibold uppercase tracking-widest text-blue-400">Thiết lập luồng P2P...</span>
+                            </div>
+                        )}
+
+                        <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md text-red-500 text-[10px] uppercase font-black tracking-wider px-2.5 py-1 rounded-md border border-red-500/20 flex items-center gap-2 z-20">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,1)]"></span> LIVE
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
