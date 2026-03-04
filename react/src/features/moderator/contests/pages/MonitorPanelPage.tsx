@@ -377,7 +377,7 @@ export const MonitorPanelPage = () => {
                 <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border border-blue-500/20 rounded-2xl p-6 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-blue-400/80 font-medium text-sm mb-1 uppercase tracking-wider">Thí sinh thi đấu</p>
+                            <p className="text-blue-400/80 font-medium text-sm mb-1 uppercase tracking-wider">Thí sinh đang thi đấu</p>
                             <h3 className="text-4xl font-bold text-white">{stats.activeParticipantsCount}</h3>
                         </div>
                         <div className="p-3 bg-blue-500/20 rounded-xl">

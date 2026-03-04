@@ -51,3 +51,6 @@ build/
 out/
 *.iml
 target/
+
+# Uploads directory
+uploads/
