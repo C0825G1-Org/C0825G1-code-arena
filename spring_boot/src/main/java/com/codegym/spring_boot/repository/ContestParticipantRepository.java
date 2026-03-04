@@ -26,6 +26,9 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
     // Lấy bảng xếp hạng: sắp theo điểm giảm dần, penalty tăng dần
     List<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId);
 
+    // Lấy danh sách user đã đăng ký một cuộc thi
+    List<ContestParticipant> findByIdContestId(Integer contestId);
+
     // Bảng xếp hạng phân trang cho Monitor
     Page<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId, Pageable pageable);
 

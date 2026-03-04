@@ -6,7 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Optional;
+import com.codegym.spring_boot.entity.enums.TestCaseStatus;
 
 import java.util.List;
 
@@ -40,6 +44,16 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
     // Fetch all submissions for a contest to rebuild leaderboard details
     List<Submission> findByContestIdOrderByIdAsc(Integer contestId);
 
+    // Count distinctly solved problems by user
+    @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status AND s.problem.isDeleted = false AND s.problem.testcaseStatus = com.codegym.spring_boot.entity.enums.TestCaseStatus.ready")
+    long countDistinctProblemByUserIdAndStatus(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT DISTINCT s.problem.id FROM Submission s WHERE s.user.id = :userId AND s.status = :status AND s.problem.id IN :problemIds")
+    List<Integer> findSolvedProblemIdsByUserIdAndProblemIds(@Param("userId") Integer userId, @Param("status") SubmissionStatus status, @Param("problemIds") Collection<Integer> problemIds);
+
+    @Query("SELECT DISTINCT s.problem.id FROM Submission s WHERE s.user.id = :userId AND s.problem.id IN :problemIds")
+    List<Integer> findAttemptedProblemIdsByUserIdAndProblemIds(@Param("userId") Integer userId, @Param("problemIds") Collection<Integer> problemIds);
+
     // --- User Dashboard Stat Queries ---
 
     @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
@@ -56,6 +70,43 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     @Query("SELECT COUNT(s) FROM Submission s WHERE s.contest.createdBy.id = :modId AND s.createdAt >= :cutoff")
     long countSubmissionsForModRecent(@Param("modId") Integer modId, @Param("cutoff") java.time.LocalDateTime cutoff);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.isTestRun = false AND s.createdAt >= :startOfDay")
+    long countTodaySubmissions(@Param("startOfDay") LocalDateTime startOfDay);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.isTestRun = false")
+    long countAllRealSubmissions();
+
+    @Query("SELECT FUNCTION('HOUR', s.createdAt) as hr, COUNT(s) as cnt "
+         + "FROM Submission s "
+         + "WHERE s.isTestRun = false AND s.createdAt >= :since "
+         + "GROUP BY FUNCTION('HOUR', s.createdAt) "
+         + "ORDER BY hr ASC")
+    List<Object[]> countByHour24h(@Param("since") LocalDateTime since);
+
+    @Query("SELECT CAST(s.createdAt AS DATE) as day, COUNT(s) as cnt "
+         + "FROM Submission s "
+         + "WHERE s.isTestRun = false AND s.createdAt >= :since "
+         + "GROUP BY CAST(s.createdAt AS DATE) "
+         + "ORDER BY day ASC")
+    List<Object[]> countByDay(@Param("since") LocalDateTime since);
+
+    @Query("SELECT CAST(s.createdAt AS DATE) as day, COUNT(s) as cnt "
+         + "FROM Submission s "
+         + "WHERE s.isTestRun = false "
+         + "AND s.createdAt >= :from AND s.createdAt < :to "
+         + "GROUP BY CAST(s.createdAt AS DATE) "
+         + "ORDER BY day ASC")
+    List<Object[]> countByDateRange(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
+    @Query("SELECT s.status, COUNT(s) FROM Submission s "
+         + "WHERE s.isTestRun = false "
+         + "AND s.status NOT IN (com.codegym.spring_boot.entity.enums.SubmissionStatus.pending, "
+         + "com.codegym.spring_boot.entity.enums.SubmissionStatus.judging) "
+         + "GROUP BY s.status")
+    List<Object[]> countByStatus();
 
     // --- Monitor Dashboard Queries ---
     int countByContestId(Integer contestId);

@@ -6,6 +6,7 @@ import { logout } from '../../../auth/store/authSlice';
 import { contestService } from '../../home/services/contestService';
 import { useContestWebSocket } from '../hooks/useContestWebSocket';
 import { toast } from 'react-hot-toast';
+import { NotificationBell } from '../../../../shared/components/NotificationBell';
 import {
     Code, Bell, SignOut, ShieldStar, ArrowLeft,
     CalendarStar, Users, Clock, ArrowRight,
@@ -309,7 +310,7 @@ export const UserContestDetailPage = () => {
                             <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
                         </Link>
                     )}
-                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"><Bell className="text-xl" /></button>
+                    <NotificationBell />
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>

@@ -10,6 +10,7 @@ import { logout } from '../../../auth/store/authSlice';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
 import { userDashboardService, UserStats } from '../../home/services/userDashboardService';
 import toast from 'react-hot-toast';
+import { NotificationBell } from '../../../../shared/components/NotificationBell';
 
 export const LeaderboardPage: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
@@ -185,7 +186,7 @@ export const LeaderboardPage: React.FC = () => {
                             <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
                         </Link>
                     )}
-                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"><Bell className="text-xl" /></button>
+                    <NotificationBell />
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>

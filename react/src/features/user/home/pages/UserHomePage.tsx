@@ -6,6 +6,7 @@ import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../services/contestService';
 import { userDashboardService, UserStats, TopCoder } from '../services/userDashboardService';
 import { useContestWebSocket } from '../../contests/hooks/useContestWebSocket';
+import { NotificationBell } from '../../../../shared/components/NotificationBell';
 import {
     Code,
     Bell,
@@ -275,9 +276,7 @@ export const UserHomePage: React.FC = () => {
                         </Link>
                     )}
 
-                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300">
-                        <Bell className="text-xl" />
-                    </button>
+                    <NotificationBell />
 
                     <Link
                         to="/profile"

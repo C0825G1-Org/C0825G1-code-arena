@@ -2,6 +2,7 @@ package com.codegym.spring_boot.scheduler;
 
 import com.codegym.spring_boot.entity.Contest;
 import com.codegym.spring_boot.entity.enums.ContestStatus;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.repository.ContestRepository;
 import com.corundumstudio.socketio.SocketIOServer;
 import jakarta.annotation.PostConstruct;
@@ -26,9 +27,11 @@ public class ContestEventScheduler {
     private final TaskScheduler taskScheduler;
     private final SocketIOServer socketIOServer;
     private final ContestRepository contestRepository;
+    private final ContestParticipantRepository contestParticipantRepository;
 
     private final Map<Integer, ScheduledFuture<?>> startTasks = new ConcurrentHashMap<>();
     private final Map<Integer, ScheduledFuture<?>> endTasks = new ConcurrentHashMap<>();
+    private final Map<Integer, List<ScheduledFuture<?>>> reminderTasks = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void initSchedules() {
@@ -38,6 +41,18 @@ public class ContestEventScheduler {
         List<Contest> upcomingContests = contestRepository.findByStatus(ContestStatus.upcoming);
         for (Contest contest : upcomingContests) {
             scheduleContestStartEvent(contest.getId(), contest.getStartTime());
+            // Lên lịch nhắc nhở cho từng user đã đăng ký
+            List<Integer> participantIds = contestParticipantRepository
+                    .findByIdContestId(contest.getId())
+                    .stream()
+                    .map(cp -> cp.getId().getUserId())
+                    .toList();
+            scheduleContestReminder(
+                    contest.getId(),
+                    contest.getTitle(),
+                    contest.getStartTime(),
+                    participantIds
+            );
         }
 
         // Schedule end events for active contests
@@ -92,6 +107,7 @@ public class ContestEventScheduler {
     public void cancelAllSchedules(Integer contestId) {
         cancelStartSchedule(contestId);
         cancelEndSchedule(contestId);
+        cancelAllSchedules(contestId);
     }
 
     private void cancelStartSchedule(Integer contestId) {
@@ -105,6 +121,48 @@ public class ContestEventScheduler {
         ScheduledFuture<?> existingTask = endTasks.remove(contestId);
         if (existingTask != null && !existingTask.isCancelled()) {
             existingTask.cancel(false);
+        }
+    }
+
+    public void scheduleContestReminder(Integer contestId,
+                                        String contestTitle,
+                                        LocalDateTime startTime,
+                                        List<Integer> participantUserIds) {
+        cancelReminderSchedules(contestId);
+        if (startTime == null) return;
+        List<ScheduledFuture<?>> futures = new java.util.ArrayList<>();
+        // Các mốc thời gian nhắc nhở (phút trước khi bắt đầu)
+        int[] minutesBefore = {60, 15, 5, 1};
+        for (int minutes : minutesBefore) {
+            LocalDateTime reminderTime = startTime.minusMinutes(minutes);
+            Date reminderDate = Date.from(reminderTime.atZone(ZoneId.systemDefault()).toInstant());
+            // Chỉ schedule nếu thời điểm nhắc nhở còn trong tương lai
+            if (reminderDate.before(new Date())) continue;
+            final int reminderMinutes = minutes;
+            ScheduledFuture<?> future = taskScheduler.schedule(() -> {
+                log.info("Pushing REMINDER event for contest [{}] - {} phút nữa", contestId, reminderMinutes);
+                Map<String, Object> payload = new java.util.HashMap<>();
+                payload.put("contestId", contestId);
+                payload.put("contestTitle", contestTitle);
+                payload.put("minutesLeft", reminderMinutes);
+                payload.put("type", "REMINDER");
+                // Chỉ gửi tới từng user đã đăng ký (gửi riêng tư qua room)
+                for (Integer userId : participantUserIds) {
+                    socketIOServer.getRoomOperations("user_" + userId)
+                            .sendEvent("contest_reminder", payload);
+                }
+            }, reminderDate);
+            futures.add(future);
+            log.info("Đã lên lịch nhắc nhở contest [{}] trước {} phút (lúc {})",
+                    contestId, minutes, reminderDate);
+        }
+        reminderTasks.put(contestId, futures);
+    }
+
+    private void cancelReminderSchedules(Integer contestId) {
+        List<ScheduledFuture<?>> futures = reminderTasks.remove(contestId);
+        if (futures != null) {
+            futures.forEach(f -> { if (!f.isCancelled()) f.cancel(false); });
         }
     }
 }

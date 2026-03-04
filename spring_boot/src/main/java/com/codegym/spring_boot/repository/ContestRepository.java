@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -37,4 +39,13 @@ public interface ContestRepository extends JpaRepository<Contest, Integer>, JpaS
     List<Contest> findByStatusAndUpdatedAtBefore(ContestStatus status, LocalDateTime cutoffTime);
 
     long countByCreatedById(Integer createdById);
+
+    // Admin Dashboard: contest đang active hoặc upcoming chưa bắt đầu hôm nay
+    @Query(
+        "SELECT c FROM Contest c WHERE c.status = 'active' "
+        + "OR (c.status = 'upcoming' AND c.startTime >= :startOfDay AND c.startTime < :endOfDay) "
+        + "ORDER BY c.startTime ASC")
+    List<Contest> findActiveAndUpcomingToday(
+        @Param("startOfDay") LocalDateTime startOfDay,
+        @Param("endOfDay") LocalDateTime endOfDay);
 }

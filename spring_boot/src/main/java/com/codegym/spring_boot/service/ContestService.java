@@ -8,6 +8,7 @@ import com.codegym.spring_boot.dto.contest.response.ContestListResponse;
 import com.codegym.spring_boot.entity.*;
 import com.codegym.spring_boot.entity.enums.ContestStatus;
 import com.codegym.spring_boot.entity.enums.ParticipantStatus;
+import com.codegym.spring_boot.entity.enums.TestCaseStatus;
 import com.codegym.spring_boot.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -93,6 +95,14 @@ public class ContestService {
 
         contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
         contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
+
+        contestEventScheduler.scheduleContestReminder(
+                contest.getId(),
+                contest.getTitle(),
+                contest.getStartTime(),
+                Collections.emptyList()
+        );
+
         return mapToDetailResponse(contest, false);
     }
 
@@ -191,6 +201,20 @@ public class ContestService {
         contest = contestRepository.save(contest);
         contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
         contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
+
+        // Reschedule reminder với startTime mới (lấy lại danh sách participant hiện tại)
+        List<Integer> participantIds = participantRepository
+                .findByIdContestId(contest.getId())
+                .stream()
+                .map(cp -> cp.getId().getUserId())
+                .toList();
+        contestEventScheduler.scheduleContestReminder(
+                contest.getId(),
+                contest.getTitle(),
+                contest.getStartTime(),
+                participantIds
+        );
+
         return mapToDetailResponse(contest, false);
     }
 
@@ -251,6 +275,12 @@ public class ContestService {
                             "Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + entry.getProblemId()
                                     + " không thuộc về bạn.");
                 }
+            }
+
+            // Kiểm tra bài tập phải có testcase
+            if (problem.getTestcaseStatus() != TestCaseStatus.ready) {
+                throw new IllegalArgumentException(
+                        "Bài tập ID " + entry.getProblemId() + " chưa có testcase nào. Vui lòng thêm testcase trước khi đưa vào cuộc thi.");
             }
 
             // Kiểm tra trùng lặp
@@ -483,6 +513,23 @@ public class ContestService {
         participant.setTotalPenalty(0);
         participant.setStatus(ParticipantStatus.JOINED);
         participantRepository.save(participant);
+
+        // Cập nhật lại reminder với danh sách participant mới nhất
+        // (chỉ khi contest còn upcoming — active thì không cần nhắc nữa)
+        if (realStatus == ContestStatus.upcoming) {
+            List<Integer> allParticipantIds = participantRepository
+                    .findByIdContestId(contestId)
+                    .stream()
+                    .map(cp -> cp.getId().getUserId())
+                    .toList();
+            contestEventScheduler.scheduleContestReminder(
+                    contest.getId(),
+                    contest.getTitle(),
+                    contest.getStartTime(),
+                    allParticipantIds
+            );
+        }
+
     }
 
     // =============================================

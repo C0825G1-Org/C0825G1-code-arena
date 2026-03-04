@@ -14,4 +14,6 @@ public interface IProblemRepository extends JpaRepository<Problem, Integer> {
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(p) FROM Problem p WHERE p.createdBy.id = :modId AND p.isDeleted = false AND p.testcaseStatus = 'not_uploaded'")
     long countPendingProblemsByCreator(@org.springframework.data.repository.query.Param("modId") Integer modId);
+
+    long countByIsDeletedFalse();
 }

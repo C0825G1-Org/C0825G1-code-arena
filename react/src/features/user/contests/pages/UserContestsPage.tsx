@@ -57,6 +57,32 @@ export const UserContestsPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
 
+    // Notifications state
+    const [notifications, setNotifications] = useState<{
+        id: number;
+        message: string;
+        contestId: number;
+        time: Date;
+        read: boolean;
+    }[]>(() => {
+        try {
+            const saved = localStorage.getItem('contest_notifications');
+            if (!saved) return [];
+            // Parse lại time thành Date object (JSON không lưu Date natively)
+            return JSON.parse(saved).map((n: any) => ({ ...n, time: new Date(n.time) }));
+        } catch {
+            return [];
+        }
+    });
+
+    const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+    const unreadCount = notifications.filter(n => !n.read).length;
+
+    //Tự động lưu vào localStorage khi notifications thay đổi
+    useEffect(() => {
+        localStorage.setItem('contest_notifications', JSON.stringify(notifications));
+    }, [notifications]);
+
     const fetchContests = useCallback(async () => {
         try {
             setLoading(true);
@@ -114,7 +140,52 @@ export const UserContestsPage = () => {
         fetchContestsRef.current();
     }, []);
 
-    useContestWebSocket(handleContestStatusUpdate);
+    const handleContestReminder = useCallback((data: {
+        contestId: number;
+        contestTitle: string;
+        minutesLeft: number;
+    }) => {
+        const message =
+            data.minutesLeft >= 60
+                ? `Cuộc thi "${data.contestTitle}" sẽ bắt đầu sau ${Math.floor(
+                    data.minutesLeft / 60
+                )} giờ nữa!`
+                : `Cuộc thi "${data.contestTitle}" sẽ bắt đầu sau ${data.minutesLeft} phút nữa!`;
+
+        setNotifications(prev => {
+            const updated = [{
+                id: Date.now(),
+                message,
+                contestId: data.contestId,
+                time: new Date(),
+                read: false,
+            }, ...prev];
+            return updated.slice(0, 20);
+        });
+
+        toast.custom((t) => (
+            <div
+                className={`flex items-start gap-3 px-4 py-3 rounded-xl shadow-2xl border transition-all
+            ${data.minutesLeft <= 5
+                    ? 'bg-purple-900 border-purple-500 text-white'
+                    : 'bg-slate-800 border-slate-600 text-white'}
+            ${t.visible ? 'animate-enter' : 'animate-leave'}`}
+                style={{ minWidth: 280, maxWidth: 360 }}
+            >
+                <span className="text-xl mt-0.5">{data.minutesLeft <= 5 ? '🚨' : '⏰'}</span>
+                <p className="flex-1 text-sm font-medium">{message}</p>
+                <button
+                    onClick={() => toast.dismiss(t.id)}
+                    className="text-slate-400 hover:text-white transition-colors ml-1 mt-0.5 shrink-0 text-lg leading-none"
+                >
+                    ✕
+                </button>
+            </div>
+        ), { duration: 8000 });
+    }, []);
+
+
+    useContestWebSocket(handleContestStatusUpdate, handleContestReminder);
 
     // Fallback realtime: when local time passes contest start/end, refetch once.
     useEffect(() => {
@@ -339,7 +410,67 @@ export const UserContestsPage = () => {
                             <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
                         </Link>
                     )}
-                    <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"><Bell className="text-xl" /></button>
+                    <div className="relative">
+                        {/* Bell Button */}
+                        <button
+                            onClick={() => setShowNotifDropdown(v => !v)}
+                            className="relative p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"
+                        >
+                            <Bell className="text-xl" />
+                            {/* Badge hiển thị số thông báo chưa đọc */}
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+                            )}
+                        </button>
+                        {/* Dropdown thông báo */}
+                        {showNotifDropdown && (
+                            <div className="absolute right-0 top-12 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                                {/* Header */}
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+                                    <span className="font-bold text-white">Thông báo</span>
+                                    {unreadCount > 0 && (
+                                        <button
+                                            onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                                            className="text-xs text-blue-400 hover:text-blue-300"
+                                        >
+                                            Đánh dấu tất cả đã đọc
+                                        </button>
+                                    )}
+                                </div>
+                                {/* Danh sách thông báo */}
+                                <div className="max-h-72 overflow-y-auto">
+                                    {notifications.length === 0 ? (
+                                        <div className="py-8 text-center text-slate-500 text-sm">
+                                            Không có thông báo nào
+                                        </div>
+                                    ) : (
+                                        notifications.map(notif => (
+                                            <div
+                                                key={notif.id}
+                                                onClick={() => {
+                                                    setNotifications(prev => prev.map(n =>
+                                                        n.id === notif.id ? { ...n, read: true } : n
+                                                    ));
+                                                    navigate(`/contests/${notif.contestId}`);
+                                                    setShowNotifDropdown(false);
+                                                }}
+                                                className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors ${!notif.read ? 'bg-purple-500/10' : ''}`}
+                                            >
+                                                <p className={`text-sm ${!notif.read ? 'text-white font-medium' : 'text-slate-400'}`}>
+                                                    {notif.message}
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    {notif.time.toLocaleTimeString('vi-VN')}
+                                                </p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
