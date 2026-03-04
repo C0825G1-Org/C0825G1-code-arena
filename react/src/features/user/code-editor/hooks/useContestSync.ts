@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 
 interface UseContestSyncProps {
     isExamMode: boolean;
+    isWaitingRoom?: boolean;
     isSubmittingExit: boolean;
     contestStatus?: string;
     contestId?: string;
@@ -11,6 +12,7 @@ interface UseContestSyncProps {
 
 export const useContestSync = ({
     isExamMode,
+    isWaitingRoom = false,
     isSubmittingExit,
     contestStatus,
     contestId
@@ -20,7 +22,7 @@ export const useContestSync = ({
     // NAVIGATION BLOCKER
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) => {
-            if (!isExamMode || isSubmittingExit) return false;
+            if (!isExamMode || isSubmittingExit || isWaitingRoom) return false;
 
             // Nếu đã thi xong (FINISHED) hoặc bị trục xuất (DISQUALIFIED), không chặn navigate
             const isDone = contestStatus === 'FINISHED' || contestStatus === 'DISQUALIFIED';
