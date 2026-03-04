@@ -4,6 +4,7 @@ import axiosClient from '../../../../shared/services/axiosClient';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../../../shared/hooks/useSocket';
 import { getIceServers } from '../../../../shared/config/webrtcConfig';
+import { SnapshotViewerModal } from '../components/SnapshotViewerModal';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
@@ -33,6 +34,10 @@ export const MonitorPanelPage = () => {
     const videoRef = React.useRef<HTMLVideoElement>(null);
     const [streamToPlay, setStreamToPlay] = useState<MediaStream | null>(null);
     const [isInitiatingCamera, setIsInitiatingCamera] = useState(false);
+
+    // Snapshot Viewer State
+    const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false);
+    const [snapshotViewUser, setSnapshotViewUser] = useState<any | null>(null);
 
     useEffect(() => {
         if (streamToPlay && videoRef.current) {
@@ -437,14 +442,27 @@ export const MonitorPanelPage = () => {
                                             <span className="font-mono text-blue-400 text-sm">{user.totalScore}</span>
                                         </td>
                                         <td className="py-4 px-4 text-center">
-                                            <button
-                                                onClick={() => startViewingCamera(user)}
-                                                disabled={isInitiatingCamera && viewingUser?.userId !== user.userId}
-                                                className={`p-2 rounded-lg transition-colors border ${viewingUser?.userId === user.userId ? 'bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.3)] text-rose-400 border-rose-500/50' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed'}`}
-                                                title="Xem WebRTC Camera (Live)"
-                                            >
-                                                <i className={`ph-bold ${viewingUser?.userId === user.userId ? 'ph-video-camera-slash animate-pulse' : 'ph-video-camera'}`}></i>
-                                            </button>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => startViewingCamera(user)}
+                                                    disabled={isInitiatingCamera && viewingUser?.userId !== user.userId}
+                                                    className={`p-2 rounded-lg transition-colors border flex items-center justify-center w-9 h-9 ${viewingUser?.userId === user.userId ? 'bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.3)] text-rose-400 border-rose-500/50' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white border-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed'}`}
+                                                    title="Xem Live Camera"
+                                                >
+                                                    <i className={`ph-bold ${viewingUser?.userId === user.userId ? 'ph-video-camera-slash animate-pulse' : 'ph-video-camera'}`}></i>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => {
+                                                        setSnapshotViewUser(user);
+                                                        setIsSnapshotModalOpen(true);
+                                                    }}
+                                                    className="p-2 rounded-lg transition-colors border bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border-slate-700 hover:border-slate-600 flex items-center justify-center w-9 h-9"
+                                                    title="Xem Lịch sử Hình ảnh (Snapshots)"
+                                                >
+                                                    <i className="ph-bold ph-images"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -560,6 +578,17 @@ export const MonitorPanelPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* SNAPSHOT VIEWER MODAL */}
+            <SnapshotViewerModal
+                isOpen={isSnapshotModalOpen}
+                onClose={() => {
+                    setIsSnapshotModalOpen(false);
+                    setTimeout(() => setSnapshotViewUser(null), 300); // clear after animation
+                }}
+                contestId={Number(id)}
+                user={snapshotViewUser}
+            />
         </div>
     );
 };
