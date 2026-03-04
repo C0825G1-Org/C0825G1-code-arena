@@ -40,4 +40,7 @@ public class ContestParticipant extends BaseEntity {
 
     @Column(name = "has_score_penalty")
     private Boolean hasScorePenalty = false;
+
+    @Column(name = "has_joined_active")
+    private Boolean hasJoinedActive = false;
 }

@@ -41,7 +41,7 @@ public class AuthService {
                                 .email(request.getEmail())
                                 .password(passwordEncoder.encode(request.getPassword()))
                                 .role(UserRole.user)
-                                .globalRating(1500)
+                                .globalRating(0)
                                 .build();
 
                 Profile profile = new Profile();
@@ -114,7 +114,7 @@ public class AuthService {
                                 .email(email)
                                 .password(passwordEncoder.encode(randomPassword))
                                 .role(UserRole.user)
-                                .globalRating(1500)
+                                .globalRating(0)
                                 .build();
 
                 Profile profile = new Profile();

@@ -241,8 +241,7 @@ public class SubmissionService implements ISubmissionService {
                 submissionRepository.save(submission);
 
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
-                // Ủy quyền việc cập nhật Penalty, Điểm số bài thi và Real-time cho
-                // LeaderboardService
+                // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
                 if (submission.getContest() != null && !submission.getIsTestRun()) {
                         leaderboardService.updateScore(submission);
                 }
@@ -287,6 +286,50 @@ public class SubmissionService implements ISubmissionService {
                                 .testCaseResults(tcResultDTOs)
                                 .build();
                 notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
+
+                // --- Gửi Socket cho Live Monitor của Moderator ---
+                if (submission.getContest() != null && !Boolean.TRUE.equals(submission.getIsTestRun())) {
+                        com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry = 
+                                com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog.builder()
+                                        .submissionId(submission.getId())
+                                        .username(submission.getUser().getUsername())
+                                        .problemId(submission.getProblem().getId())
+                                        .problemTitle(submission.getProblem().getTitle())
+                                        .status(finalStatus.name())
+                                        .score(submission.getScore())
+                                        .submittedAt(submission.getCreatedAt().toString())
+                                        .build();
+                        notificationService.sendToMonitor(submission.getContest().getId(), logEntry);
+
+                        // Lấy top 5 cập nhật mới nhất để đẩy về Leaderboard Table
+                        java.util.List<com.codegym.spring_boot.entity.ContestParticipant> topParticipants =
+                                contestParticipantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(submission.getContest().getId())
+                                        .stream().limit(5).collect(Collectors.toList());
+
+                        java.util.List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboard = new java.util.ArrayList<>();
+                        int rank = 1;
+                        for (var p : topParticipants) {
+                                String fullname = p.getUser().getFullName() != null ? p.getUser().getFullName() : p.getUser().getUsername();
+                                
+                                double acRate = 0.0;
+                                long totalUserSubs = submissionRepository.countByUserIdAndContestId(p.getUser().getId(), submission.getContest().getId());
+                                if(totalUserSubs > 0){
+                                        long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(p.getUser().getId(), submission.getContest().getId(), SubmissionStatus.AC);
+                                        acRate = (double) acUserSubs / totalUserSubs * 100.0;
+                                }
+
+                                leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
+                                        .rank(rank++)
+                                        .userId(p.getUser().getId().longValue())
+                                        .username(p.getUser().getUsername())
+                                        .fullname(fullname)
+                                        .totalScore(p.getTotalScore())
+                                        .totalPenalty(p.getTotalPenalty())
+                                        .acRate(Math.round(acRate * 100.0) / 100.0)
+                                        .build());
+                        }
+                        notificationService.sendLeaderboardUpdateToMonitor(submission.getContest().getId(), leaderboard);
+                }
 
         }
 

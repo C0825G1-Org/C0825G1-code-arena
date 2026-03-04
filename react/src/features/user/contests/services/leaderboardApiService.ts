@@ -20,6 +20,10 @@ export interface LeaderboardDTO {
     totalSolved: number;  // = số bài AC (alias của totalScore)
     problemDetails: LeaderboardProblemDetail[];
 }
+
+const API_URL = '/api/contests';
+
+
 export const leaderboardApiService = {
     getLeaderboard: async (contestId: number): Promise<LeaderboardDTO[]> => {
         // Sử dụng axiosClient thay vì axios hardcode (auth interceptor + base URL)

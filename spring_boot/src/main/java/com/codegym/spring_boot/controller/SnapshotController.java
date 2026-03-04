@@ -46,6 +46,14 @@ public class SnapshotController {
         }
 
         var snapshots = snapshotService.getSnapshotsByContestAndUser(contestId, userId);
-        return ResponseEntity.ok(snapshots);
+        
+        var responseList = snapshots.stream().map(s -> Map.of(
+            "id", s.getId(),
+            "fileName", s.getFileName(),
+            "imageUrl", s.getImageUrl(),
+            "capturedAt", s.getCapturedAt().toString()
+        )).toList();
+
+        return ResponseEntity.ok(responseList);
     }
 }

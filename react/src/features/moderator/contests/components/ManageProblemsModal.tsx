@@ -80,8 +80,10 @@ export const ManageProblemsModal = ({ isOpen, onClose, contestId, contestTitle, 
         }
     };
 
-    // Filter available problems to those not already in the contest, and matching search query
-    const availableProblems = allProblems.filter(p => !contestProblems.some(cp => cp.id === p.id))
+    // Filter available problems to those not already in the contest, matching search query, and HAVING AT LEAST 1 TESTCASE ('ready')
+    const availableProblems = allProblems
+        .filter(p => p.testcaseStatus === 'ready')
+        .filter(p => !contestProblems.some(cp => cp.id === p.id))
         .filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toString() === searchQuery);
 
     if (!isOpen || !contestId) return null;
@@ -126,9 +128,9 @@ export const ManageProblemsModal = ({ isOpen, onClose, contestId, contestTitle, 
                                                 </div>
                                                 <button
                                                     onClick={() => handleRemoveProblem(cp.id)}
-                                                    disabled={loading}
-                                                    className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
-                                                    title="Xóa khỏi cuộc thi"
+                                                    disabled={loading || contestProblems.length <= 1}
+                                                    className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title={contestProblems.length <= 1 ? "Không thể xóa bài tập cuối cùng" : "Xóa khỏi cuộc thi"}
                                                 >
                                                     <Trash weight="bold" />
                                                 </button>
@@ -163,12 +165,19 @@ export const ManageProblemsModal = ({ isOpen, onClose, contestId, contestTitle, 
                                                 <div>
                                                     <span className="text-xs text-blue-400/80 font-mono block">#{p.id}</span>
                                                     <span className="text-sm text-slate-200 font-medium line-clamp-1">{p.title}</span>
+                                                    {p.testcaseStatus !== 'ready' && (
+                                                        <span className="text-[10px] text-amber-500 block mt-0.5">Chưa có testcase</span>
+                                                    )}
                                                 </div>
                                                 <button
                                                     onClick={() => handleAddProblem(p.id)}
-                                                    disabled={loading}
-                                                    className="p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white rounded transition-colors"
-                                                    title="Thêm vào cuộc thi"
+                                                    disabled={loading || p.testcaseStatus !== 'ready'}
+                                                    className={`p-1.5 rounded transition-colors flex items-center justify-center ${
+                                                        p.testcaseStatus === 'ready'
+                                                            ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white'
+                                                            : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                                                    }`}
+                                                    title={p.testcaseStatus === 'ready' ? "Thêm vào cuộc thi" : "Bài tập chưa có testcase, không thể thêm"}
                                                 >
                                                     <PlusCircle weight="bold" className="text-lg" />
                                                 </button>

@@ -7,6 +7,7 @@ export interface ContestListItem {
     startTime: string;
     endTime: string;
     participantCount: number;
+    maxParticipants: number;
     serverTime: string;
     isRegistered: boolean;
     firstProblemId?: number;

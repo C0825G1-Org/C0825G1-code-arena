@@ -10,7 +10,7 @@ export type Problem = {
 
 export async function getProblem(id: number): Promise<Problem> {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:8080/api/problems/${id}`, {
+    const res = await fetch(`/api/problems/${id}`, {
         headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
@@ -34,7 +34,7 @@ export type TestCase = {
 
 export async function getSampleTestCases(problemId: number): Promise<TestCase[]> {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:8080/api/problems/${problemId}/testcases`, {
+    const res = await fetch(`/api/problems/${problemId}/testcases`, {
         headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {})
         }

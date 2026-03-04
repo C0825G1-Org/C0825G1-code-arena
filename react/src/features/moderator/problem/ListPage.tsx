@@ -104,9 +104,9 @@ export const ListPage = () => {
             {/* Header Title inside Content Area replacing the generic header */}
             <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
                 
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4 mb-6">
                     {/* Search & Filter */}
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
                         <div className="relative w-72">
                             <i className="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input
@@ -120,7 +120,7 @@ export const ListPage = () => {
                         <select
                             value={difficulty}
                             onChange={(e) => setDifficulty(e.target.value)}
-                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-full md:w-auto"
                         >
                             <option value="">Tất cả độ khó </option>
                             {difficulties.map(d => (
@@ -133,15 +133,15 @@ export const ListPage = () => {
 
                     <button
                         onClick={() => navigate('/moderator/problems/create')}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 whitespace-nowrap"
                     >
                         <i className="ph-bold ph-plus"></i> Soạn bài mới
                     </button>
                 </div>
 
                 {/* Table Card */}
-                <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl overflow-hidden border border-slate-700/50">
-                    <table className="w-full text-sm text-left text-slate-400">
+                <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl overflow-x-auto border border-slate-700/50">
+                    <table className="w-full text-sm text-left text-slate-400 min-w-[800px]">
                         <thead className="text-xs uppercase bg-[#1e293b] text-slate-300">
                             <tr>
                                 <th className="px-6 py-4 font-semibold">ID</th>

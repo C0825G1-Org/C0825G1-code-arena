@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { X, CalendarPlus } from '@phosphor-icons/react';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { toast } from 'react-hot-toast';
+import { problemApi, ProblemResponseDTO } from '../../services/problemApi';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../app/store';
 
 interface CreateContestModalProps {
     isOpen: boolean;
@@ -11,24 +14,73 @@ interface CreateContestModalProps {
 
 export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContestModalProps) => {
     const [loading, setLoading] = useState(false);
+    const [problems, setProblems] = useState<ProblemResponseDTO[]>([]);
+    const [loadingProblems, setLoadingProblems] = useState(false);
+    const user = useSelector((state: RootState) => state.auth.user);
 
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         startTime: '',
         endTime: '',
+        problemIds: [] as number[],
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Fetch problems when modal opens
+    React.useEffect(() => {
+        if (isOpen) {
+            fetchProblems();
+        }
+    }, [isOpen]);
+
+    const fetchProblems = async () => {
+        try {
+            setLoadingProblems(true);
+            const data = await problemApi.getProblems();
+            // User requested that only problems with testcases ('ready') are selectable.
+            const selectableProblems = data.filter(p => p.testcaseStatus === 'ready');
+            setProblems(selectableProblems);
+        } catch (error) {
+            toast.error('Không thể tải danh sách bài tập.');
+        } finally {
+            setLoadingProblems(false);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        if (e.target.name === 'problemIds') {
+            const options = (e.target as HTMLSelectElement).options;
+            const values: number[] = [];
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].selected) {
+                    values.push(parseInt(options[i].value));
+                }
+            }
+            setFormData({ ...formData, problemIds: values });
+        } else {
+            setFormData({ ...formData, [e.target.name]: e.target.value });
+        }
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Basic frontend validation
-        if (formData.startTime >= formData.endTime) {
+        const start = new Date(formData.startTime).getTime();
+        const end = new Date(formData.endTime).getTime();
+
+        if (start >= end) {
             toast.error('Thời gian kết thúc phải sau thời gian bắt đầu.');
+            return;
+        }
+
+        if (formData.problemIds.length === 0) {
+            toast.error('Vui lòng chọn ít nhất 1 bài tập cho cuộc thi.');
+            return;
+        }
+
+        if (end - start > 3 * 60 * 60 * 1000) {
+            toast.error('Thời gian diễn ra cuộc thi tối đa là 3 tiếng.');
             return;
         }
 
@@ -45,7 +97,8 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                 title: formData.title,
                 description: formData.description,
                 startTime: formatForOutput(formData.startTime),
-                endTime: formatForOutput(formData.endTime)
+                endTime: formatForOutput(formData.endTime),
+                problemIds: formData.problemIds
             };
 
             await axiosClient.post(`/contests`, payload);
@@ -57,6 +110,7 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                 description: '',
                 startTime: '',
                 endTime: '',
+                problemIds: [],
             });
 
             onSuccess();
@@ -107,6 +161,34 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                                 rows={4}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors placeholder:text-slate-500"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+                                <span>Bài tập trong cuộc thi *</span>
+                                <span className="text-xs text-slate-500 font-normal">Giữ phím {navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'} để chọn nhiều</span>
+                            </label>
+                            {loadingProblems ? (
+                                <div className="text-slate-500 text-sm py-2">Đang tải danh sách bài tập...</div>
+                            ) : (
+                                <select
+                                    multiple
+                                    name="problemIds"
+                                    value={formData.problemIds.map(String)}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors min-h-[120px]"
+                                >
+                                    {problems.length === 0 ? (
+                                        <option disabled value="">Chưa có bài tập nào khả dụng</option>
+                                    ) : (
+                                        problems.map(p => (
+                                            <option key={p.id} value={p.id} className="py-1 px-2 border-b border-slate-800/50 hover:bg-slate-800 break-words max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                                                {p.testcaseStatus === 'not_uploaded' ? '⚠️ ' : ''} [{p.difficulty.toUpperCase()}] {p.title}
+                                            </option>
+                                        ))
+                                    )}
+                                </select>
+                            )}
                         </div>
                         <div className="grid grid-cols-2 gap-5">
                             <div>
