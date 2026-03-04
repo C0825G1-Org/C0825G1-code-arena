@@ -8,6 +8,7 @@ import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import { Code, Bell, ShieldStar, SignOut } from '@phosphor-icons/react';
 import { NotificationBell } from '../../../shared/components/NotificationBell';
+import {userDashboardService, UserStats} from "../home/services/userDashboardService";
 
 interface TagDTO {
     id: number;
@@ -39,6 +40,7 @@ export const ListPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
     const [data, setData] = useState<ProblemUserPageWrapperDTO | null>(null);
     const [loading, setLoading] = useState(false);
@@ -56,6 +58,19 @@ export const ListPage = () => {
         fetchProblems();
     }, [page, title, difficulty, status]);
 
+    useEffect(() => {
+        const fetchUserStats = async () => {
+            if (user) {
+                try {
+                    const stats = await userDashboardService.getUserStats();
+                    setUserStats(stats);
+                } catch (error) {
+                    console.error('Failed to fetch user stats', error);
+                }
+            }
+        };
+        fetchUserStats();
+    }, [user]);
     const fetchProblems = async () => {
         try {
             setLoading(true);
@@ -192,7 +207,7 @@ export const ListPage = () => {
                                         {user?.fullName || 'User'}
                                     </div>
                                     <div className="text-xs text-slate-400 font-mono">Rating: <span
-                                        className="text-yellow-400">1550</span>
+                                        className="text-yellow-400">{userStats?.eloRanking}</span>
                                     </div>
                                 </div>
                                 <img

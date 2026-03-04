@@ -16,6 +16,7 @@ import {
 import { LeaderboardTab } from '../components/LeaderboardTab';
 import { RulesModal } from '../components/RulesModal';
 import { TutorialModal } from '../components/TutorialModal';
+import {userDashboardService, UserStats} from "../../home/services/userDashboardService";
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
@@ -73,6 +74,7 @@ export const UserContestDetailPage = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [userStats, setUserStats] = useState<UserStats | null>(null);
 
     const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
     const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
@@ -87,6 +89,19 @@ export const UserContestDetailPage = () => {
     const [timeLeftStr, setTimeLeftStr] = useState<string>('');
     const [serverOffset, setServerOffset] = useState<number>(0);
 
+    useEffect(() => {
+        const fetchUserStats = async () => {
+            if (user) {
+                try {
+                    const stats = await userDashboardService.getUserStats();
+                    setUserStats(stats);
+                } catch (error) {
+                    console.error('Failed to fetch user stats', error);
+                }
+            }
+        };
+        fetchUserStats();
+    }, [user]);
     useEffect(() => {
         if (contest && contest.serverTime) {
             setServerOffset(new Date(contest.serverTime).getTime() - Date.now());
@@ -329,7 +344,7 @@ export const UserContestDetailPage = () => {
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
                         <div className="text-right hidden sm:block">
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">0</span></div>
+                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">{userStats?.eloRanking}</span></div>
                         </div>
                         <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
                     </Link>
