@@ -537,8 +537,13 @@ public class ContestService {
             // Logic ẩn/hiện Problems dựa trên trạng thái cho User bình thường
             switch (realStatus) {
                 case upcoming:
-                    // Tuyệt đối không trả về problems
-                    response.setProblems(null);
+                    // Cho xem List IDs bài tập nếu đang ở phòng chờ (15 phút trước giờ G)
+                    if (isRegistered && currentUser != null
+                            && LocalDateTime.now().isAfter(contest.getStartTime().minusMinutes(15))) {
+                        response.setProblems(getContestProblems(id, currentUser.getId()));
+                    } else {
+                        response.setProblems(null);
+                    }
                     response.setRanking(null);
                     break;
 
