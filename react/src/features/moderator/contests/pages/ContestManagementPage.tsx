@@ -214,7 +214,6 @@ export const ContestManagementPage = () => {
                             <option value="UPCOMING">Sắp diễn ra</option>
                             <option value="ACTIVE">Đang diễn ra</option>
                             <option value="FINISHED">Đã kết thúc</option>
-                            <option value="CANCELLED">Đã hủy</option>
                         </select>
                         <div className="flex items-center gap-2">
                             <input

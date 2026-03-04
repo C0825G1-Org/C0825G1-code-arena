@@ -470,10 +470,17 @@ public class ContestService {
                 if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
                     predicates.add(cb.equal(root.get("createdBy").get("id"), currentUser.getId()));
                 }
+                // Always exclude soft-deleted contests in management view
+                predicates.add(cb.or(cb.isNull(root.get("isDeleted")), cb.equal(root.get("isDeleted"), false)));
+                // Also exclude cancelled contests unless explicitly filtering for them
+                if (finalStatus == null) {
+                    predicates.add(cb.notEqual(root.get("status"), ContestStatus.cancelled));
+                }
             } else {
                 if (finalStatus == null) {
                     predicates.add(cb.notEqual(root.get("status"), ContestStatus.cancelled));
                 }
+                predicates.add(cb.or(cb.isNull(root.get("isDeleted")), cb.equal(root.get("isDeleted"), false)));
             }
 
             if (finalFilterRegistered && currentUser != null) {
