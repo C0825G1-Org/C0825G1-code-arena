@@ -42,7 +42,7 @@ public class SecurityConfig {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/auth/**", "/api/test/public", "/error",
-                                                                "/login/oauth2/**")
+                                                                "/login/oauth2/**", "/uploads/**")
                                                 .permitAll()
                                                 .requestMatchers("/api/submissions/**").authenticated()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
