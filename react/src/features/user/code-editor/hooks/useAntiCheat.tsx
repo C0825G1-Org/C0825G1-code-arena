@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { contestService } from '../../home/services/contestService';
+import {
+    ViolationToastContent,
+    InitViolationToastContent,
+    DisqualifiedToastContent,
+    FullscreenWarningToastContent
+} from '../components/AntiCheatToasts';
 
 interface UseAntiCheatProps {
     isExamMode: boolean;
@@ -18,10 +24,30 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         onDisqualifiedRef.current = onDisqualified;
     }, [onDisqualified]);
 
-    const initViolations = (count: number, hasPenalty: boolean) => {
+    const initViolations = (count: number, hasPenalty: boolean, status: string = 'JOINED') => {
         setViolationCount(count);
         violationRef.current = count;
         setScorePenalty(hasPenalty);
+
+        if (status === 'JOINED') {
+            if (count === 1 || count === 2) {
+                toast.warning(
+                    <InitViolationToastContent count={count} />,
+                    {
+                        toastId: count === 1 ? 'violation-init' : 'violation-toast',
+                        autoClose: count === 1 ? 8000 : false,
+                        position: 'top-center',
+                        closeButton: count === 2,
+                        style: count === 2 ? { border: '2px solid #ef4444' } : undefined
+                    }
+                );
+            }
+        } else if (status === 'DISQUALIFIED' && count >= 3) {
+            toast.error(
+                <DisqualifiedToastContent />,
+                { toastId: 'violation-disqualified', autoClose: false, closeButton: true, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #dc2626' } }
+            );
+        }
     };
 
     const violationHandlerRef = useRef<(() => Promise<void>) | undefined>(undefined);
@@ -38,24 +64,21 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
 
             if (count === 1) {
                 toast.error(
-                    <div className="flex flex-col gap-1" >
-                <span className="font-bold text-base" >⚠️ CẢNH BÁO VI PHẠM(1 / 3) </span>
-                < span className = "text-sm" > Bạn vừa rời khỏi màn hình thi! </span>
-                < span className = "text-xs opacity-80" > Lần 2: Điểm bị chia đôi.Lần 3: Bị truất quyền thi.</span>
-                </div>,
+                    <ViolationToastContent count={1} message="Bạn vừa rời khỏi màn hình thi!" />,
                     { autoClose: 8000, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #f97316' } }
                 );
             } else if (count === 2) {
                 setScorePenalty(true);
                 toast.error(
-                    <div className="flex flex-col gap-1" >
-                <span className="font-bold text-base" >🔴 VI PHẠM LẦN 2 – ĐIỂM BỊ CHIA ĐÔI! </span>
-                < span className = "text-sm" > Tất cả bài nộp từ bây giờ chỉ được tính 50 % điểm.</span>
-                < span className = "text-xs opacity-80" >⚠️ Rời màn hình thêm 1 lần nữa sẽ bị truất quyền thi! </span>
-                </div>,
+                    <ViolationToastContent count={2} message="Tất cả bài nộp từ bây giờ chỉ được tính 50% điểm." />,
                     { toastId: 'violation-toast', autoClose: false, closeButton: true, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #ef4444' } }
                 );
             } else if (count >= 3) {
+                toast.dismiss('violation-toast');
+                toast.error(
+                    <ViolationToastContent count={3} message="Bài thi đã bị khóa. Bạn chuyển sang chế độ chỉ xem." />,
+                    { autoClose: false, closeButton: true, position: 'top-center', style: { fontWeight: 'bold', border: '2px solid #dc2626' } }
+                );
                 if (onDisqualifiedRef.current) {
                     onDisqualifiedRef.current();
                 }
@@ -78,67 +101,99 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         if (!isExamMode) return;
 
         const toastId = "fullscreen-prompt";
+        let countdownTimer: ReturnType<typeof setInterval> | null = null;
+        let timeLeft = 10;
 
         const handleContextMenu = (e: MouseEvent) => {
             e.preventDefault();
         };
 
-        const checkFullscreen = () => {
-            if (!document.fullscreenElement && !(document as any).webkitFullscreenElement && !(document as any).msFullscreenElement) {
-                if (!toast.isActive(toastId)) {
-                    toast.info(
-                        <div className="flex flex-col gap-2" >
-                    <span className="font-bold" >⚠️ Yêu cầu Toàn màn hình </span>
-                    < span className = "text-xs" > Vui lòng bật chế độ Toàn màn hình để tiếp tục làm bài thi! </span>
-                    < button
-                                onClick = {() => {
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) elem.requestFullscreen();
-    else if ((elem as any).webkitRequestFullscreen) (elem as any).webkitRequestFullscreen();
-    else if ((elem as any).msRequestFullscreen) (elem as any).msRequestFullscreen();
-    toast.dismiss(toastId);
-}}
-className = "bg-blue-600 px-3 py-1.5 rounded text-white text-xs font-bold hover:bg-blue-700 transition-colors"
-    >
-    Bật Toàn màn hình(F11)
-        </button>
-        </div>,
-{
-    toastId,
-        autoClose: false,
-            closeOnClick: false,
-                closeButton: false,
-                    position: "top-center",
-                        style: { border: '1px solid #3b82f6' }
-}
-                    );
-                }
-            } else {
-    toast.dismiss(toastId);
-}
+        const enterFullscreen = () => {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen();
+            else if ((elem as any).webkitRequestFullscreen) (elem as any).webkitRequestFullscreen();
+            else if ((elem as any).msRequestFullscreen) (elem as any).msRequestFullscreen();
         };
 
-const timer = setTimeout(checkFullscreen, 1000);
+        const checkFullscreen = () => {
+            if (!document.fullscreenElement && !(document as any).webkitFullscreenElement && !(document as any).msFullscreenElement) {
+                // Đang ở chế độ cửa sổ
+                if (!countdownTimer) {
+                    timeLeft = 10;
+                    toast(
+                        <FullscreenWarningToastContent
+                            timeLeft={timeLeft}
+                            onEnterFullscreen={() => {
+                                enterFullscreen();
+                                toast.dismiss(toastId);
+                            }}
+                        />,
+                        {
+                            toastId: toastId,
+                            autoClose: false,
+                            position: "top-center",
+                            style: { border: '2px solid #ef4444', backgroundColor: '#fee2e2' }
+                        }
+                    );
 
-document.addEventListener('contextmenu', handleContextMenu);
-['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
-    document.addEventListener(event, checkFullscreen);
-});
+                    countdownTimer = setInterval(() => {
+                        timeLeft -= 1;
+                        if (timeLeft <= 0) {
+                            // Ghi nhận 1 vi phạm rớt F11
+                            if (violationHandlerRef.current) {
+                                violationHandlerRef.current();
+                            }
+                            timeLeft = 10; // Đếm lại từ vòng mới
+                        }
 
-return () => {
-    clearTimeout(timer);
-    document.removeEventListener('contextmenu', handleContextMenu);
-    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
-        document.removeEventListener(event, checkFullscreen);
-    });
-    toast.dismiss(toastId);
-};
+                        // Render lại UI với số giây mớI
+                        toast.update(toastId, {
+                            render: (
+                                <FullscreenWarningToastContent
+                                    timeLeft={timeLeft}
+                                    onEnterFullscreen={() => {
+                                        enterFullscreen();
+                                        toast.dismiss(toastId);
+                                    }}
+                                />
+                            ),
+                            position: "top-center",
+                            style: { border: '2px solid #ef4444', backgroundColor: '#fee2e2' }
+                        });
+                    }, 1000);
+                }
+            } else {
+                // Đã quay lại F11
+                if (countdownTimer) {
+                    clearInterval(countdownTimer);
+                    countdownTimer = null;
+                }
+                toast.dismiss(toastId);
+            }
+        };
+
+        const initialCheck = setTimeout(checkFullscreen, 1000);
+
+        document.addEventListener('contextmenu', handleContextMenu);
+        ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+            document.addEventListener(event, checkFullscreen);
+        });
+
+        return () => {
+            clearTimeout(initialCheck);
+            if (countdownTimer) clearInterval(countdownTimer);
+            document.removeEventListener('contextmenu', handleContextMenu);
+            ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
+                document.removeEventListener(event, checkFullscreen);
+            });
+            toast.dismiss(toastId);
+        };
     }, [isExamMode]);
 
-return {
-    violationCount,
-    scorePenalty,
-    initViolations,
-    triggerViolation: () => violationHandlerRef.current?.()
-};
+    return {
+        violationCount,
+        scorePenalty,
+        initViolations,
+        triggerViolation: () => violationHandlerRef.current?.()
+    };
 };
