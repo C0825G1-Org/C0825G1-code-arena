@@ -21,6 +21,7 @@ import { CodeEditorPage } from '../features/user/code-editor';
 import { UserContestsPage } from '../features/user/contests/pages/UserContestsPage';
 import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
 import { UserContestResultsPage } from '../features/user/contests/pages/UserContestResultsPage';
+import TutorialEditorPage from '../features/user/code-editor/pages/TutorialEditorPage';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -200,6 +201,10 @@ export const router = createBrowserRouter([
     {
         path: '/code-editor/:problemId',
         element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
+    },
+    {
+        path: '/tutorial',
+        element: <TutorialEditorPage />
     },
     {
         path: '/err/400',
