@@ -223,6 +223,22 @@ export const UserContestDetailPage = () => {
         }
 
         if (contest.status === 'upcoming') {
+            const serverTimeMs = new Date(contest.serverTime).getTime();
+            const startMs = new Date(contest.startTime).getTime();
+            const diffMs = startMs - serverTimeMs;
+
+            // Nếu còn <= 15 phút (15 * 60 * 1000 ms) thì cho phép vào phòng chờ
+            if (diffMs > 0 && diffMs <= 15 * 60 * 1000) {
+                return (
+                    <button
+                        onClick={handleStartExam}
+                        className="w-full py-3.5 rounded-xl text-lg font-bold bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-xl shadow-amber-500/20 transition-all border border-amber-400 flex justify-center items-center gap-2"
+                    >
+                        <Clock weight="fill" className="text-xl" /> Vào Phòng Chờ
+                    </button>
+                );
+            }
+
             return (
                 <button
                     disabled

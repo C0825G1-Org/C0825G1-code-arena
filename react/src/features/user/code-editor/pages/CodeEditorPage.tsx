@@ -23,6 +23,7 @@ import { useContestSync } from '../hooks/useContestSync';
 import { EditorHeader } from '../components/EditorHeader';
 import { ProblemStrip } from '../components/ProblemStrip';
 import { ActionToolbar } from '../components/ActionToolbar';
+import { Clock, LockKey } from '@phosphor-icons/react';
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -52,8 +53,10 @@ export default function Home() {
     const [isTimeUp, setIsTimeUp] = useState(false);
 
     // Sử dụng Custom Hooks mới tách
+    const isWaitingRoom = isExamMode && contest?.status === 'upcoming';
     const { blocker } = useContestSync({
         isExamMode,
+        isWaitingRoom,
         isSubmittingExit,
         contestStatus: contest?.participantStatus,
         contestId: contestId || undefined
@@ -108,14 +111,50 @@ export default function Home() {
 
     useEffect(() => {
         setActiveTab('problem');
-        getSampleTestCases(problemId).then(setTestCases).catch(console.error);
-    }, [problemId]);
+        // Chỉ fetch sample test cases nếu không ở trong phòng chờ
+        if (!isExamMode || contest?.status !== 'upcoming') {
+            getSampleTestCases(problemId).then(setTestCases).catch(console.error);
+        }
+    }, [problemId, isExamMode, contest?.status]);
 
     useEffect(() => {
         if (blocker.state === "blocked") {
             setIsConfirmExitOpen(true);
         }
     }, [blocker.state]);
+
+    // Lấy offset thời gian server vs local
+    const [serverOffset, setServerOffset] = useState<number>(0);
+    const [waitingTimeLeftStr, setWaitingTimeLeftStr] = useState<string>('');
+
+    useEffect(() => {
+        if (contest && contest.status === 'upcoming' && contest.serverTime && contest.startTime) {
+            const local = new Date().getTime();
+            const server = new Date(contest.serverTime).getTime();
+            setServerOffset(server - local);
+        }
+    }, [contest]);
+
+    useEffect(() => {
+        if (!contest || contest.status !== 'upcoming') return;
+        const targetMs = new Date(contest.startTime).getTime();
+
+        const timer = setInterval(() => {
+            const nowReal = new Date().getTime() + serverOffset;
+            const diff = targetMs - nowReal;
+            if (diff <= 0) {
+                clearInterval(timer);
+                setWaitingTimeLeftStr('Bắt đầu!');
+                // Reload lại trang để vào chế độ thi chính thức
+                window.location.reload();
+            } else {
+                const m = Math.floor(diff / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                setWaitingTimeLeftStr(`${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+            }
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [contest, serverOffset]);
 
     const handleConfirmExit = async (status: string = 'FINISHED') => {
         if (!contestId) {
@@ -179,7 +218,7 @@ export default function Home() {
     const handleManualExit = () => {
         if (isExamMode) {
             const isDone = contest?.participantStatus === 'FINISHED' || contest?.participantStatus === 'DISQUALIFIED';
-            if (isDone) {
+            if (isDone || isWaitingRoom) {
                 navigate(`/contests/${contestId}`);
             } else {
                 setIsConfirmExitOpen(true);
@@ -233,11 +272,11 @@ export default function Home() {
 
     const getLabel = (index: number) => (index + 1).toString();
 
-    const isReadOnly = isTimeUp || (isExamMode && contest?.participantStatus !== 'JOINED');
+    const isReadOnly = isTimeUp || (isExamMode && contest?.participantStatus !== 'JOINED') || (contest?.status === 'upcoming');
 
     return (
-        <div className={`h-screen bg-[#0f172a] text-slate-300 flex flex-col overflow-hidden font-sans relative ${isExamMode ? 'border-4 border-red-500/30' : ''}`}>
-            {isExamMode && <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(239,68,68,0.15)] z-0"></div>}
+        <div className={`h-screen bg-[#0f172a] text-slate-300 flex flex-col overflow-hidden font-sans relative ${isExamMode && !isWaitingRoom ? 'border-4 border-red-500/30' : ''}`}>
+            {isExamMode && !isWaitingRoom && <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(239,68,68,0.15)] z-0"></div>}
 
             {isSubmitting && (
                 <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-sm z-[100] flex flex-col items-center justify-center">
@@ -274,7 +313,7 @@ export default function Home() {
                 onManualExit={handleManualExit}
             />
 
-            {isExamMode && problemsList.length > 0 && (
+            {isExamMode && problemsList.length > 0 && !isWaitingRoom && (
                 <ProblemStrip
                     problemsList={problemsList}
                     currentProblemIndex={currentProblemIndex}
@@ -286,108 +325,132 @@ export default function Home() {
             )}
 
             <div className="flex-1 w-full relative bg-[#0f172a] p-2">
-                <Split direction="horizontal" sizes={[40, 60]} minSize={300} gutterSize={8} className="split-horizontal h-full flex">
-                    {/* Panel Trái */}
-                    <div className="h-full flex flex-col bg-[#1e293b] rounded-xl overflow-hidden border border-white/5 shadow-2xl">
-                        <div className="flex border-b border-white/5 bg-[#0f172a]/50 p-1 gap-1 flex-wrap">
-                            <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'problem' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('problem')}>Đề bài</button>
-                            <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'submissions' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('submissions')}>Báo cáo nộp bài</button>
-                            {!isExamMode && (
-                                <>
-                                    <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'hints' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('hints')}>Gợi ý</button>
-                                    <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'discussions' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('discussions')}>Thảo luận</button>
-                                </>
-                            )}
-                        </div>
-                        <div className="flex-1 overflow-hidden relative bg-[#0f172a]/20 tour-problem-panel">
-                            {activeTab === 'problem' && <div className="absolute inset-0"><ProblemPanel problemId={problemId} contestId={contestId} /></div>}
-                            {activeTab === 'submissions' && <div className="absolute inset-0"><SubmissionHistory problemId={problemId} contestId={contestId} /></div>}
-                            {activeTab === 'hints' && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-slate-400">
-                                    <span className="text-4xl mb-4">💡</span>
-                                    <h4 className="text-lg font-bold text-white mb-2">Gợi ý & Hướng dẫn</h4>
-                                    <p className="text-center max-w-sm">Trong chế độ luyện tập, bạn có thể xem gợi ý tiếp cận bài toán.</p>
-                                    <button className="mt-4 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/20 font-medium hover:bg-blue-600/30 transition-colors">Mở khóa gợi ý</button>
-                                </div>
-                            )}
-                            {activeTab === 'discussions' && (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-slate-400">
-                                    <span className="text-4xl mb-4">💬</span>
-                                    <h4 className="text-lg font-bold text-white mb-2">Cộng đồng Thảo luận</h4>
-                                    <p className="text-center max-w-sm">Tham gia thảo luận cùng các người chơi khác.</p>
-                                    <span className="mt-4 px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-xs font-bold uppercase tracking-widest text-slate-300">Coming Soon</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                {isWaitingRoom ? (
+                    <div className="h-full flex flex-col items-center justify-center relative rounded-xl border border-white/5 bg-[#1e293b] overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-amber-900/10 to-transparent pointer-events-none" />
+                        <div className="absolute top-[20%] left-[30%] w-[40%] h-[40%] bg-amber-600/5 blur-[120px] rounded-full pointer-events-none" />
 
-                    {/* Panel Phải */}
-                    <div className="h-full flex flex-col min-w-0 bg-transparent rounded-xl overflow-hidden">
-                        <Split direction="vertical" sizes={[70, 30]} minSize={100} gutterSize={8} className="split-vertical h-full flex flex-col">
-                            <div className="flex flex-col overflow-hidden bg-[#1e293b] border border-white/5 shadow-2xl relative rounded-xl">
-                                <ActionToolbar
-                                    language={language}
-                                    onChangeLanguage={changeLanguage}
-                                    isSubmitting={isSubmitting}
-                                    isTimeUp={isTimeUp}
-                                    isExamMode={isExamMode}
-                                    participantStatus={contest?.participantStatus}
-                                    submitCount={problemStatus[problemId]?.submitCount ?? 0}
-                                    isAC={problemStatus[problemId]?.isAC ?? false}
-                                    onRunCode={() => submitLogic(true)}
-                                    onSubmit={() => setIsConfirmSubmitOpen(true)}
-                                    onResetCode={resetCode}
-                                    isSettingsOpen={isSettingsOpen}
-                                    onToggleSettings={setIsSettingsOpen}
-                                    settings={settings}
-                                    onUpdateSettings={updateSettings}
-                                />
-                                <div className="tour-code-editor flex-1 overflow-hidden relative">
-                                    <CodeEditor
-                                        language={language}
-                                        value={code}
-                                        onChange={isReadOnly ? () => { } : setCode}
-                                        settings={settings}
-                                        readOnly={isReadOnly}
-                                    />
+                        <div className="z-10 flex flex-col items-center p-8 bg-[#0f172a]/60 backdrop-blur-md rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                            <LockKey size={64} weight="duotone" className="text-amber-500 mb-6 drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]" />
+                            <h2 className="text-3xl font-black text-white mb-2 tracking-tight">KỲ THI CHƯA BẮT ĐẦU</h2>
+                            <p className="text-slate-400 mb-8 max-w-md text-center">Bạn đang ở phòng chờ. Đề thi, công cụ biên dịch và các chức năng khác đã được khóa để đảm bảo công bằng.</p>
+
+                            <div className="bg-[#0f172a] px-8 py-6 rounded-2xl border border-amber-500/30 shadow-[inset_0_0_30px_rgba(245,158,11,0.05)] w-full text-center">
+                                <span className="text-slate-500 font-bold uppercase tracking-widest text-sm block mb-3 border-b border-white/5 pb-2">Thời gian đếm ngược</span>
+                                <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-amber-300 to-orange-500 font-mono tracking-wider tabular-nums">
+                                    {waitingTimeLeftStr}
                                 </div>
                             </div>
 
-                            {/* Panel Test Cases (Nửa dưới bên phải) */}
-                            <div className="flex flex-col overflow-hidden bg-[#1e293b] border border-white/5 shadow-2xl relative rounded-xl ml-2 md:ml-0 mt-2 md:mt-0">
-                                <div className="flex border-b border-white/5 bg-[#0f172a]/50 p-2 gap-2">
-                                    <div className="px-4 py-1.5 rounded-lg text-sm font-medium bg-[#1e293b] text-white shadow-sm border border-white/5 flex items-center gap-2">
-                                        Test Cases
+                            <div className="mt-8 flex items-center gap-3 text-amber-500/80 bg-amber-500/10 px-6 py-3 rounded-full border border-amber-500/20 text-sm font-medium">
+                                <Clock size={20} weight="fill" className="animate-pulse" />
+                                <span>Hệ thống sẽ tự động tải lại khi đến giờ</span>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <Split direction="horizontal" sizes={[40, 60]} minSize={300} gutterSize={8} className="split-horizontal h-full flex">
+                        {/* Panel Trái */}
+                        <div className="h-full flex flex-col bg-[#1e293b] rounded-xl overflow-hidden border border-white/5 shadow-2xl">
+                            <div className="flex border-b border-white/5 bg-[#0f172a]/50 p-1 gap-1 flex-wrap">
+                                <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'problem' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('problem')}>Đề bài</button>
+                                <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'submissions' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('submissions')}>Báo cáo nộp bài</button>
+                                {!isExamMode && (
+                                    <>
+                                        <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'hints' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('hints')}>Gợi ý</button>
+                                        <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'discussions' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('discussions')}>Thảo luận</button>
+                                    </>
+                                )}
+                            </div>
+                            <div className="flex-1 overflow-hidden relative bg-[#0f172a]/20 tour-problem-panel">
+                                {activeTab === 'problem' && <div className="absolute inset-0"><ProblemPanel problemId={problemId} contestId={contestId} /></div>}
+                                {activeTab === 'submissions' && <div className="absolute inset-0"><SubmissionHistory problemId={problemId} contestId={contestId} /></div>}
+                                {activeTab === 'hints' && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-slate-400">
+                                        <span className="text-4xl mb-4">💡</span>
+                                        <h4 className="text-lg font-bold text-white mb-2">Gợi ý & Hướng dẫn</h4>
+                                        <p className="text-center max-w-sm">Trong chế độ luyện tập, bạn có thể xem gợi ý tiếp cận bài toán.</p>
+                                        <button className="mt-4 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/20 font-medium hover:bg-blue-600/30 transition-colors">Mở khóa gợi ý</button>
+                                    </div>
+                                )}
+                                {activeTab === 'discussions' && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-slate-400">
+                                        <span className="text-4xl mb-4">💬</span>
+                                        <h4 className="text-lg font-bold text-white mb-2">Cộng đồng Thảo luận</h4>
+                                        <p className="text-center max-w-sm">Tham gia thảo luận cùng các người chơi khác.</p>
+                                        <span className="mt-4 px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-xs font-bold uppercase tracking-widest text-slate-300">Coming Soon</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Panel Phải */}
+                        <div className="h-full flex flex-col min-w-0 bg-transparent rounded-xl overflow-hidden">
+                            <Split direction="vertical" sizes={[70, 30]} minSize={100} gutterSize={8} className="split-vertical h-full flex flex-col">
+                                <div className="flex flex-col overflow-hidden bg-[#1e293b] border border-white/5 shadow-2xl relative rounded-xl">
+                                    <ActionToolbar
+                                        language={language}
+                                        onChangeLanguage={changeLanguage}
+                                        isSubmitting={isSubmitting}
+                                        isTimeUp={isTimeUp}
+                                        isExamMode={isExamMode}
+                                        participantStatus={contest?.participantStatus}
+                                        submitCount={problemStatus[problemId]?.submitCount ?? 0}
+                                        isAC={problemStatus[problemId]?.isAC ?? false}
+                                        onRunCode={() => submitLogic(true)}
+                                        onSubmit={() => setIsConfirmSubmitOpen(true)}
+                                        onResetCode={resetCode}
+                                        isSettingsOpen={isSettingsOpen}
+                                        onToggleSettings={setIsSettingsOpen}
+                                        settings={settings}
+                                        onUpdateSettings={updateSettings}
+                                    />
+                                    <div className="tour-code-editor flex-1 overflow-hidden relative">
+                                        <CodeEditor
+                                            language={language}
+                                            value={code}
+                                            onChange={isReadOnly ? () => { } : setCode}
+                                            settings={settings}
+                                            readOnly={isReadOnly}
+                                        />
                                     </div>
                                 </div>
-                                <div className="flex-1 p-2 md:p-4 overflow-y-auto custom-scrollbar">
-                                    {testCases.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2 md:gap-4">
-                                            {testCases.map((tc, idx) => (
-                                                <div key={tc.id} className="w-full md:flex-1 min-w-[200px] bg-[#0f172a]/30 rounded-xl p-3 md:p-4 border border-white/5 hover:border-blue-500/20 transition-all font-mono text-xs md:text-sm">
-                                                    <div className="mb-2 text-slate-500 font-bold uppercase tracking-wider text-[10px] md:text-xs">Case {idx + 1}</div>
-                                                    <div className="mb-2 md:mb-3">
-                                                        <div className="text-slate-400 mb-1 text-[10px] md:text-xs">Input:</div>
-                                                        <div className="bg-[#0f172a] text-slate-300 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).inputData}</div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-slate-400 mb-1 text-[10px] md:text-xs">Expected:</div>
-                                                        <div className="bg-[#0f172a] text-emerald-400 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).expectedOutput}</div>
-                                                    </div>
-                                                </div>
-                                            ))}
+
+                                {/* Panel Test Cases (Nửa dưới bên phải) */}
+                                <div className="flex flex-col overflow-hidden bg-[#1e293b] border border-white/5 shadow-2xl relative rounded-xl ml-2 md:ml-0 mt-2 md:mt-0">
+                                    <div className="flex border-b border-white/5 bg-[#0f172a]/50 p-2 gap-2">
+                                        <div className="px-4 py-1.5 rounded-lg text-sm font-medium bg-[#1e293b] text-white shadow-sm border border-white/5 flex items-center gap-2">
+                                            Test Cases
                                         </div>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-slate-500 pb-10">Không có test case mẫu.</div>
-                                    )}
+                                    </div>
+                                    <div className="flex-1 p-2 md:p-4 overflow-y-auto custom-scrollbar">
+                                        {testCases.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2 md:gap-4">
+                                                {testCases.map((tc, idx) => (
+                                                    <div key={tc.id} className="w-full md:flex-1 min-w-[200px] bg-[#0f172a]/30 rounded-xl p-3 md:p-4 border border-white/5 hover:border-blue-500/20 transition-all font-mono text-xs md:text-sm">
+                                                        <div className="mb-2 text-slate-500 font-bold uppercase tracking-wider text-[10px] md:text-xs">Case {idx + 1}</div>
+                                                        <div className="mb-2 md:mb-3">
+                                                            <div className="text-slate-400 mb-1 text-[10px] md:text-xs">Input:</div>
+                                                            <div className="bg-[#0f172a] text-slate-300 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).inputData}</div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-slate-400 mb-1 text-[10px] md:text-xs">Expected:</div>
+                                                            <div className="bg-[#0f172a] text-emerald-400 p-2 md:p-3 rounded border border-white/5 overflow-x-auto">{(tc as any).expectedOutput}</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="h-full flex items-center justify-center text-slate-500 pb-10">Không có test case mẫu.</div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </Split>
-                    </div>
-                </Split>
+                            </Split>
+                        </div>
+                    </Split>
+                )}
             </div>
 
-            {/* @ts-ignore */}
             <ConfirmExitModal
                 isOpen={isConfirmExitOpen}
                 isExamMode={isExamMode}
@@ -398,7 +461,6 @@ export default function Home() {
                 }}
             />
 
-            {/* @ts-ignore */}
             <ConfirmExitModal
                 isOpen={isConfirmSubmitOpen}
                 title="Xác nhận nộp bài"
