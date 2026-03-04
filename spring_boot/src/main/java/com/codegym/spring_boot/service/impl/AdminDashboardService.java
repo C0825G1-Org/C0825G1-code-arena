@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -177,6 +178,6 @@ public class AdminDashboardService implements IAdminDashboardService {
                 participantRepository.countByIdContestId(c.getId()),
                 contestProblemRepository.countByIdContestId(c.getId())
             ))
-            .collect(java.util.stream.Collectors.toList());
+            .collect(Collectors.toList());
     }
 }

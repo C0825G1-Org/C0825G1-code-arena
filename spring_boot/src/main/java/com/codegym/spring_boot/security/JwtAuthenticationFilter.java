@@ -45,6 +45,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
+                // ── Reject locked accounts immediately, even if JWT is valid
+                if (!userDetails.isAccountNonLocked()) {
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setStatus(423); // 423 Locked
+                    response.getWriter().write("{\"status\":423,\"error\":\"Locked\",\"message\":\"Tài khoản của bạn đã bị khoá.\"}");
+                    return;
+                }
+
                 if (jwtService.isTokenValid(jwt, userDetails)) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,

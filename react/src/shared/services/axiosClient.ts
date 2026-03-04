@@ -29,6 +29,9 @@ axiosClient.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+        } else if (error.response?.status === 423) {
+            // Tài khoản bị khoá
+            window.dispatchEvent(new Event('auth:locked'));
         } else if (error.response?.status === 403 && !isAuthRequest) {
             window.location.href = '/err/403';
         } else if (error.response?.status >= 500 && !isAuthRequest) {

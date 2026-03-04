@@ -255,7 +255,6 @@ export const AdminDashboardPage: React.FC = () => {
                 <nav className="flex-1 px-4 space-y-1">
                     <SidebarLink href="/admin/dashboard"   icon={SquaresFour}   label="System Dashboard" active />
                     <SidebarLink href="/admin/users"       icon={Users}         label="Quản lý Users" />
-                    <SidebarLink href="/admin/languages"   icon={Cpu}           label="Cấu hình Máy chấm" />
                     <SidebarLink href="/admin/tags"        icon={Tag}           label="Phân loại (Tags)" />
                 </nav>
 
