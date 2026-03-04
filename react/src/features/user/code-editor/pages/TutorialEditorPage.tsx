@@ -278,7 +278,7 @@ export default function TutorialEditorPage() {
                                         <h2 className="text-2xl font-bold text-white mb-4 shadow-[0_4px_10px_rgba(0,0,0,0.5)] bg-[#1e293b] p-4 rounded-xl border border-white/5">Bài A: Tính tổng mảng 1 chiều (Giả lập)</h2>
                                         <div className="flex gap-4 mb-6 text-sm text-slate-400">
                                             <div className="bg-slate-800 px-3 py-1 rounded shadow-inner flex items-center gap-2"><span>⏱️</span> Time Limit: 1000ms</div>
-                                            <div className="bg-slate-800 px-3 py-1 rounded shadow-inner flex items-center gap-2"><span>💾</span> Memory Limit: 256MB</div>
+                                            <div className="bg-slate-800 px-3 py-1 rounded shadow-inner flex items-center gap-2"><span>💾</span> Memory Limit: 256KB</div>
                                         </div>
                                         <div className="bg-blue-500/10 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
                                             <p className="text-blue-100 font-medium m-0">Cho một mảng số nguyên A gồm N phần tử. Yêu cầu tính tổng tất cả các phần tử trong mảng đó.</p>
@@ -323,7 +323,7 @@ export default function TutorialEditorPage() {
                                             </div>
                                             <div className="flex gap-4 text-sm text-slate-300 font-mono">
                                                 <span className="flex items-center gap-1">⏱️ 142ms</span>
-                                                <span className="flex items-center gap-1">💾 33.5MB</span>
+                                                <span className="flex items-center gap-1">💾 33.5KB</span>
                                                 <span className="text-emerald-400 font-bold ml-2 hidden md:block">100 ĐIỂM</span>
                                             </div>
                                         </div>
@@ -335,7 +335,7 @@ export default function TutorialEditorPage() {
                                             </div>
                                             <div className="flex gap-4 text-sm text-slate-300 font-mono">
                                                 <span className="flex items-center gap-1">⏱️ 120ms</span>
-                                                <span className="flex items-center gap-1">💾 32.1MB</span>
+                                                <span className="flex items-center gap-1">💾 32.1KB</span>
                                                 <span className="text-orange-400 font-bold ml-2 hidden md:block">40 ĐIỂM</span>
                                             </div>
                                         </div>

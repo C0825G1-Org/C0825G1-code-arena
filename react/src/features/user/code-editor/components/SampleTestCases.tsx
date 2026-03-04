@@ -173,7 +173,7 @@ export default function SampleTestCases({ testCases }: Props) {
                                     {(runResult.executionTime != null || runResult.memoryUsed != null) && (
                                         <div className="flex gap-4 text-xs text-slate-500 font-medium">
                                             {runResult.executionTime != null && <span>⏱ {runResult.executionTime} ms</span>}
-                                            {runResult.memoryUsed != null && <span>💾 {runResult.memoryUsed} MB</span>}
+                                            {runResult.memoryUsed != null && <span>💾 {runResult.memoryUsed} KB</span>}
                                         </div>
                                     )}
                                 </div>
