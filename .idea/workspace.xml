@@ -6,12 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/user/contests/hooks/useContestWebSocket.ts" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/contests/hooks/useContestWebSocket.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/user/contests/pages/UserContestsPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/contests/pages/UserContestsPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestParticipantRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestParticipantRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/dashboard/pages/AdminDashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/dashboard/pages/AdminDashboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/IProblemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/IProblemRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/SubmissionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/SubmissionRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/scheduler/ContestEventScheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/scheduler/ContestEventScheduler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/ContestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/ContestService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,7 +135,8 @@
       <workItem from="1772419698147" duration="1575000" />
       <workItem from="1772422058804" duration="4401000" />
       <workItem from="1772474403879" duration="561000" />
-      <workItem from="1772515418141" duration="2964000" />
+      <workItem from="1772515418141" duration="5152000" />
+      <workItem from="1772587923083" duration="1455000" />
     </task>
     <servers />
   </component>
