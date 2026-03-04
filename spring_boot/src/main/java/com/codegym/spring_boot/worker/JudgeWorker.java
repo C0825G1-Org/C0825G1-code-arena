@@ -21,6 +21,7 @@ public class JudgeWorker {
     private final RedisTemplate<String, Object> redisTemplate;
     private final DockerJudgeService dockerJudgeService;
     private final SubmissionRepository submissionRepository;
+    private final com.codegym.spring_boot.repository.ITestCaseRepository testCaseRepository;
     private final ObjectMapper objectMapper;
 
     private static final String QUEUE_NAME = "judge_queue";
@@ -67,11 +68,22 @@ public class JudgeWorker {
 
             // 2. Thực hiện chấm bài qua Docker (Có thể mất thời gian)
             long start = System.currentTimeMillis();
+            // Lấy danh sách sample testcases nếu là chạy thử
+            java.util.List<String> sampleFilenames = null;
+            if (Boolean.TRUE.equals(ticket.isRunOnly())) {
+                sampleFilenames = testCaseRepository.findByProblemId(submission.getProblem().getId())
+                        .stream()
+                        .filter(tc -> Boolean.TRUE.equals(tc.getIsSample()))
+                        .map(com.codegym.spring_boot.entity.TestCase::getInputFilename)
+                        .toList();
+            }
+
             SubmissionResult result = dockerJudgeService.judge(
                     submission.getLanguage().getName(),
                     submission.getSourceCode(),
                     submission.getProblem().getId().toString(),
-                    ticket.isRunOnly());
+                    ticket.isRunOnly(),
+                    sampleFilenames);
 
             log.info(">>> [WORKER] Docker judge finished in {}ms for submission {}. Result: {}",
                     (System.currentTimeMillis() - start), submission.getId(), result.getStatus());
