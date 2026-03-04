@@ -108,6 +108,40 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
          + "GROUP BY s.status")
     List<Object[]> countByStatus();
 
+    // --- Mod Dashboard Stat Queries (Trend & Verdict) ---
+
+    @Query("SELECT FUNCTION('HOUR', s.createdAt) as hr, COUNT(s) as cnt "
+         + "FROM Submission s "
+         + "WHERE s.isTestRun = false AND s.createdAt >= :since AND s.contest.createdBy.id = :modId "
+         + "GROUP BY FUNCTION('HOUR', s.createdAt) "
+         + "ORDER BY hr ASC")
+    List<Object[]> countByHour24hForMod(@Param("since") LocalDateTime since, @Param("modId") Integer modId);
+
+    @Query("SELECT CAST(s.createdAt AS DATE) as day, COUNT(s) as cnt "
+         + "FROM Submission s "
+         + "WHERE s.isTestRun = false AND s.createdAt >= :since AND s.contest.createdBy.id = :modId "
+         + "GROUP BY CAST(s.createdAt AS DATE) "
+         + "ORDER BY day ASC")
+    List<Object[]> countByDayForMod(@Param("since") LocalDateTime since, @Param("modId") Integer modId);
+
+    @Query("SELECT CAST(s.createdAt AS DATE) as day, COUNT(s) as cnt "
+         + "FROM Submission s "
+         + "WHERE s.isTestRun = false "
+         + "AND s.createdAt >= :from AND s.createdAt < :to AND s.contest.createdBy.id = :modId "
+         + "GROUP BY CAST(s.createdAt AS DATE) "
+         + "ORDER BY day ASC")
+    List<Object[]> countByDateRangeForMod(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to,
+            @Param("modId") Integer modId);
+
+    @Query("SELECT s.status, COUNT(s) FROM Submission s "
+         + "WHERE s.isTestRun = false AND s.contest.createdBy.id = :modId "
+         + "AND s.status NOT IN (com.codegym.spring_boot.entity.enums.SubmissionStatus.pending, "
+         + "com.codegym.spring_boot.entity.enums.SubmissionStatus.judging) "
+         + "GROUP BY s.status")
+    List<Object[]> countByStatusForMod(@Param("modId") Integer modId);
+
     // --- Monitor Dashboard Queries ---
     int countByContestId(Integer contestId);
 

@@ -17,4 +17,6 @@ public class ModeratorDashboardResponse {
     private long submissionsLast24h;
     private long pendingProblems;
     private List<ContestListResponse> activeContests;
+    private List<com.codegym.spring_boot.dto.admin.HourlySubmissionDTO> submissionTrend;
+    private List<com.codegym.spring_boot.dto.admin.VerdictStatsDTO> verdictStats;
 }

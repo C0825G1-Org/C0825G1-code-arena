@@ -27,6 +27,23 @@ public class ModeratorDashboardController {
         return ResponseEntity.ok(stats);
     }
 
+    @GetMapping("/trend")
+    @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
+    public ResponseEntity<java.util.List<com.codegym.spring_boot.dto.admin.HourlySubmissionDTO>> getTrend(
+            @RequestParam(defaultValue = "24h") String range,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(moderatorDashboardService.getTrend(currentUser.getId(), range));
+    }
+
+    @GetMapping("/trend/custom")
+    @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
+    public ResponseEntity<java.util.List<com.codegym.spring_boot.dto.admin.HourlySubmissionDTO>> getTrendByRange(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate from,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate to,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(moderatorDashboardService.getTrendByRange(currentUser.getId(), from, to));
+    }
+
     @GetMapping("/contests/{contestId}/monitor")
     @PreAuthorize("hasAnyRole('MODERATOR', 'ADMIN')")
     public ResponseEntity<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse> getMonitorStats(
