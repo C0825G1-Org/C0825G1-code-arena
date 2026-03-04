@@ -463,19 +463,19 @@ export const UserContestDetailPage = () => {
                             <ul className="text-sm text-slate-400 space-y-4 font-medium">
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Nghiêm cấm sao chép code hoặc sử dụng tài liệu ngoài. Hệ thống có cơ chế quét <b>Plagiarism</b> tự động.</span>
+                                    <span>Nghiêm cấm sao chép code hoặc sử dụng AI. Hệ thống quét <b>Plagiarism</b> tự động bằng thuật toán MOSS.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Chế độ giám sát <b>Video ngẫu nhiên</b> yêu cầu quyền truy cập Camera để xác minh.</span>
+                                    <span>Vi phạm <b>rời khỏi trang quá 3 lần</b> sẽ bị truất quyền thi ngay lập tức (Nhấn F11 để vào Toàn màn hình).</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Vi phạm <b>rời khỏi trang quá 3 lần</b> sẽ bị truất quyền thi ngay lập tức (F11 để tránh lỗi).</span>
+                                    <span>Giới hạn nộp bài: <b>50 lần/bài tập</b>. Penalty 20 phút cho mỗi lượt nộp sai (nếu bài đó AC sau này) theo chuẩn <b>ICPC</b>.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Penalty 20 phút cho mỗi lượt nộp sai (nếu bài đó AC sau này) theo chuẩn <b>ICPC</b>.</span>
+                                    <span>Yêu cầu bật <b>Camera</b> để hệ thống Snapshot ngẫu nhiên xác minh danh tính suốt thời gian thi.</span>
                                 </li>
                             </ul>
                         </div>

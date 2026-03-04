@@ -48,20 +48,20 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onConfi
                             <Scales size={24} weight="duotone" />
                             <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">1. Đạo đức và Trung thực</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 bg-slate-900/40 rounded-2xl border border-white/5 space-y-2">
-                                <p className="text-sm text-slate-300 leading-relaxed italic">
-                                    "Thí sinh cam kết tự mình hoàn thành bài thi. Mọi hình thức hỗ trợ từ bên ngoài hoặc sử dụng AI để giải bài đều bị nghiêm cấm."
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-5 bg-slate-900/40 rounded-2xl border border-white/5 space-y-3">
+                                <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                                    Thí sinh phải tự mình hoàn thành bài thi mà không có bất kỳ sự trợ giúp nào từ người khác hoặc các công cụ hỗ trợ không được phép.
                                 </p>
                             </div>
                             <ul className="space-y-3">
                                 <li className="flex gap-3 text-sm text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
-                                    <span>Nghiêm cấm sao chép mã nguồn (Plagiarism). Hệ thống rà soát tự động với thuật toán so khớp cấp độ cao.</span>
+                                    <CheckCircle size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                                    <span><b>Cấm Plagiarism:</b> Nghiêm cấm sao chép mã nguồn từ internet hoặc từ thí sinh khác. Hệ thống sử dụng MOSS (Measure Of Software Similarity) để phát hiện gian lận.</span>
                                 </li>
                                 <li className="flex gap-3 text-sm text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
-                                    <span>Mọi tài khoản vi phạm sẽ bị khóa vĩnh viễn và hủy bỏ toàn bộ kết quả trước đó.</span>
+                                    <CheckCircle size={18} className="text-blue-500 shrink-0 mt-0.5" />
+                                    <span><b>Cấm AI/Bot:</b> Không sử dụng ChatGPT, GitHub Copilot hoặc bất kỳ công cụ AI sinh mã nào trong suốt quá trình thi.</span>
                                 </li>
                             </ul>
                         </div>
@@ -71,61 +71,84 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onConfi
                     <section className="space-y-4">
                         <div className="flex items-center gap-3 text-red-400">
                             <Camera size={24} weight="duotone" />
-                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">2. Giám sát chống gian lận</h3>
+                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">2. Giám sát kỹ thuật</h3>
                         </div>
-                        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6 space-y-4">
-                            <div className="flex items-start gap-4">
-                                <Browser size={32} weight="fill" className="text-red-500 shrink-0" />
-                                <div>
-                                    <p className="text-white font-bold mb-1">Chặn chuyển đổi Tab/Ứng dụng</p>
-                                    <p className="text-slate-400 text-sm">Hệ thống ghi lại số lần bạn rời khỏi trình duyệt. Vi phạm <b>quá 3 lần</b> sẽ dẫn đến truất quyền thi ngay lập tức.</p>
+                        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6 space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex items-start gap-4">
+                                    <Browser size={32} weight="fill" className="text-red-500 shrink-0" />
+                                    <div>
+                                        <p className="text-white font-bold mb-1">Chặn chuyển đổi Tab</p>
+                                        <p className="text-slate-400 text-xs leading-relaxed">Hệ thống ghi nhận mỗi lần bạn chuyển Tab hoặc ứng dụng. <b>Vi phạm 3 lần</b> sẽ bị truất quyền thi tự động.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <Camera size={32} weight="fill" className="text-red-500 shrink-0" />
+                                    <div>
+                                        <p className="text-white font-bold mb-1">Xác minh Camera</p>
+                                        <p className="text-slate-400 text-xs leading-relaxed">Snapshot ngẫu nhiên được thực hiện để đối soát gương mặt. Vui lòng không che mặt hoặc rời khỏi khung hình quá lâu.</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-start gap-4">
-                                <Camera size={32} weight="fill" className="text-red-500 shrink-0" />
-                                <div>
-                                    <p className="text-white font-bold mb-1">Giám sát Video (Random Snapshot)</p>
-                                    <p className="text-slate-400 text-sm">Yêu cầu bật Camera. Hệ thống sẽ chụp ảnh ngẫu nhiên để xác minh danh tính và sự hiện diện của bạn.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs font-bold text-red-400/80 bg-red-400/10 w-fit px-3 py-1 rounded-full border border-red-400/20">
-                                <WarningCircle weight="fill" />
-                                KHUYẾN KHÍCH: Nhấn F11 để sử dụng chế độ Toàn màn hình giúp hạn chế lỗi chuyển tab.
+                            <div className="p-3 bg-red-500/10 rounded-xl border border-red-500/20 flex items-center gap-3 text-xs text-red-300">
+                                <WarningCircle size={20} weight="fill" className="animate-pulse shrink-0" />
+                                <span><b>MẸO:</b> Nhấn <b>F11</b> ngay sau khi bắt đầu để vào chế độ Toàn màn hình, giúp tránh các lỗi vô tình nhảy Tab do thông báo hệ thống.</span>
                             </div>
                         </div>
                     </section>
 
-                    {/* Part 3: Scoring */}
+                    {/* Part 3: Scoring & Limits */}
                     <section className="space-y-4">
                         <div className="flex items-center gap-3 text-emerald-400">
                             <Timer size={24} weight="duotone" />
-                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">3. Cách tính điểm và Nộp bài</h3>
+                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">3. Quy tắc chấm điểm & Giới hạn</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-5 bg-slate-900/40 rounded-2xl border border-white/5 border-l-4 border-l-emerald-500">
-                                <h4 className="text-emerald-400 font-bold text-sm mb-2">Quy tắc ICPC</h4>
-                                <p className="text-xs text-slate-400 leading-relaxed">
-                                    Xếp hạng dựa trên số bài AC. Nếu bằng số bài, thí sinh có tổng <b>Time Penalty</b> thấp hơn sẽ xếp trên. Mỗi lần nộp sai (không phải CE) cộng thêm 20 phút penalty nếu bài đó sau đó được AC.
-                                </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div className="p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/20">
+                                    <h4 className="text-emerald-400 font-bold text-sm mb-2 flex items-center gap-2">
+                                        <Scales weight="bold" /> Hệ thống ICPC
+                                    </h4>
+                                    <ul className="text-xs text-slate-400 space-y-2">
+                                        <li>• Ưu tiên thí sinh giải được <b>nhiều bài hơn</b>.</li>
+                                        <li>• Nếu bằng số bài, thí sinh có <b>tổng Penalty (Thời gian) ít hơn</b> sẽ xếp trên.</li>
+                                        <li>• Mỗi lần nộp sai (WA, TLE, MLE, RE) sẽ bị cộng <b>20 phút penalty</b> (chỉ tính nếu sau đó bài được AC).</li>
+                                    </ul>
+                                </div>
                             </div>
-                            <ul className="space-y-3">
-                                <li className="flex gap-3 text-sm text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
-                                    <span><b>Chấm điểm tự động:</b> Sử dụng bộ Test ẩn. Chỉ những lượt nộp hoàn thành chính xác toàn bộ test case mới được tính điểm.</span>
-                                </li>
-                                <li className="flex gap-3 text-sm text-slate-400">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
-                                    <span><b>Tự động nộp bài:</b> Khi hết giờ, hệ thống sẽ tự nộp phiên bản code cuối cùng của bạn tại editor cho các câu chưa nộp chính thức.</span>
-                                </li>
-                            </ul>
+                            <div className="space-y-4">
+                                <div className="p-5 bg-blue-500/5 rounded-2xl border border-blue-500/20">
+                                    <h4 className="text-blue-400 font-bold text-sm mb-2 flex items-center gap-2">
+                                        <Info weight="bold" /> Giới hạn nộp bài
+                                    </h4>
+                                    <ul className="text-xs text-slate-400 space-y-2">
+                                        <li>• Bạn được phép nộp tối đa <b>50 lần/bài tập</b>. Hãy kiểm tra kỹ với Test mẫu trước khi nộp.</li>
+                                        <li>• Mã nguồn được chấm trên môi trường Docker riêng biệt, đảm bảo công bằng tuyệt đối.</li>
+                                        <li>• Khi hết giờ, hệ thống <b>tự động thu bài</b> dựa trên code cuối cùng tại trình soạn thảo.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Part 4: Technical Environment */}
+                    <section className="space-y-4">
+                        <div className="flex items-center gap-3 text-purple-400">
+                            <Info size={24} weight="duotone" />
+                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">4. Môi trường & Sự cố</h3>
+                        </div>
+                        <div className="p-5 bg-slate-900/60 rounded-2xl border border-white/5 text-sm text-slate-400 space-y-3">
+                            <p>• Đảm bảo kết nối Internet ổn định. Không nên F5/Refresh trang trừ khi gặp lỗi hiển thị nghiêm trọng.</p>
+                            <p>• Nếu gặp lỗi "System Error" hoặc "Judging Hanging" quá lâu (trên 30s), hãy liên hệ giám thị qua kênh hỗ trợ trực tuyến ngay lập tức.</p>
+                            <p>• Hệ thống hỗ trợ tốt nhất trên <b>Chrome / Microsoft Edge</b> phiên bản mới nhất.</p>
                         </div>
                     </section>
 
                     <div className="bg-blue-500/10 border border-blue-500/20 p-5 rounded-2xl flex gap-4 text-sm text-blue-300 shadow-inner">
                         <Info size={24} weight="fill" className="shrink-0 text-blue-400" />
                         <div className="space-y-1">
-                            <p className="font-bold text-white uppercase tracking-tighter">Cam kết từ thí sinh</p>
-                            <p className="leading-relaxed opacity-80">Bằng việc tham gia cuộc thi, tôi tự nguyện chấp nhận mọi kết luận của ban giám khảo dựa trên các dữ liệu vi phạm được hệ thống ghi nhận.</p>
+                            <p className="font-bold text-white uppercase tracking-tighter">Xác nhận của thí sinh</p>
+                            <p className="leading-relaxed opacity-80 text-xs">Bằng việc nhấn "Bắt đầu thi", tôi cam kết tuân thủ mọi quy định trên và chấp nhận kết quả đánh giá cuối cùng từ Ban giám khảo và Hệ thống CodeArena.</p>
                         </div>
                     </div>
                 </div>
