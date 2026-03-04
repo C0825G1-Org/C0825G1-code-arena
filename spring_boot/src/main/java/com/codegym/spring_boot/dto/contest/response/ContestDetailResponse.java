@@ -1,5 +1,6 @@
 package com.codegym.spring_boot.dto.contest.response;
 
+import com.codegym.spring_boot.entity.enums.ParticipantStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,9 @@ public class ContestDetailResponse {
     private LocalDateTime serverTime;
     private String createdBy;
     private long participantCount;
+    private ParticipantStatus participantStatus; // Trạng thái của user hiện tại
+    private Integer violationCount;
+    private Boolean hasScorePenalty;
     private List<ContestProblemResponse> problems; // null nếu chưa được phép xem
     private List<RankingEntry> ranking; // chỉ khi FINISHED
 
@@ -39,6 +43,10 @@ public class ContestDetailResponse {
         @com.fasterxml.jackson.annotation.JsonProperty("isFrozen")
         private boolean isFrozen;
         private String frozenReason;
+        // Trạng thái nộp bài của user hiện tại cho bài này
+        private Integer submitCount; // Số lần đã nộp bài thật (0–50)
+        @com.fasterxml.jackson.annotation.JsonProperty("isAC")
+        private Boolean isAC; // Đã AC (100đ) bài này hay chưa
     }
 
     @Data

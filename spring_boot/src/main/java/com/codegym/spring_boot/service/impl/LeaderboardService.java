@@ -53,16 +53,20 @@ public class LeaderboardService implements ILeaderboardService {
 
         // If this submission is AC and they haven't solved it before
         if (submission.getStatus() == SubmissionStatus.AC && !alreadySolved) {
-            
+
             // 1. Calculate time passed since contest start (in minutes)
             LocalDateTime contestStartTime = contest.getStartTime();
-            LocalDateTime submissionTime = submission.getCreatedAt() != null ? submission.getCreatedAt() : LocalDateTime.now();
+            LocalDateTime submissionTime = submission.getCreatedAt() != null ? submission.getCreatedAt()
+                    : LocalDateTime.now();
             long minutesPassed = Duration.between(contestStartTime, submissionTime).toMinutes();
-            if (minutesPassed < 0) minutesPassed = 0; // Just in case
+            if (minutesPassed < 0)
+                minutesPassed = 0; // Just in case
 
-            // 2. Count failed attempts for this problem before this submission
-            int failedAttempts = submissionRepository.countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(
-                    userId, problemId, contestId, submission.getId(), SubmissionStatus.AC);
+            // 2. Count failed attempts for this problem before this submission (chi tinh
+            // loi thuat toan)
+            int failedAttempts = submissionRepository.countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusIn(
+                    userId, problemId, contestId, submission.getId(), java.util.Arrays.asList(SubmissionStatus.WA,
+                            SubmissionStatus.TLE, SubmissionStatus.MLE, SubmissionStatus.RE));
 
             // 3. Calculate ICPC Penalty for this problem
             int currentProblemPenalty = (int) minutesPassed + (failedAttempts * PENALTY_MINUTES_PER_FAILED_ATTEMPT);
@@ -71,14 +75,30 @@ public class LeaderboardService implements ILeaderboardService {
             ContestParticipantId participantId = new ContestParticipantId(contestId, userId);
             participantRepository.findById(participantId).ifPresent(participant -> {
                 participant.setTotalScore(participant.getTotalScore() + 1); // Solved one more problem
-                participant.setTotalPenalty(participant.getTotalPenalty() + currentProblemPenalty);
+
+                // Bug #3 fix: Áp dụng hasScorePenalty (vi phạm lần 2 → tăng penalty +1000
+                // phút/bài AC)
+                // Trong ICPC ranking: Score cao hơn thắng, nếu bằng thì Penalty thấp hơn thắng.
+                // Thêm 1000 phút penalty ảo để đảm bảo người bị phạt luôn xếp sau người không
+                // bị phạt.
+                int penaltyToAdd = currentProblemPenalty;
+                if (Boolean.TRUE.equals(participant.getHasScorePenalty())) {
+                    penaltyToAdd += 1000; // Penalty ảo: đảm bảo thua người không bị vi phạm
+                    log.info(
+                            "Score penalty (violation x2) applied for userId={}, problemId={} in contestId={}: +1000 penalty minutes",
+                            userId, problemId, contestId);
+                }
+
+                participant.setTotalPenalty(participant.getTotalPenalty() + penaltyToAdd);
                 participantRepository.save(participant);
 
-                log.info("Leaderboard updated for contestId={}, userId={}. Score: {}, Penalty: {}",
-                        contestId, userId, participant.getTotalScore(), participant.getTotalPenalty());
+                log.info(
+                        "Leaderboard updated for contestId={}, userId={}. Score: {}, Penalty: {}, ScorePenaltyApplied: {}",
+                        contestId, userId, participant.getTotalScore(), participant.getTotalPenalty(),
+                        participant.getHasScorePenalty());
             });
-            
-            // Note: If WA/TLE/etc, we don't update DB immediately. 
+
+            // Note: If WA/TLE/etc, we don't update DB immediately.
             // The penalty only applies IF AND WHEN they finally get an AC.
 
             // 5. Broadcast leaderboard update
@@ -88,17 +108,21 @@ public class LeaderboardService implements ILeaderboardService {
 
     @Override
     public List<LeaderboardDTO> getLeaderboard(Integer contestId) {
-        // Fallback to getting directly from DB (already sorted by AC count DESC, penalty ASC)
+        // Fallback to getting directly from DB (already sorted by AC count DESC,
+        // penalty ASC)
         // Notice that ContestParticipant.totalScore is actually tracking the AC count.
-        List<ContestParticipant> participants = participantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId);
+        List<ContestParticipant> participants = participantRepository
+                .findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId);
 
-        // Fetch all submissions for this contest to build the problem details and actual points
+        // Fetch all submissions for this contest to build the problem details and
+        // actual points
         List<Submission> allSubmissions = submissionRepository.findByContestIdOrderByIdAsc(contestId);
 
         // Map: userId -> map of problemId -> ProblemDetail
         Map<Integer, Map<Integer, LeaderboardDTO.ProblemDetail>> userProblemDetails = new java.util.HashMap<>();
-        
-        // Initialize map for all participants to ensure they show up even with 0 submissions
+
+        // Initialize map for all participants to ensure they show up even with 0
+        // submissions
         for (ContestParticipant p : participants) {
             userProblemDetails.put(p.getUser().getId(), new java.util.HashMap<>());
         }
@@ -106,33 +130,36 @@ public class LeaderboardService implements ILeaderboardService {
         for (Submission sub : allSubmissions) {
             Integer uid = sub.getUser().getId();
             Integer pid = sub.getProblem().getId();
-            
-            if (!userProblemDetails.containsKey(uid)) continue; // ignore non-participants just in case
-            
+
+            if (!userProblemDetails.containsKey(uid))
+                continue; // ignore non-participants just in case
+
             Map<Integer, LeaderboardDTO.ProblemDetail> pMap = userProblemDetails.get(uid);
-            
+
             pMap.putIfAbsent(pid, LeaderboardDTO.ProblemDetail.builder()
-                .problemId(pid)
-                .isAccepted(false)
-                .failedAttempts(0)
-                .solvedTimeMinutes(0)
-                .score(0)
-                .build());
-                
+                    .problemId(pid)
+                    .isAccepted(false)
+                    .failedAttempts(0)
+                    .solvedTimeMinutes(0)
+                    .score(0)
+                    .build());
+
             LeaderboardDTO.ProblemDetail detail = pMap.get(pid);
-            
+
             // If already accepted, ignore further attempts for ICPC penalty purposes
-            if (detail.getIsAccepted()) continue;
-            
+            if (detail.getIsAccepted())
+                continue;
+
             if (sub.getStatus() == SubmissionStatus.AC) {
                 detail.setIsAccepted(true);
                 detail.setScore(sub.getScore() != null ? sub.getScore() : 100);
-                
+
                 LocalDateTime startTime = sub.getContest().getStartTime();
                 LocalDateTime subTime = sub.getCreatedAt() != null ? sub.getCreatedAt() : LocalDateTime.now();
                 long mins = Duration.between(startTime, subTime).toMinutes();
                 detail.setSolvedTimeMinutes((int) Math.max(0, mins));
-            } else {
+            } else if (sub.getStatus() == SubmissionStatus.WA || sub.getStatus() == SubmissionStatus.TLE
+                    || sub.getStatus() == SubmissionStatus.MLE || sub.getStatus() == SubmissionStatus.RE) {
                 detail.setFailedAttempts(detail.getFailedAttempts() + 1);
                 // Update score if partial points are higher
                 if (sub.getScore() != null && sub.getScore() > detail.getScore()) {
@@ -147,28 +174,33 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setUserId(uid);
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
-            
-            // Penalty uses DB value
+
+            // Penalty tổng từ DB (đã tính: thời gian giải + 20ph * lần sai + 1000ph nếu bị
+            // phạt vi phạm)
             dto.setTotalPenalty(p.getTotalPenalty());
-            
-            int totalPoints = 0;
+
             int totalAcCount = 0;
             List<LeaderboardDTO.ProblemDetail> pDetailsList = new java.util.ArrayList<>();
             if (userProblemDetails.containsKey(uid)) {
                 pDetailsList.addAll(userProblemDetails.get(uid).values());
                 for (LeaderboardDTO.ProblemDetail pd : pDetailsList) {
-                    totalPoints += pd.getScore();
                     if (pd.getIsAccepted() != null && pd.getIsAccepted()) {
                         totalAcCount++;
+                        // Tính penalty ICPC cho từng bài để hiển thị:
+                        // penalty_bài = thời_gian_giải + 20ph * số_lần_nộp_sai_trước_AC
+                        int problemPenalty = pd.getSolvedTimeMinutes()
+                                + (pd.getFailedAttempts() * PENALTY_MINUTES_PER_FAILED_ATTEMPT);
+                        pd.setScore(problemPenalty); // Dùng field score để truyền penalty bài lên FE
                     }
                 }
             }
-            // Explicitly count AC problems for "Solved Count"
+
+            // totalScore = số bài AC (nhất quán với DB sort: totalScore DESC → totalPenalty
+            // ASC)
             dto.setTotalSolved(totalAcCount);
-            // Points
-            dto.setTotalScore(totalPoints); 
+            dto.setTotalScore(totalAcCount); // Ranking metric: số bài AC
             dto.setProblemDetails(pDetailsList);
-            
+
             return dto;
         }).collect(Collectors.toList());
 
@@ -185,7 +217,6 @@ public class LeaderboardService implements ILeaderboardService {
         List<LeaderboardDTO> updatedBoard = getLeaderboard(contestId);
         socketIOServer.getBroadcastOperations().sendEvent("leaderboard_update", Map.of(
                 "contestId", contestId,
-                "leaderboard", updatedBoard
-        ));
+                "leaderboard", updatedBoard));
     }
 }

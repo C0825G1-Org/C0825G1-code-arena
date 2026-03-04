@@ -7,6 +7,7 @@ import com.codegym.spring_boot.dto.contest.response.ContestDetailResponse;
 import com.codegym.spring_boot.dto.contest.response.ContestListResponse;
 import com.codegym.spring_boot.entity.*;
 import com.codegym.spring_boot.entity.enums.ContestStatus;
+import com.codegym.spring_boot.entity.enums.ParticipantStatus;
 import com.codegym.spring_boot.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class ContestService {
     private final ContestProblemRepository problemRepository;
     private final IProblemRepository iProblemRepository;
     private final ContestEventScheduler contestEventScheduler;
+    private final SubmissionRepository submissionRepository; // Để kiểm tra run count và submit status
 
     // =============================================
     // 1. MODERATOR/ADMIN: Tạo cuộc thi
@@ -82,15 +84,21 @@ public class ContestService {
             case active:
                 // Chỉ cho sửa title, description, endTime
                 if (request.getStartTime() != null) {
-                    boolean isStartTimeChanged = contest.getStartTime() == null || !request.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    boolean isStartTimeChanged = contest.getStartTime() == null
+                            || !request.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
+                                    .equals(contest.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
                     if (isStartTimeChanged) {
-                        throw new IllegalArgumentException("Không thể thay đổi thời gian bắt đầu khi cuộc thi đang diễn ra.");
+                        throw new IllegalArgumentException(
+                                "Không thể thay đổi thời gian bắt đầu khi cuộc thi đang diễn ra.");
                     }
                 }
                 if (request.getEndTime() != null) {
-                    boolean isEndTimeChanged = contest.getEndTime() == null || !request.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    boolean isEndTimeChanged = contest.getEndTime() == null
+                            || !request.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
+                                    .equals(contest.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
                     if (isEndTimeChanged) {
-                        if (request.getEndTime().isBefore(LocalDateTime.now()) || request.getEndTime().equals(LocalDateTime.now())) {
+                        if (request.getEndTime().isBefore(LocalDateTime.now())
+                                || request.getEndTime().equals(LocalDateTime.now())) {
                             throw new IllegalArgumentException("Thời gian kết thúc mới phải ở tương lai.");
                         }
                         contest.setEndTime(request.getEndTime());
@@ -113,7 +121,9 @@ public class ContestService {
                     contest.setDescription(request.getDescription());
                 }
                 if (request.getStartTime() != null) {
-                    boolean isStartTimeChanged = contest.getStartTime() == null || !request.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    boolean isStartTimeChanged = contest.getStartTime() == null
+                            || !request.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
+                                    .equals(contest.getStartTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
                     if (isStartTimeChanged) {
                         if (request.getStartTime().isBefore(LocalDateTime.now().plusMinutes(5))) {
                             throw new IllegalArgumentException("Thời gian bắt đầu phải cách hiện tại ít nhất 5 phút.");
@@ -122,10 +132,14 @@ public class ContestService {
                     }
                 }
                 if (request.getEndTime() != null) {
-                    boolean isEndTimeChanged = contest.getEndTime() == null || !request.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).equals(contest.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
+                    boolean isEndTimeChanged = contest.getEndTime() == null
+                            || !request.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
+                                    .equals(contest.getEndTime().truncatedTo(java.time.temporal.ChronoUnit.SECONDS));
                     if (isEndTimeChanged) {
-                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
-                        if (request.getEndTime().isBefore(effectiveStart) || request.getEndTime().equals(effectiveStart)) {
+                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime()
+                                : contest.getStartTime();
+                        if (request.getEndTime().isBefore(effectiveStart)
+                                || request.getEndTime().equals(effectiveStart)) {
                             throw new IllegalArgumentException("Thời gian kết thúc phải sau thời gian bắt đầu.");
                         }
                         contest.setEndTime(request.getEndTime());
@@ -197,7 +211,8 @@ public class ContestService {
             if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
                 if (problem.getCreatedBy() == null || !problem.getCreatedBy().getId().equals(currentUser.getId())) {
                     throw new SecurityException(
-                            "Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + entry.getProblemId() + " không thuộc về bạn.");
+                            "Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + entry.getProblemId()
+                                    + " không thuộc về bạn.");
                 }
             }
 
@@ -254,7 +269,7 @@ public class ContestService {
 
     // =============================================
     // 6. MODERATOR/ADMIN: Đóng băng cuộc thi (Freeze)
-    //    Mở khóa tất cả problems để moderator sửa
+    // Mở khóa tất cả problems để moderator sửa
     // =============================================
     @Transactional
     public ContestDetailResponse freezeContest(Integer contestId, String reason, User currentUser) {
@@ -281,7 +296,7 @@ public class ContestService {
 
     // =============================================
     // 7. MODERATOR/ADMIN: Mở băng cuộc thi (Unfreeze)
-    //    Khóa lại tất cả problems, tiếp tục thi
+    // Khóa lại tất cả problems, tiếp tục thi
     // =============================================
     @Transactional
     public ContestDetailResponse unfreezeContest(Integer contestId, boolean triggerRejudge, User currentUser) {
@@ -338,9 +353,9 @@ public class ContestService {
     // =============================================
     @Transactional(readOnly = true)
     public Page<ContestListResponse> getContests(
-            String title, String statusFilter, LocalDateTime startTime, LocalDateTime endTime, 
+            String title, String statusFilter, LocalDateTime startTime, LocalDateTime endTime,
             Boolean manage, Pageable pageable, User currentUser) {
-        
+
         ContestStatus status = null;
         if (statusFilter != null && !statusFilter.isBlank()) {
             try {
@@ -349,7 +364,7 @@ public class ContestService {
                 throw new IllegalArgumentException("Trạng thái lọc không hợp lệ: " + statusFilter);
             }
         }
-        
+
         final ContestStatus finalStatus = status;
 
         Specification<Contest> spec = (root, query, cb) -> {
@@ -419,11 +434,55 @@ public class ContestService {
         participant.setUser(currentUser);
         participant.setTotalScore(0);
         participant.setTotalPenalty(0);
+        participant.setStatus(ParticipantStatus.JOINED);
         participantRepository.save(participant);
     }
 
     // =============================================
-    // 8. USER/PUBLIC: Xem chi tiết cuộc thi
+    // 8. USER: Kết thúc cuộc thi (Nộp bài tất cả)
+    // =============================================
+    @Transactional
+    public void finishContest(Integer contestId, User currentUser, ParticipantStatus status) {
+        ContestParticipant participant = participantRepository.findByContestIdAndUserId(contestId, currentUser.getId())
+                .orElseThrow(() -> new IllegalStateException("Bạn chưa đăng ký cuộc thi này."));
+
+        if (participant.getStatus() == ParticipantStatus.FINISHED) {
+            return; // Đã xong rồi thì thôi, không báo lỗi
+        }
+
+        if (participant.getStatus() == ParticipantStatus.DISQUALIFIED) {
+            throw new IllegalStateException("Bạn đã bị truất quyền thi.");
+        }
+
+        participant.setStatus(status != null ? status : ParticipantStatus.FINISHED);
+        participantRepository.save(participant);
+        log.info("User {} finished contest {}", currentUser.getUsername(), contestId);
+    }
+
+    // 9. USER: Báo cáo vi phạm (Rời màn hình)
+    @Transactional
+    public ContestParticipant reportViolation(Integer contestId, User currentUser) {
+        ContestParticipant participant = participantRepository.findByContestIdAndUserId(contestId, currentUser.getId())
+                .orElseThrow(() -> new IllegalStateException("Bạn chưa đăng ký cuộc thi này."));
+
+        if (participant.getStatus() != ParticipantStatus.JOINED) {
+            return participant;
+        }
+
+        int newCount = (participant.getViolationCount() != null ? participant.getViolationCount() : 0) + 1;
+        participant.setViolationCount(newCount);
+
+        if (newCount == 2) {
+            participant.setHasScorePenalty(true);
+        } else if (newCount >= 3) {
+            participant.setStatus(ParticipantStatus.DISQUALIFIED);
+        }
+
+        return participantRepository.save(participant);
+    }
+
+    // =============================================
+    // 10. USER/PUBLIC: Xem chi tiết cuộc thi
     // =============================================
     @Transactional
     public ContestDetailResponse getContestDetail(Integer id, User currentUser) {
@@ -437,19 +496,32 @@ public class ContestService {
         }
 
         boolean isRegistered = false;
+        ParticipantStatus participantStatus = null;
+        Integer violationCount = 0;
+        Boolean hasScorePenalty = false;
         if (currentUser != null) {
-            isRegistered = participantRepository.existsById(
-                    new ContestParticipantId(id, currentUser.getId()));
+            var participantOpt = participantRepository.findByContestIdAndUserId(id, currentUser.getId());
+            if (participantOpt.isPresent()) {
+                isRegistered = true;
+                ContestParticipant p = participantOpt.get();
+                participantStatus = p.getStatus();
+                violationCount = p.getViolationCount();
+                hasScorePenalty = p.getHasScorePenalty();
+            }
         }
 
         ContestDetailResponse response = mapToDetailResponse(contest, isRegistered);
+        response.setParticipantStatus(participantStatus);
+        response.setViolationCount(violationCount);
+        response.setHasScorePenalty(hasScorePenalty);
 
         // Kiểm tra quyền sở hữu (Admin hoặc Moderator tạo ra contest)
         boolean isOwner = false;
         if (currentUser != null) {
             String roleStr = currentUser.getRole().name();
-            if (roleStr.equalsIgnoreCase("admin") || 
-               (roleStr.equalsIgnoreCase("moderator") && contest.getCreatedBy() != null && contest.getCreatedBy().getId().equals(currentUser.getId()))) {
+            if (roleStr.equalsIgnoreCase("admin") ||
+                    (roleStr.equalsIgnoreCase("moderator") && contest.getCreatedBy() != null
+                            && contest.getCreatedBy().getId().equals(currentUser.getId()))) {
                 isOwner = true;
             }
         }
@@ -471,9 +543,9 @@ public class ContestService {
                     break;
 
                 case active:
-                    // Chỉ trả về problems nếu đã đăng ký
-                    if (isRegistered) {
-                        response.setProblems(getContestProblems(id));
+                    // Chỉ trả về problems nếu đã đăng ký — enrich với runCount/hasSubmitted
+                    if (isRegistered && currentUser != null) {
+                        response.setProblems(getContestProblems(id, currentUser.getId()));
                     } else {
                         response.setProblems(null);
                     }
@@ -579,17 +651,38 @@ public class ContestService {
     // =============================================
     // HELPER: Lấy danh sách Problems
     // =============================================
+    /** Lấy danh sách Problems (không enrich - dùng cho isOwner và finished) */
     private List<ContestDetailResponse.ContestProblemResponse> getContestProblems(Integer contestId) {
+        return getContestProblems(contestId, null);
+    }
+
+    /** Lấy danh sách Problems và enrich với submitCount/isAC của user */
+    private List<ContestDetailResponse.ContestProblemResponse> getContestProblems(Integer contestId, Integer userId) {
         return problemRepository.findByIdContestIdOrderByOrderIndexAsc(contestId)
                 .stream()
-                .map(cp -> ContestDetailResponse.ContestProblemResponse.builder()
-                        .id(cp.getProblem().getId())
-                        .orderIndex(cp.getOrderIndex())
-                        .title(cp.getProblem().getTitle())
-                        .difficulty(cp.getProblem().getDifficulty().name())
-                        .isFrozen(Boolean.TRUE.equals(cp.getIsFrozen()))
-                        .frozenReason(cp.getFrozenReason())
-                        .build())
+                .map(cp -> {
+                    Integer submitCount = null;
+                    Boolean isAC = null;
+                    if (userId != null) {
+                        submitCount = submissionRepository
+                                .countByUserIdAndProblemIdAndContestIdAndIsTestRunFalse(userId, cp.getProblem().getId(),
+                                        contestId);
+                        isAC = submissionRepository
+                                .existsByUserIdAndProblemIdAndContestIdAndIsTestRunFalseAndStatus(userId,
+                                        cp.getProblem().getId(), contestId,
+                                        com.codegym.spring_boot.entity.enums.SubmissionStatus.AC);
+                    }
+                    return ContestDetailResponse.ContestProblemResponse.builder()
+                            .id(cp.getProblem().getId())
+                            .orderIndex(cp.getOrderIndex())
+                            .title(cp.getProblem().getTitle())
+                            .difficulty(cp.getProblem().getDifficulty().name())
+                            .isFrozen(Boolean.TRUE.equals(cp.getIsFrozen()))
+                            .frozenReason(cp.getFrozenReason())
+                            .submitCount(submitCount)
+                            .isAC(isAC)
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
