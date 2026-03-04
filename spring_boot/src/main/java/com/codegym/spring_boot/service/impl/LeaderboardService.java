@@ -62,12 +62,11 @@ public class LeaderboardService implements ILeaderboardService {
             if (minutesPassed < 0)
                 minutesPassed = 0; // Just in case
 
-            // 2. Count failed attempts for this problem before this submission
-            // ICPC rules: Only WA, TLE, MLE, RE count towards penalty. CE does NOT.
+            // 2. Count failed attempts for this problem before this submission (chi tinh
+            // loi thuat toan)
             int failedAttempts = submissionRepository.countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusIn(
-                    userId, problemId, contestId, submission.getId(),
-                    java.util.Arrays.asList(SubmissionStatus.WA, SubmissionStatus.TLE, SubmissionStatus.MLE,
-                            SubmissionStatus.RE));
+                    userId, problemId, contestId, submission.getId(), java.util.Arrays.asList(SubmissionStatus.WA,
+                            SubmissionStatus.TLE, SubmissionStatus.MLE, SubmissionStatus.RE));
 
             // 3. Calculate ICPC Penalty for this problem
             int currentProblemPenalty = (int) minutesPassed + (failedAttempts * PENALTY_MINUTES_PER_FAILED_ATTEMPT);
@@ -76,11 +75,27 @@ public class LeaderboardService implements ILeaderboardService {
             ContestParticipantId participantId = new ContestParticipantId(contestId, userId);
             participantRepository.findById(participantId).ifPresent(participant -> {
                 participant.setTotalScore(participant.getTotalScore() + 1); // Solved one more problem
-                participant.setTotalPenalty(participant.getTotalPenalty() + currentProblemPenalty);
+
+                // Bug #3 fix: Áp dụng hasScorePenalty (vi phạm lần 2 → tăng penalty +1000
+                // phút/bài AC)
+                // Trong ICPC ranking: Score cao hơn thắng, nếu bằng thì Penalty thấp hơn thắng.
+                // Thêm 1000 phút penalty ảo để đảm bảo người bị phạt luôn xếp sau người không
+                // bị phạt.
+                int penaltyToAdd = currentProblemPenalty;
+                if (Boolean.TRUE.equals(participant.getHasScorePenalty())) {
+                    penaltyToAdd += 1000; // Penalty ảo: đảm bảo thua người không bị vi phạm
+                    log.info(
+                            "Score penalty (violation x2) applied for userId={}, problemId={} in contestId={}: +1000 penalty minutes",
+                            userId, problemId, contestId);
+                }
+
+                participant.setTotalPenalty(participant.getTotalPenalty() + penaltyToAdd);
                 participantRepository.save(participant);
 
-                log.info("Leaderboard updated for contestId={}, userId={}. Score: {}, Penalty: {}",
-                        contestId, userId, participant.getTotalScore(), participant.getTotalPenalty());
+                log.info(
+                        "Leaderboard updated for contestId={}, userId={}. Score: {}, Penalty: {}, ScorePenaltyApplied: {}",
+                        contestId, userId, participant.getTotalScore(), participant.getTotalPenalty(),
+                        participant.getHasScorePenalty());
             });
 
             // Note: If WA/TLE/etc, we don't update DB immediately.
@@ -143,16 +158,10 @@ public class LeaderboardService implements ILeaderboardService {
                 LocalDateTime subTime = sub.getCreatedAt() != null ? sub.getCreatedAt() : LocalDateTime.now();
                 long mins = Duration.between(startTime, subTime).toMinutes();
                 detail.setSolvedTimeMinutes((int) Math.max(0, mins));
-            } else if (sub.getStatus() == SubmissionStatus.WA || sub.getStatus() == SubmissionStatus.TLE ||
-                    sub.getStatus() == SubmissionStatus.MLE || sub.getStatus() == SubmissionStatus.RE) {
+            } else if (sub.getStatus() == SubmissionStatus.WA || sub.getStatus() == SubmissionStatus.TLE
+                    || sub.getStatus() == SubmissionStatus.MLE || sub.getStatus() == SubmissionStatus.RE) {
                 detail.setFailedAttempts(detail.getFailedAttempts() + 1);
                 // Update score if partial points are higher
-                if (sub.getScore() != null && sub.getScore() > detail.getScore()) {
-                    detail.setScore(sub.getScore());
-                }
-            } else if (sub.getStatus() == SubmissionStatus.CE) {
-                // Compile Error doesn't count as a failed attempt in ICPC, but we might want to
-                // track partial score
                 if (sub.getScore() != null && sub.getScore() > detail.getScore()) {
                     detail.setScore(sub.getScore());
                 }
@@ -166,38 +175,34 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
 
-            // Penalty uses DB value
+            // Penalty tổng từ DB (đã tính: thời gian giải + 20ph * lần sai + 1000ph nếu bị
+            // phạt vi phạm)
             dto.setTotalPenalty(p.getTotalPenalty());
 
-            int totalPoints = 0;
             int totalAcCount = 0;
             List<LeaderboardDTO.ProblemDetail> pDetailsList = new java.util.ArrayList<>();
             if (userProblemDetails.containsKey(uid)) {
                 pDetailsList.addAll(userProblemDetails.get(uid).values());
                 for (LeaderboardDTO.ProblemDetail pd : pDetailsList) {
-                    totalPoints += pd.getScore();
                     if (pd.getIsAccepted() != null && pd.getIsAccepted()) {
                         totalAcCount++;
+                        // Tính penalty ICPC cho từng bài để hiển thị:
+                        // penalty_bài = thời_gian_giải + 20ph * số_lần_nộp_sai_trước_AC
+                        int problemPenalty = pd.getSolvedTimeMinutes()
+                                + (pd.getFailedAttempts() * PENALTY_MINUTES_PER_FAILED_ATTEMPT);
+                        pd.setScore(problemPenalty); // Dùng field score để truyền penalty bài lên FE
                     }
                 }
             }
-            // Explicitly count AC problems for "Solved Count"
+
+            // totalScore = số bài AC (nhất quán với DB sort: totalScore DESC → totalPenalty
+            // ASC)
             dto.setTotalSolved(totalAcCount);
-            // Points
-            dto.setTotalScore(totalPoints);
+            dto.setTotalScore(totalAcCount); // Ranking metric: số bài AC
             dto.setProblemDetails(pDetailsList);
 
             return dto;
         }).collect(Collectors.toList());
-
-        // Sắp xếp lại DTO list theo quy tắc ICPC: Total Solved giảm dần, sau đó Total
-        // Penalty tăng dần
-        dtoList.sort((a, b) -> {
-            if (!a.getTotalSolved().equals(b.getTotalSolved())) {
-                return b.getTotalSolved().compareTo(a.getTotalSolved()); // Số bài AC nhiều hơn xếp trên
-            }
-            return a.getTotalPenalty().compareTo(b.getTotalPenalty()); // Cùng số bài, Penalty ít hơn xếp trên
-        });
 
         // Assign ranks
         for (int i = 0; i < dtoList.size(); i++) {

@@ -9,10 +9,12 @@ import { toast } from 'react-hot-toast';
 import {
     Code, Bell, SignOut, ShieldStar, ArrowLeft,
     CalendarStar, Users, Clock, ArrowRight,
-    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar,
+    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar, PlayCircle,
     FacebookLogo, TwitterLogo, GithubLogo
 } from '@phosphor-icons/react';
 import { LeaderboardTab } from '../components/LeaderboardTab';
+import { RulesModal } from '../components/RulesModal';
+import { TutorialModal } from '../components/TutorialModal';
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
@@ -45,6 +47,8 @@ export interface ContestProblemData {
     difficulty: string;
     isFrozen: boolean;
     frozenReason: string;
+    runCount?: number;      // Số lần đã chạy thử (0–10), null nếu chưa đăng ký
+    hasSubmitted?: boolean; // Đã nộp bài chính thức chưa
 }
 
 export interface ContestDetailData {
@@ -59,6 +63,7 @@ export interface ContestDetailData {
     serverTime: string;
     participantCount: number;
     maxParticipants: number;
+    participantStatus?: 'JOINED' | 'FINISHED' | 'DISQUALIFIED';
     problems?: ContestProblemData[];
 }
 
@@ -74,6 +79,8 @@ export const UserContestDetailPage = () => {
     const [contest, setContest] = useState<ContestDetailData | null>(null);
     const [loading, setLoading] = useState(true);
     const [registering, setRegistering] = useState(false);
+    const [isRulesOpen, setIsRulesOpen] = useState(false);
+    const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
     // Live Countdown state
     const [timeLeftStr, setTimeLeftStr] = useState<string>('');
@@ -165,6 +172,17 @@ export const UserContestDetailPage = () => {
         }
     };
 
+    const handleStartExam = () => {
+        setIsRulesOpen(true);
+    };
+
+    const handleConfirmRules = () => {
+        if (!contest) return;
+        const firstProblemId = contest.problems && contest.problems.length > 0 ? contest.problems[0].id : 1;
+        setIsRulesOpen(false);
+        navigate('/code-editor/' + firstProblemId + '?contestId=' + contest.id);
+    };
+
     if (loading && !contest) {
         return (
             <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
@@ -218,6 +236,22 @@ export const UserContestDetailPage = () => {
         }
 
         if (contest.status === 'upcoming') {
+            const serverTimeMs = new Date(contest.serverTime).getTime();
+            const startMs = new Date(contest.startTime).getTime();
+            const diffMs = startMs - serverTimeMs;
+
+            // Nếu còn <= 15 phút (15 * 60 * 1000 ms) thì cho phép vào phòng chờ
+            if (diffMs > 0 && diffMs <= 15 * 60 * 1000) {
+                return (
+                    <button
+                        onClick={handleStartExam}
+                        className="w-full py-3.5 rounded-xl text-lg font-bold bg-amber-500 hover:bg-amber-400 text-slate-900 shadow-xl shadow-amber-500/20 transition-all border border-amber-400 flex justify-center items-center gap-2"
+                    >
+                        <Clock weight="fill" className="text-xl" /> Vào Phòng Chờ
+                    </button>
+                );
+            }
+
             return (
                 <button
                     disabled
@@ -228,15 +262,21 @@ export const UserContestDetailPage = () => {
             );
         }
 
+        if (contest.participantStatus === 'FINISHED' || contest.participantStatus === 'DISQUALIFIED') {
+            return (
+                <div className="w-full p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center gap-2 font-bold italic">
+                    <WarningCircle size={20} weight="fill" /> Bạn đã kết thúc lượt thi này.
+                </div>
+            );
+        }
+
         // Active State
-        // Nếu contest có bài tập, lấy bài đầu tiên hoặc ẩn nút này
-        const firstProblemId = contest.problems && contest.problems.length > 0 ? contest.problems[0].id : 1;
         return (
             <button
-                onClick={() => navigate('/code-editor/' + firstProblemId + '?contestId=' + contest.id)}
+                onClick={handleStartExam}
                 className="w-full py-3.5 rounded-xl text-lg font-extrabold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_25px_rgba(56,189,248,0.5)] transition-all hover:scale-[1.02] flex justify-center items-center gap-2"
             >
-                Vào Thi (Bài Đầu) <ArrowRight weight="bold" />
+                Vào Thi (Bắt đầu) <ArrowRight weight="bold" />
             </button>
         );
     };
@@ -281,6 +321,17 @@ export const UserContestDetailPage = () => {
                 </div>
             </nav>
 
+            {/* Rules & Tutorial Modals */}
+            <RulesModal
+                isOpen={isRulesOpen}
+                onClose={() => setIsRulesOpen(false)}
+                onConfirm={handleConfirmRules}
+            />
+            <TutorialModal
+                isOpen={isTutorialOpen}
+                onClose={() => setIsTutorialOpen(false)}
+            />
+
             <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 z-10 max-w-6xl">
                 {/* Back Link */}
                 <Link to="/contests" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 font-medium">
@@ -324,6 +375,12 @@ export const UserContestDetailPage = () => {
                                         Kết thúc: <span className="text-white">{new Date(contest.endTime).toLocaleString('vi-VN')}</span>
                                     </span>
                                 </div>
+                                <button
+                                    onClick={() => navigate('/tutorial')}
+                                    className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-xl border border-blue-500/20 transition-all font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105"
+                                >
+                                    <PlayCircle weight="fill" className="text-xl animate-pulse" /> Xem hướng dẫn (Giả lập)
+                                </button>
                             </div>
                         </div>
 

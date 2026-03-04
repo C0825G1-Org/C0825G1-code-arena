@@ -35,7 +35,7 @@ export function useArena(problemId: number, contestId?: string | null) {
     useEffect(() => {
         const isExamMode = !!contestId;
         const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
-        const saved = !isExamMode ? localStorage.getItem(storageKey) : null; // Thi thì luôn trắng
+        const saved = localStorage.getItem(storageKey); // Khôi phục code từ localStorage cho cả Practice và Contest
 
         setCodeMap((prev) => {
             if (prev[language] !== undefined) return prev; // Đã load trong mapping memory
@@ -44,7 +44,7 @@ export function useArena(problemId: number, contestId?: string | null) {
                 [language]: saved !== null ? saved : boilerplateMap[language]
             };
         });
-    }, [language, problemId, userId]);
+    }, [language, problemId, userId, contestId, contextMode]);
 
 
     /**
@@ -52,12 +52,17 @@ export function useArena(problemId: number, contestId?: string | null) {
      */
     useEffect(() => {
         if (!currentCode) return;
-        const timer = setTimeout(() => {
-            const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
-            localStorage.setItem(storageKey, currentCode);
-        }, 2000);
+        const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
 
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => {
+            localStorage.setItem(storageKey, currentCode);
+        }, 1500); // Giảm xuống 1.5s để lưu nhanh hơn
+
+        return () => {
+            clearTimeout(timer);
+            // Lưu ngay lập tức khi unmount hoặc đổi bài/ngôn ngữ (đặc biệt quan trọng cho Contest)
+            localStorage.setItem(storageKey, currentCode);
+        };
     }, [currentCode, language, problemId, userId, contextMode]);
 
     /**

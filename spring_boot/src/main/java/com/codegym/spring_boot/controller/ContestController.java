@@ -10,6 +10,7 @@ import com.codegym.spring_boot.dto.contest.response.ContestDetailResponse;
 import com.codegym.spring_boot.dto.contest.response.ContestListResponse;
 import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.dto.leaderboard.LeaderboardDTO;
+import com.codegym.spring_boot.entity.enums.ParticipantStatus;
 import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.ILeaderboardService;
 import jakarta.validation.Valid;
@@ -130,7 +131,8 @@ public class ContestController {
             @RequestParam(required = false) Boolean manage,
             @AuthenticationPrincipal User currentUser,
             @PageableDefault(size = 10, sort = "startTime", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(contestService.getContests(title, status, startTime, endTime, manage, pageable, currentUser));
+        return ResponseEntity
+                .ok(contestService.getContests(title, status, startTime, endTime, manage, pageable, currentUser));
     }
 
     @GetMapping("/{id}")
@@ -151,5 +153,25 @@ public class ContestController {
     @GetMapping("/{id}/leaderboard")
     public ResponseEntity<List<LeaderboardDTO>> getContestLeaderboard(@PathVariable Integer id) {
         return ResponseEntity.ok(leaderboardService.getLeaderboard(id));
+    }
+
+    @PostMapping("/{id}/finish")
+    public ResponseEntity<Map<String, String>> finishContest(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(required = false) ParticipantStatus status) {
+        contestService.finishContest(id, currentUser, status);
+        return ResponseEntity.ok(Map.of("message", "Kết thúc cuộc thi thành công!"));
+    }
+
+    @PostMapping("/{id}/violation")
+    public ResponseEntity<Map<String, Object>> reportViolation(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal User currentUser) {
+        var participant = contestService.reportViolation(id, currentUser);
+        return ResponseEntity.ok(Map.of(
+                "violationCount", participant.getViolationCount(),
+                "status", participant.getStatus(),
+                "hasScorePenalty", participant.getHasScorePenalty()));
     }
 }

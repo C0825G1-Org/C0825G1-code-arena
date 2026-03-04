@@ -11,6 +11,7 @@ import com.codegym.spring_boot.repository.ContestProblemRepository;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITagRepository;
 import com.codegym.spring_boot.repository.UserRepository;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.IProblemService;
 import com.codegym.spring_boot.entity.ContestProblem;
@@ -33,17 +34,20 @@ public class ProblemService implements IProblemService {
     private final ITagRepository tagRepository;
     private final UserRepository userRepository;
     private final ContestProblemRepository contestProblemRepository;
+    private final ContestParticipantRepository contestParticipantRepository;
     private final ContestService contestService;
 
-    public ProblemService(IProblemRepository problemRepository, 
-                          ITagRepository tagRepository, 
-                          UserRepository userRepository,
-                          ContestProblemRepository contestProblemRepository,
-                          ContestService contestService) {
+    public ProblemService(IProblemRepository problemRepository,
+            ITagRepository tagRepository,
+            UserRepository userRepository,
+            ContestProblemRepository contestProblemRepository,
+            ContestParticipantRepository contestParticipantRepository,
+            ContestService contestService) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.contestProblemRepository = contestProblemRepository;
+        this.contestParticipantRepository = contestParticipantRepository;
         this.contestService = contestService;
     }
 
@@ -70,6 +74,9 @@ public class ProblemService implements IProblemService {
         Problem problem = problemRepository.findById(id)
                 .filter(p -> !Boolean.TRUE.equals(p.getIsDeleted()))
                 .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + id));
+
+        checkReadPermission(problem);
+
         return mapToResponseDTO(problem);
     }
 
@@ -132,6 +139,46 @@ public class ProblemService implements IProblemService {
                 throw new IllegalStateException(
                         "Bài tập đang nằm trong cuộc thi đang diễn ra hoặc đã kết thúc. Không thể sửa/xóa.");
             }
+        }
+    }
+
+    private void checkReadPermission(Problem problem) {
+        if (!Boolean.TRUE.equals(problem.getIsLocked())) {
+            return;
+        }
+
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (currentUsername == null || currentUsername.equals("anonymousUser")) {
+            throw new AccessDeniedException("Bài tập này đang bị khóa trong một kỳ thi. Yêu cầu đăng nhập.");
+        }
+
+        User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername)
+                .orElseThrow(() -> new AccessDeniedException("Người dùng không hợp lệ"));
+
+        if (currentUser.getRole() == UserRole.admin)
+            return;
+        if (currentUser.getRole() == UserRole.moderator && problem.getCreatedBy() != null
+                && problem.getCreatedBy().getId().equals(currentUser.getId()))
+            return;
+
+        List<ContestProblem> cpList = contestProblemRepository.findByIdProblemId(problem.getId());
+        boolean hasAccess = false;
+
+        for (ContestProblem cp : cpList) {
+            ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
+            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
+                boolean isParticipant = contestParticipantRepository
+                        .findByContestIdAndUserId(cp.getContest().getId(), currentUser.getId()).isPresent();
+                if (isParticipant) {
+                    hasAccess = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasAccess) {
+            throw new AccessDeniedException(
+                    "Đề thi này đang bị khóa! Bạn chưa đến giờ làm bài hoặc không phải là thí sinh của kỳ thi.");
         }
     }
 

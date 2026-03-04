@@ -1,8 +1,6 @@
 import React from 'react';
-import axios from 'axios';
+import axiosClient from '../../../../shared/services/axiosClient';
 import TestCaseItem from './TestCaseItem';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../app/store';
 
 interface SubmissionDetailPanelProps {
     submissionId: number | null;
@@ -10,7 +8,6 @@ interface SubmissionDetailPanelProps {
 }
 
 const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissionId, onClose }) => {
-    const { token } = useSelector((state: RootState) => state.auth);
     const [data, setData] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
@@ -25,9 +22,7 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`/api/submissions/${submissionId}`, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {}
-                });
+                const response = await axiosClient.get(`/submissions/${submissionId}`);
                 setData(response.data);
             } catch (err: any) {
                 console.error("Lỗi khi lấy chi tiết bài nộp:", err);
@@ -38,7 +33,7 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
         };
 
         fetchDetail();
-    }, [submissionId, token]);
+    }, [submissionId]);
 
     if (!submissionId) return null;
 

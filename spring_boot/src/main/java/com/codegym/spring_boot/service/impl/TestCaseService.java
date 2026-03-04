@@ -10,6 +10,7 @@ import com.codegym.spring_boot.entity.enums.UserRole;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.UserRepository;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.repository.ContestProblemRepository;
 import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.ITestCaseService;
@@ -46,26 +47,30 @@ public class TestCaseService implements ITestCaseService {
     private final IProblemRepository problemRepository;
     private final UserRepository userRepository;
     private final ContestProblemRepository contestProblemRepository;
+    private final ContestParticipantRepository contestParticipantRepository;
     private final ContestService contestService;
 
     @Value("${storage.testcases.path:./data/testcases}")
     private String storagePathBase;
 
-    public TestCaseService(ITestCaseRepository testCaseRepository, 
-                           IProblemRepository problemRepository, 
-                           UserRepository userRepository,
-                           ContestProblemRepository contestProblemRepository,
-                           ContestService contestService) {
+    public TestCaseService(ITestCaseRepository testCaseRepository,
+            IProblemRepository problemRepository,
+            UserRepository userRepository,
+            ContestProblemRepository contestProblemRepository,
+            ContestParticipantRepository contestParticipantRepository,
+            ContestService contestService) {
         this.testCaseRepository = testCaseRepository;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
         this.contestProblemRepository = contestProblemRepository;
+        this.contestParticipantRepository = contestParticipantRepository;
         this.contestService = contestService;
     }
 
     @Override
     @Transactional
-    public TestCaseResponseDTO createTestCase(Integer problemId, TestCaseRequestDTO requestDTO) {
+    public TestCaseResponseDTO createTestCase(Integer problemId,
+            TestCaseRequestDTO requestDTO) {
         // 1. Tìm thông tin Problem
         Problem problem = problemRepository.findById(problemId)
                 .filter(p -> !p.getIsDeleted())
@@ -85,10 +90,11 @@ public class TestCaseService implements ITestCaseService {
         testCase.setSampleOutput(requestDTO.getOutputContent());
 
         // --- TÍNH TOÁN TÊN FILE (Thực hiện TRƯỚC khi save data mới) ---
-        // TestCase lastTestCase = testCaseRepository.findLastTestCaseByProblemId(problemId);
+        // TestCase lastTestCase =
+        // testCaseRepository.findLastTestCaseByProblemId(problemId);
         TestCase lastTestCase = testCaseRepository.findFirstByProblemIdOrderByIdDesc(problemId);
         int nextNumber = 1;
-        
+
         if (lastTestCase != null && lastTestCase.getInputFilename() != null) {
             String lastFilename = lastTestCase.getInputFilename();
             try {
@@ -99,12 +105,13 @@ public class TestCaseService implements ITestCaseService {
                 // Ignore error, nextNumber remains 1 or could be handled differently
             }
         }
-        
+
         String inFileName = nextNumber + ".in";
         String outFileName = nextNumber + ".out";
         // --------------------------------------------------------------------
 
-        // Lưu trước để lấy ID (dù không dùng làm tên file nữa nhưng vẫn cần thiết cho entity)
+        // Lưu trước để lấy ID (dù không dùng làm tên file nữa nhưng vẫn cần thiết cho
+        // entity)
         TestCase savedTestCase = testCaseRepository.save(testCase);
 
         // 4. Tạo thư mục và tiến hành lưu file vật lý
@@ -167,17 +174,23 @@ public class TestCaseService implements ITestCaseService {
         // 4. Ghi đè file vật lý
         try {
             Path problemDir = Paths.get(storagePathBase, "problem_" + problemId);
-            
-            // Xóa file cũ nếu tồn tại trước khi ghi mới (để đảm bảo không có rác nếu đổi tên file, dù hiện tại ta giữ nguyên tên gốc)
-            if (testCase.getInputFilename() != null) Files.deleteIfExists(problemDir.resolve(testCase.getInputFilename()));
-            if (testCase.getOutputFilename() != null) Files.deleteIfExists(problemDir.resolve(testCase.getOutputFilename()));
+
+            // Xóa file cũ nếu tồn tại trước khi ghi mới (để đảm bảo không có rác nếu đổi
+            // tên file, dù hiện tại ta giữ nguyên tên gốc)
+            if (testCase.getInputFilename() != null)
+                Files.deleteIfExists(problemDir.resolve(testCase.getInputFilename()));
+            if (testCase.getOutputFilename() != null)
+                Files.deleteIfExists(problemDir.resolve(testCase.getOutputFilename()));
 
             // Giữ nguyên tên file gốc của Test Case (Ví dụ: 1.in, 2.in)
             // Nếu vì lý do nào đó trong DB bị null, fallback về ID
-            String inFileName = testCase.getInputFilename() != null ? testCase.getInputFilename() : testCase.getId() + ".in";
-            String outFileName = testCase.getOutputFilename() != null ? testCase.getOutputFilename() : testCase.getId() + ".out";
+            String inFileName = testCase.getInputFilename() != null ? testCase.getInputFilename()
+                    : testCase.getId() + ".in";
+            String outFileName = testCase.getOutputFilename() != null ? testCase.getOutputFilename()
+                    : testCase.getId() + ".out";
 
-            // Tạo thư mục nếu chưa tồn tại (trường hợp DB có Testcase nhưng xóa mât folder vật lý)
+            // Tạo thư mục nếu chưa tồn tại (trường hợp DB có Testcase nhưng xóa mât folder
+            // vật lý)
             if (!Files.exists(problemDir)) {
                 Files.createDirectories(problemDir);
             }
@@ -198,6 +211,10 @@ public class TestCaseService implements ITestCaseService {
 
     @Override
     public List<TestCaseResponseDTO> getTestCasesByProblem(Integer problemId) {
+        Problem problem = problemRepository.findById(problemId)
+                .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có id: " + problemId));
+        checkReadPermission(problem);
+
         return testCaseRepository.findByProblemId(problemId).stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
@@ -213,7 +230,7 @@ public class TestCaseService implements ITestCaseService {
 
         TestCase testCase = testCaseRepository.findById(testCaseId)
                 .orElseThrow(() -> new NoResultException("Không tìm thấy test case có id: " + testCaseId));
-                
+
         if (!testCase.getProblem().getId().equals(problemId)) {
             throw new IllegalArgumentException("Test case không thuộc về Problem này");
         }
@@ -269,6 +286,46 @@ public class TestCaseService implements ITestCaseService {
         }
     }
 
+    private void checkReadPermission(Problem problem) {
+        if (!Boolean.TRUE.equals(problem.getIsLocked())) {
+            return;
+        }
+
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (currentUsername == null || currentUsername.equals("anonymousUser")) {
+            throw new AccessDeniedException("Bài tập này đang bị khóa trong một kỳ thi. Yêu cầu đăng nhập.");
+        }
+
+        User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername)
+                .orElseThrow(() -> new AccessDeniedException("Người dùng không hợp lệ"));
+
+        if (currentUser.getRole() == UserRole.admin)
+            return;
+        if (currentUser.getRole() == UserRole.moderator && problem.getCreatedBy() != null
+                && problem.getCreatedBy().getId().equals(currentUser.getId()))
+            return;
+
+        List<ContestProblem> cpList = contestProblemRepository.findByIdProblemId(problem.getId());
+        boolean hasAccess = false;
+
+        for (ContestProblem cp : cpList) {
+            ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
+            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
+                boolean isParticipant = contestParticipantRepository
+                        .findByContestIdAndUserId(cp.getContest().getId(), currentUser.getId()).isPresent();
+                if (isParticipant) {
+                    hasAccess = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasAccess) {
+            throw new AccessDeniedException(
+                    "Test cases đang bị khóa! Bạn chưa đến giờ làm bài hoặc không phải là thí sinh.");
+        }
+    }
+
     @Override
     @Transactional
     public ZipUploadResponseDTO uploadTestCasesZip(Integer problemId, MultipartFile file) {
@@ -290,11 +347,13 @@ public class TestCaseService implements ITestCaseService {
         try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                if (entry.isDirectory()) continue;
+                if (entry.isDirectory())
+                    continue;
 
                 String fileName = entry.getName();
                 // Bỏ qua thư mục ẩn của Mac/Windows
-                if (fileName.contains("__MACOSX") || fileName.contains(".DS_Store")) continue;
+                if (fileName.contains("__MACOSX") || fileName.contains(".DS_Store"))
+                    continue;
 
                 // Lấy nội dung file thành chuỗi
                 String content = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8))
@@ -304,7 +363,8 @@ public class TestCaseService implements ITestCaseService {
                 String actualFileName = parts[parts.length - 1]; // Lấy tên file gốc không chứa thư mục
 
                 int dotIndex = actualFileName.lastIndexOf(".");
-                if (dotIndex == -1) continue;
+                if (dotIndex == -1)
+                    continue;
 
                 String baseName = actualFileName.substring(0, dotIndex);
                 String extension = actualFileName.substring(dotIndex);

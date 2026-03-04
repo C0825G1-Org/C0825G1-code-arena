@@ -21,6 +21,7 @@ public class JudgeWorker {
     private final RedisTemplate<String, Object> redisTemplate;
     private final DockerJudgeService dockerJudgeService;
     private final SubmissionRepository submissionRepository;
+    private final com.codegym.spring_boot.repository.ITestCaseRepository testCaseRepository;
     private final ObjectMapper objectMapper;
 
     private static final String QUEUE_NAME = "judge_queue";
@@ -63,15 +64,26 @@ public class JudgeWorker {
                     .submissionId((long) submission.getId())
                     .status("judging")
                     .build();
-            redisTemplate.convertAndSend(RESULT_CHANNEL, judgingMsg);
+            redisTemplate.convertAndSend(RESULT_CHANNEL, java.util.Objects.requireNonNull((Object) judgingMsg));
 
             // 2. Thực hiện chấm bài qua Docker (Có thể mất thời gian)
             long start = System.currentTimeMillis();
+            // Lấy danh sách sample testcases nếu là chạy thử
+            java.util.List<String> sampleFilenames = null;
+            if (Boolean.TRUE.equals(ticket.isRunOnly())) {
+                sampleFilenames = testCaseRepository.findByProblemId(submission.getProblem().getId())
+                        .stream()
+                        .filter(tc -> Boolean.TRUE.equals(tc.getIsSample()))
+                        .map(com.codegym.spring_boot.entity.TestCase::getInputFilename)
+                        .toList();
+            }
+
             SubmissionResult result = dockerJudgeService.judge(
                     submission.getLanguage().getName(),
                     submission.getSourceCode(),
                     submission.getProblem().getId().toString(),
-                    ticket.isRunOnly());
+                    ticket.isRunOnly(),
+                    sampleFilenames);
 
             log.info(">>> [WORKER] Docker judge finished in {}ms for submission {}. Result: {}",
                     (System.currentTimeMillis() - start), submission.getId(), result.getStatus());
@@ -88,7 +100,7 @@ public class JudgeWorker {
                     .testCaseResults(result.getTestCases())
                     .build();
 
-            redisTemplate.convertAndSend(RESULT_CHANNEL, message);
+            redisTemplate.convertAndSend(RESULT_CHANNEL, java.util.Objects.requireNonNull((Object) message));
             log.info("Finished docker judge and sent full result to Redis for submission {}", ticket.submissionId());
 
         } catch (Exception e) {
@@ -98,7 +110,7 @@ public class JudgeWorker {
                     .status("RUNTIME_ERROR")
                     .compileMessage("Lỗi hệ thống khi chấm bài: " + e.getMessage())
                     .build();
-            redisTemplate.convertAndSend(RESULT_CHANNEL, errorMessage);
+            redisTemplate.convertAndSend(RESULT_CHANNEL, java.util.Objects.requireNonNull((Object) errorMessage));
         }
     }
 

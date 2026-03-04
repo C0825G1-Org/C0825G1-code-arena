@@ -1,12 +1,12 @@
-import axios from 'axios';
+import axiosClient from '../../../../shared/services/axiosClient';
 
-// DTO from backend
+// DTO từ backend
 export interface LeaderboardProblemDetail {
     problemId: number;
     isAccepted: boolean;
     failedAttempts: number;
     solvedTimeMinutes: number;
-    score: number;
+    score: number; // penalty của bài này = solvedTimeMinutes + 20 * failedAttempts
 }
 
 export interface LeaderboardDTO {
@@ -14,37 +14,18 @@ export interface LeaderboardDTO {
     userId: number;
     username: string;
     fullName: string;
-    totalScore: number;
-    totalPenalty: number;
-    totalSolved: number;
+    totalScore: number;   // = số bài AC (ranking key 1: giảm dần)
+    totalPenalty: number; // = tổng penalty phút (ranking key 2: tăng dần)
+    totalSolved: number;  // = số bài AC (alias của totalScore)
     problemDetails: LeaderboardProblemDetail[];
 }
 
 const API_URL = '/api/contests';
 
+
 export const leaderboardApiService = {
     getLeaderboard: async (contestId: number): Promise<LeaderboardDTO[]> => {
-        try {
-            const tokenStr = localStorage.getItem('token');
-            let token = '';
-            if (tokenStr) {
-                try {
-                    const parsed = JSON.parse(tokenStr);
-                    token = typeof parsed === 'string' ? parsed : (parsed.token || parsed.accessToken || '');
-                } catch {
-                    token = tokenStr;
-                }
-            }
-
-            const response = await axios.get(`${API_URL}/${contestId}/leaderboard`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching leaderboard:', error);
-            throw error;
-        }
+        // Sử dụng axiosClient thay vì axios hardcode (auth interceptor + base URL)
+        return axiosClient.get(`/contests/${contestId}/leaderboard`);
     }
 };

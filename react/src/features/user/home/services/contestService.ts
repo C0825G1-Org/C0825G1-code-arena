@@ -29,5 +29,14 @@ export const contestService = {
     },
     getContestDetail: async (id: number): Promise<any> => {
         return axiosClient.get(`/contests/${id}`);
+    },
+    finishContest: async (id: number, status?: string): Promise<void> => {
+        await axiosClient.post(`/contests/${id}/finish`, null, {
+            params: status ? { status } : {}
+        });
+    },
+    reportViolation: async (id: number): Promise<any> => {
+        // axiosClient interceptor đã unwrap response.data sẵn, không gọi thêm .data nữa
+        return axiosClient.post(`/contests/${id}/violation`);
     }
 };

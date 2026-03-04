@@ -78,8 +78,33 @@ public class SubmissionService implements ISubmissionService {
 
                 Contest contestReference = null;
                 if (submitRequestDTO.getContestId() != null) {
+                        // Kiểm tra trạng thái thí sinh
+                        var participant = contestParticipantRepository
+                                        .findByContestIdAndUserId(submitRequestDTO.getContestId(), user.getId())
+                                        .orElseThrow(() -> new IllegalStateException("Bạn chưa đăng ký cuộc thi này."));
+
+                        if (participant.getStatus() != com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED) {
+                                throw new IllegalStateException(
+                                                "Bạn đã kết thúc lượt thi hoặc bị truất quyền thi, không thể nộp bài.");
+                        }
+
+                        boolean isTestRun = Boolean.TRUE.equals(submitRequestDTO.getIsRunOnly());
+                        Integer contestId = submitRequestDTO.getContestId();
+                        Integer problemId = submitRequestDTO.getProblemId();
+
+                        if (!isTestRun) {
+                                // Giới hạn nộp bài: tối đa 50 lần/bài
+                                int submitCount = submissionRepository
+                                                .countByUserIdAndProblemIdAndContestIdAndIsTestRunFalse(user.getId(),
+                                                                problemId, contestId);
+                                if (submitCount >= 50) {
+                                        throw new IllegalStateException(
+                                                        "Bạn đã đạt giới hạn nộp bài (50 lần) cho bài này. Không thể nộp thêm.");
+                                }
+                        }
+
                         contestReference = new Contest();
-                        contestReference.setId(submitRequestDTO.getContestId());
+                        contestReference.setId(contestId);
                 }
 
                 // 3. Save Submission to DB with PENDING status
@@ -426,7 +451,9 @@ public class SubmissionService implements ISubmissionService {
                                                 .expectedOutput(tr.getTestCase().getIsSample()
                                                                 ? tr.getTestCase().getSampleOutput()
                                                                 : null)
-                                                .actualOutput(tr.getUserOutput())
+                                                .actualOutput(tr.getTestCase().getIsSample()
+                                                                ? tr.getUserOutput()
+                                                                : null)
                                                 .errorMessage(tr.getErrorMessage())
                                                 .build())
                                 .collect(Collectors.toList());

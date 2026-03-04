@@ -43,7 +43,8 @@ public class DockerJudgeService {
             String rawLanguage,
             String sourceCode,
             String problemId,
-            Boolean isRunOnly) {
+            Boolean isRunOnly,
+            List<String> sampleFilenames) {
 
         String language = normalizeLanguage(rawLanguage);
         String submissionId = UUID.randomUUID().toString();
@@ -68,6 +69,25 @@ public class DockerJudgeService {
 
             String hostAppPath = new File(submissionDir).getAbsolutePath().replace("\\", "/");
             String hostTestcasePath = getProblemsPath(problemId).replace("\\", "/");
+
+            // Xử lý isRunOnly: tạo thư mục tạm và copy riêng các sample test case
+            if (Boolean.TRUE.equals(isRunOnly) && sampleFilenames != null && !sampleFilenames.isEmpty()) {
+                String tempTestcaseDir = submissionDir + "/testcases";
+                Files.createDirectories(Path.of(tempTestcaseDir));
+                for (String inFileName : sampleFilenames) {
+                    if (inFileName == null)
+                        continue;
+                    try {
+                        String outFileName = inFileName.replace(".in", ".out");
+                        Files.copy(Path.of(hostTestcasePath, inFileName), Path.of(tempTestcaseDir, inFileName));
+                        Files.copy(Path.of(hostTestcasePath, outFileName), Path.of(tempTestcaseDir, outFileName));
+                    } catch (Exception ex) {
+                        log.warn(">>> [JUDGE] Cound not copy sample testcase file: {}", inFileName);
+                    }
+                }
+                hostTestcasePath = new File(tempTestcaseDir).getAbsolutePath().replace("\\", "/");
+            }
+
             log.info(">>> [JUDGE] hostAppPath: {}", hostAppPath);
             log.info(">>> [JUDGE] hostTestcasePath: {}", hostTestcasePath);
 
