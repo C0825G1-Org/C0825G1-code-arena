@@ -25,7 +25,17 @@ export default defineConfig({
         }
       },
       '/login/oauth2': { target: 'http://localhost:8080', changeOrigin: true, xfwd: true },
-      '/socket.io': { target: 'http://localhost:9092', ws: true, changeOrigin: true, secure: false }
+      '/socket.io': {
+        target: 'http://localhost:9092',
+        ws: true,
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+        }
+      }
     },
     allowedHosts: true
   },
@@ -43,7 +53,17 @@ export default defineConfig({
         }
       },
       '/login/oauth2': { target: 'http://localhost:8080', changeOrigin: true, xfwd: true },
-      '/socket.io': { target: 'http://localhost:9092', ws: true, changeOrigin: true, secure: false }
+      '/socket.io': {
+        target: 'http://localhost:9092',
+        ws: true,
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy preview error', err);
+          });
+        }
+      }
     }
   }
 })
