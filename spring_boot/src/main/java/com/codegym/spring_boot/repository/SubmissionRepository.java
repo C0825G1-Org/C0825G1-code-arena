@@ -39,4 +39,30 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
     // Fetch all submissions for a contest to rebuild leaderboard details
     List<Submission> findByContestIdOrderByIdAsc(Integer contestId);
+
+    // --- User Dashboard Stat Queries ---
+
+    @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
+    long countDistinctAcceptedProblemsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId")
+    long countTotalSubmissionsByUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
+    long countAcceptedSubmissionsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = :status ORDER BY CAST(s.createdAt AS DATE) DESC")
+    List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+    @Query("SELECT COUNT(s) FROM Submission s WHERE s.contest.createdBy.id = :modId AND s.createdAt >= :cutoff")
+    long countSubmissionsForModRecent(@Param("modId") Integer modId, @Param("cutoff") java.time.LocalDateTime cutoff);
+
+    // --- Monitor Dashboard Queries ---
+    int countByContestId(Integer contestId);
+
+    long countByUserIdAndContestId(Integer userId, Integer contestId);
+
+    long countByUserIdAndContestIdAndStatus(Integer userId, Integer contestId, SubmissionStatus status);
+
+    org.springframework.data.domain.Page<Submission> findByContestIdOrderByCreatedAtDesc(Integer contestId, org.springframework.data.domain.Pageable pageable);
 }

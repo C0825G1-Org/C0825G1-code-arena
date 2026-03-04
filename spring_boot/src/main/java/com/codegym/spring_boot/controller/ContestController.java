@@ -9,9 +9,13 @@ import com.codegym.spring_boot.dto.contest.request.UpdateContestRequest;
 import com.codegym.spring_boot.dto.contest.response.ContestDetailResponse;
 import com.codegym.spring_boot.dto.contest.response.ContestListResponse;
 import com.codegym.spring_boot.entity.User;
+import com.codegym.spring_boot.dto.leaderboard.LeaderboardDTO;
 import com.codegym.spring_boot.service.ContestService;
+import com.codegym.spring_boot.service.ILeaderboardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +36,7 @@ import java.util.Map;
 public class ContestController {
 
     private final ContestService contestService;
+    private final ILeaderboardService leaderboardService;
 
     // =============================================
     // MODERATOR/ADMIN APIs
@@ -141,5 +146,10 @@ public class ContestController {
             @AuthenticationPrincipal User currentUser) {
         contestService.registerForContest(id, currentUser);
         return ResponseEntity.ok(Map.of("message", "Đăng ký cuộc thi thành công!"));
+    }
+
+    @GetMapping("/{id}/leaderboard")
+    public ResponseEntity<List<LeaderboardDTO>> getContestLeaderboard(@PathVariable Integer id) {
+        return ResponseEntity.ok(leaderboardService.getLeaderboard(id));
     }
 }

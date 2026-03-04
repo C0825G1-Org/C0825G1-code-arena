@@ -12,6 +12,7 @@ import { CreatePage as ModeratorProblemCreatePage } from '../features/moderator/
 import { EditPage as ModeratorProblemEditPage } from '../features/moderator/problem/EditPage';
 import { CreatePage as ModeratorTestcaseCreatePage } from '../features/moderator/testcase/CreatePage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
+import { MonitorPanelPage } from '../features/moderator/contests/pages/MonitorPanelPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
 import { CompleteProfilePage } from '../features/auth/pages/CompleteProfilePage';
@@ -21,6 +22,7 @@ import { CodeEditorPage } from '../features/user/code-editor';
 import { UserContestsPage } from '../features/user/contests/pages/UserContestsPage';
 import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
 import { UserContestResultsPage } from '../features/user/contests/pages/UserContestResultsPage';
+import { LeaderboardPage } from '../features/user/leaderboard/pages/LeaderboardPage';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -134,6 +136,14 @@ export const router = createBrowserRouter([
         )
     },
     {
+        path: '/leaderboard',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <LeaderboardPage />
+            </ProtectedRoute>
+        )
+    },
+    {
         path: '/moderator/dashboard',
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
@@ -146,6 +156,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
                 <ContestManagementPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/moderator/contests/:id/monitor',
+        element: (
+            <ProtectedRoute allowedRoles={['MODERATOR', 'ADMIN']}>
+                <MonitorPanelPage />
             </ProtectedRoute>
         )
     },

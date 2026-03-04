@@ -5,8 +5,13 @@ import com.codegym.spring_boot.entity.ContestParticipantId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.Optional;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface ContestParticipantRepository extends JpaRepository<ContestParticipant, ContestParticipantId> {
@@ -17,4 +22,13 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
 
     // Lấy bảng xếp hạng: sắp theo điểm giảm dần, penalty tăng dần
     List<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId);
+
+    // Bảng xếp hạng phân trang cho Monitor
+    Page<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId, Pageable pageable);
+
+    @Query("SELECT cp FROM ContestParticipant cp JOIN FETCH cp.user WHERE cp.contest.id = :contestId ORDER BY cp.totalScore DESC, cp.totalPenalty ASC")
+    List<ContestParticipant> findAllWithUserByContestId(@Param("contestId") Integer contestId);
+
+    @Query("SELECT COUNT(cp) FROM ContestParticipant cp WHERE cp.contest.createdBy.id = :modId")
+    long countTotalParticipantsByModId(@Param("modId") Integer modId);
 }

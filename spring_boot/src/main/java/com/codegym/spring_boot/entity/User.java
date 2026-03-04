@@ -46,7 +46,7 @@ public class User extends BaseEntity implements UserDetails {
     private UserRole role = UserRole.user;
 
     @Column(name = "global_rating")
-    private Integer globalRating = 1500;
+    private Integer globalRating = 0;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn

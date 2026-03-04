@@ -24,6 +24,8 @@ public class ContestDetailResponse {
     private LocalDateTime serverTime;
     private String createdBy;
     private long participantCount;
+    @Builder.Default
+    private final int maxParticipants = 10;
     private List<ContestProblemResponse> problems; // null nếu chưa được phép xem
     private List<RankingEntry> ranking; // chỉ khi FINISHED
 
