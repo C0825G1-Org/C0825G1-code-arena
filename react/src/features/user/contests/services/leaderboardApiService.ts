@@ -14,6 +14,7 @@ export interface LeaderboardDTO {
     userId: number;
     username: string;
     fullName: string;
+    avatarUrl?: string;
     totalScore: number;   // = số bài AC (ranking key 1: giảm dần)
     totalPenalty: number; // = tổng penalty phút (ranking key 2: tăng dần)
     totalSolved: number;  // = số bài AC (alias của totalScore)

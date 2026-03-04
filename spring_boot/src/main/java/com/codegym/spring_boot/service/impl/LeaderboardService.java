@@ -174,6 +174,10 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setUserId(uid);
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
+            // Lấy avatarUrl từ bảng Profile (null-safe)
+            if (p.getUser().getProfile() != null) {
+                dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
+            }
 
             // Penalty tổng từ DB (đã tính: thời gian giải + 20ph * lần sai + 1000ph nếu bị
             // phạt vi phạm)
