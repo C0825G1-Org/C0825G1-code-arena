@@ -20,6 +20,9 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
     // Đếm số người đăng ký một cuộc thi
     long countByIdContestId(Integer contestId);
 
+    // Đếm số người ĐÃ thực sự vào màn hình làm bài của cuộc thi đang diễn ra
+    long countByContestIdAndHasJoinedActiveTrue(Integer contestId);
+
     // Lấy bảng xếp hạng: sắp theo điểm giảm dần, penalty tăng dần
     List<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId);
 

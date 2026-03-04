@@ -59,7 +59,7 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                 .status(c.getStatus().name())
                 .startTime(c.getStartTime())
                 .endTime(c.getEndTime())
-                .participantCount(contestParticipantRepository.countByIdContestId(c.getId()))
+                .participantCount(contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(c.getId()))
                 .serverTime(LocalDateTime.now())
                 .isRegistered(false)
                 .firstProblemId(firstProblemId)
@@ -84,8 +84,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
             throw new SecurityException("Bạn không có quyền giám sát cuộc thi này.");
         }
 
-        // 1. Lấy tổng số người tham gia
-        int activeParticipantsCount = (int) contestParticipantRepository.countByIdContestId(contestId);
+        // 1. Lấy tổng số người tham gia (chỉ đếm người đã vào thi)
+        int activeParticipantsCount = (int) contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(contestId);
 
         // 2. Lấy tổng số lượt nộp bài
         int totalSubmissionsCount = submissionRepository.countByContestId(contestId);

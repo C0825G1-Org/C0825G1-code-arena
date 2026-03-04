@@ -301,13 +301,6 @@ public class SubmissionService implements ISubmissionService {
                                         .build();
                         notificationService.sendToMonitor(submission.getContest().getId(), logEntry);
 
-                        // Check if this is the user's very first submission in this contest
-                        long userSubsInContest = submissionRepository.countByUserIdAndContestId(submission.getUser().getId(), submission.getContest().getId());
-                        if (userSubsInContest == 1) {
-                                // It's their first time submitting, so they are a "new active participant"
-                                notificationService.sendNewParticipantToMonitor(submission.getContest().getId());
-                        }
-
                         // Lấy top 5 cập nhật mới nhất để đẩy về Leaderboard Table
                         java.util.List<com.codegym.spring_boot.entity.ContestParticipant> topParticipants =
                                 contestParticipantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(submission.getContest().getId())

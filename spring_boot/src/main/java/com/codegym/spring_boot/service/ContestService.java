@@ -37,6 +37,7 @@ public class ContestService {
     private final IProblemRepository iProblemRepository;
     private final ContestEventScheduler contestEventScheduler;
     private final SubmissionRepository submissionRepository; // Để kiểm tra run count và submit status
+    private final NotificationService notificationService;
 
     // =============================================
     // 1. MODERATOR/ADMIN: Tạo cuộc thi
@@ -553,6 +554,14 @@ public class ContestService {
                 participantStatus = p.getStatus();
                 violationCount = p.getViolationCount();
                 hasScorePenalty = p.getHasScorePenalty();
+                
+                // Track "First Join in Active Mode" logic
+                if (realStatus == ContestStatus.active && !Boolean.TRUE.equals(p.getHasJoinedActive())) {
+                    p.setHasJoinedActive(true);
+                    participantRepository.save(p);
+                    log.info("Participant {} officially joined active contest {}", currentUser.getUsername(), id);
+                    notificationService.sendNewParticipantToMonitor(id);
+                }
             }
         }
 
