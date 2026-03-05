@@ -497,7 +497,7 @@ export const AdminDashboardPage: React.FC = () => {
                                                     paddingAngle={3}
                                                     dataKey="value"
                                                     strokeWidth={0}
-                                                    isAnimationActive={false}
+                                                    // isAnimationActive={false}
                                                 >
                                                     {verdictStats.map((entry, i) => (
                                                         <Cell key={i} fill={entry.color} />
