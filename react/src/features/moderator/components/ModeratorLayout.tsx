@@ -99,28 +99,28 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                     >
                         <i className="ph-duotone ph-trophy text-xl"></i> Quản lý kỳ thi
                     </NavLink>
-                    <NavLink
-                        to="/moderator/submissions"
-                        className={({isActive}) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
-                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
-                            }`
-                        }
-                    >
-                        <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử chấm bài
-                    </NavLink>
-                    <NavLink
-                        to="/moderator/candidates"
-                        className={({isActive}) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
-                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
-                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
-                            }`
-                        }
-                    >
-                        <i className="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh
-                    </NavLink>
+                    {/*<NavLink*/}
+                    {/*    to="/moderator/submissions"*/}
+                    {/*    className={({isActive}) =>*/}
+                    {/*        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive*/}
+                    {/*            ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'*/}
+                    {/*            : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'*/}
+                    {/*        }`*/}
+                    {/*    }*/}
+                    {/*>*/}
+                    {/*    <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử chấm bài*/}
+                    {/*</NavLink>*/}
+                    {/*<NavLink*/}
+                    {/*    to="/moderator/candidates"*/}
+                    {/*    className={({isActive}) =>*/}
+                    {/*        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive*/}
+                    {/*            ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'*/}
+                    {/*            : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'*/}
+                    {/*        }`*/}
+                    {/*    }*/}
+                    {/*>*/}
+                    {/*    <i className="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh*/}
+                    {/*</NavLink>*/}
                 </nav>
             </aside>
 
