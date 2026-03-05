@@ -36,7 +36,7 @@ public class LeaderboardService implements ILeaderboardService {
 
     @Override
     @Transactional
-    public void updateScore(Submission submission) {
+    public void updateScore(Submission submission, boolean alreadySolvedThisProblem) {
         if (submission.getContest() == null || submission.getIsTestRun()) {
             return; // Not a contest submission or just a test run
         }
@@ -46,13 +46,10 @@ public class LeaderboardService implements ILeaderboardService {
         Integer userId = submission.getUser().getId();
         Integer problemId = submission.getProblem().getId();
 
-        // Check if user has already solved this problem in this contest
-        // Avoid adding penalty or score for already AC'd problems
-        boolean alreadySolved = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
-                userId, problemId, contestId, SubmissionStatus.AC);
-
-        // If this submission is AC and they haven't solved it before
-        if (submission.getStatus() == SubmissionStatus.AC && !alreadySolved) {
+        // If this submission is AC and they haven't solved this problem before
+        // Note: alreadySolvedThisProblem is computed BEFORE the submission is saved as AC
+        // to avoid the race condition where the query finds the just-saved AC submission
+        if (submission.getStatus() == SubmissionStatus.AC && !alreadySolvedThisProblem) {
 
             // 1. Calculate time passed since contest start (in minutes)
             LocalDateTime contestStartTime = contest.getStartTime();

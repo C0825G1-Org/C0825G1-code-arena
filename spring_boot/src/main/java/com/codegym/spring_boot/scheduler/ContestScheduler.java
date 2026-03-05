@@ -6,6 +6,7 @@ import com.codegym.spring_boot.entity.enums.ContestStatus;
 import com.codegym.spring_boot.repository.ContestProblemRepository;
 import com.codegym.spring_boot.repository.ContestRepository;
 import com.codegym.spring_boot.repository.IProblemRepository;
+import com.codegym.spring_boot.service.IRatingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,12 +24,13 @@ public class ContestScheduler {
     private final ContestRepository contestRepository;
     private final ContestProblemRepository contestProblemRepository;
     private final IProblemRepository iProblemRepository;
+    private final IRatingService ratingService;
 
     /**
      * Cron Job chạy mỗi 60 giây.
      * Quét DB để chuyển trạng thái Contest tự động:
      * - UPCOMING → ACTIVE (khi startTime đã qua)
-     * - ACTIVE → FINISHED (khi endTime đã qua) + unlock problems
+     * - ACTIVE → FINISHED (khi endTime đã qua) + unlock problems + tính rating
      */
     @Scheduled(fixedRate = 60000)
     @Transactional
@@ -47,13 +49,21 @@ public class ContestScheduler {
             contestRepository.saveAll(toActivate);
         }
 
-        // 2. ACTIVE → FINISHED + unlock problems
+        // 2. ACTIVE → FINISHED + unlock problems + tính rating ELO
         List<Contest> toFinish = contestRepository
                 .findByStatusAndEndTimeLessThanEqual(ContestStatus.active, now);
         for (Contest contest : toFinish) {
             contest.setStatus(ContestStatus.finished);
             log.info("Contest [{}] '{}' chuyển sang FINISHED", contest.getId(), contest.getTitle());
             unlockProblemsOfContest(contest.getId());
+
+            // Tính toán và cập nhật ELO rating cho tất cả thí sinh
+            try {
+                ratingService.calculateAndApplyRatingChanges(contest.getId());
+                log.info("Contest [{}]: Rating ELO đã được cập nhật thành công.", contest.getId());
+            } catch (Exception e) {
+                log.error("Contest [{}]: Lỗi khi tính rating ELO: {}", contest.getId(), e.getMessage(), e);
+            }
         }
         if (!toFinish.isEmpty()) {
             contestRepository.saveAll(toFinish);

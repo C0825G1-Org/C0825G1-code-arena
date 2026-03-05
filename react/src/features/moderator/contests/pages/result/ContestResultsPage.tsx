@@ -101,7 +101,12 @@ export const ContestResultsPage = () => {
     const stats = useMemo(() => {
         if (!contest || leaderboard.length === 0) return null;
 
-        const totalProblems = contest.problems.length;
+        // Tổng số bài: ưu tiên contest.problems, fallback từ leaderboard problemDetails
+        const totalProblems = contest.problems.length > 0
+            ? contest.problems.length
+            : (leaderboard.length > 0 && leaderboard[0].problemDetails?.length > 0
+                ? leaderboard[0].problemDetails.length
+                : Math.max(1, ...leaderboard.map(e => e.totalSolved || 0)));
         let totalSubmissions = 0;
         let totalAC = 0;
         let totalSolveTimeMin = 0;
@@ -145,16 +150,15 @@ export const ContestResultsPage = () => {
             : 0;
 
         // Score distribution bands
-        const totalPointsPossible = contest.problems.reduce((s, p) => s + (p.maxScore || 0), 0) || 1;
         const bands = [
-            { label: '0 điểm', min: 0, max: 0, count: 0 },
+            { label: '0%', min: 0, max: 0, count: 0 },
             { label: '1–25%', min: 0.01, max: 0.25, count: 0 },
             { label: '26–50%', min: 0.26, max: 0.50, count: 0 },
             { label: '51–75%', min: 0.51, max: 0.75, count: 0 },
             { label: '76–100%', min: 0.76, max: 1.0, count: 0 },
         ];
         leaderboard.forEach(e => {
-            const pct = e.totalScore / totalPointsPossible;
+            const pct = e.totalScore / totalProblems;
             if (pct === 0) bands[0].count++;
             else if (pct <= 0.25) bands[1].count++;
             else if (pct <= 0.50) bands[2].count++;
@@ -180,7 +184,7 @@ export const ContestResultsPage = () => {
             problemMap,
             bands,
             difficultyData,
-            totalPointsPossible,
+            totalProblems,
         };
     }, [contest, leaderboard]);
 
@@ -300,9 +304,9 @@ export const ContestResultsPage = () => {
                                     </div>
                                     <div className="relative z-10 mt-4 flex items-center justify-between text-sm">
                                         <div>
-                                            <span className="text-slate-400">Điểm: </span>
-                                            <span className="text-white font-bold text-lg">{entry.totalScore}</span>
-                                            <span className="text-slate-500">/{totalPointsPossible}</span>
+                                            <span className="text-slate-400">Số bài AC: </span>
+                                            <span className="text-white font-bold text-lg">{entry.totalSolved}</span>
+                                            <span className="text-slate-500">/{stats?.totalProblems}</span>
                                         </div>
                                         <div className="flex items-center gap-3 text-slate-400">
                                             <span className="flex items-center gap-1"><CheckCircle weight="fill" className="text-emerald-400" /> {entry.totalSolved}</span>

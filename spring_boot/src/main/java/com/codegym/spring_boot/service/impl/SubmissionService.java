@@ -166,6 +166,17 @@ public class SubmissionService implements ISubmissionService {
                 }
 
                 SubmissionStatus finalStatus = mapDockerStatusToSubmissionStatus(msg.getStatus());
+
+                // CRITICAL: Kiểm tra alreadyAC TRƯỚC KHI setStatus() để tránh JPA auto-flush.
+                // Nếu setStatus(AC) trước → entity bị dirty → Hibernate auto-flush trước query
+                // → query luôn tìm thấy bản thân submission vừa flush → alreadyAC = true sai.
+                boolean alreadyAC = false;
+                if (submission.getContest() != null) {
+                        alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
+                                        submission.getUser().getId(), submission.getProblem().getId(),
+                                        submission.getContest().getId(), SubmissionStatus.AC);
+                }
+
                 submission.setStatus(finalStatus);
 
                 // Nếu là trạng thái đang chấm, chỉ cập nhật status và notify UI rồi thoát
@@ -178,14 +189,6 @@ public class SubmissionService implements ISubmissionService {
                                         .build();
                         notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
                         return;
-                }
-
-                // Kiểm tra trước khi lưu để xác định Penalty
-                boolean alreadyAC = false;
-                if (submission.getContest() != null) {
-                        alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
-                                        submission.getUser().getId(), submission.getProblem().getId(),
-                                        submission.getContest().getId(), SubmissionStatus.AC);
                 }
 
                 // 1. Lưu TestResult chi tiết
@@ -243,7 +246,7 @@ public class SubmissionService implements ISubmissionService {
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
                 if (submission.getContest() != null && !submission.getIsTestRun()) {
-                        leaderboardService.updateScore(submission);
+                        leaderboardService.updateScore(submission, alreadyAC);
                 }
 
                 // 4. Gửi Socket về ReactJS realtime

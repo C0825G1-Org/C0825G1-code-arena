@@ -10,7 +10,7 @@ public interface ILeaderboardService {
      * Updates the user's score and penalty in the contest based on their submission result.
      * Also updates the real-time leaderboard in Redis.
      */
-    void updateScore(Submission submission);
+    void updateScore(Submission submission, boolean alreadySolvedThisProblem);
 
     /**
      * Retrieves the current leaderboard for a specific contest.
