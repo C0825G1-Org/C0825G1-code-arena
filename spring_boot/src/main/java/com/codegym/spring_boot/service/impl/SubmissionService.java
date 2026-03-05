@@ -308,10 +308,11 @@ public class SubmissionService implements ISubmissionService {
 
                 // --- Gửi Socket cho Live Monitor của Moderator ---
                 if (submission.getContest() != null && !Boolean.TRUE.equals(submission.getIsTestRun())) {
+                        // 3. Chuẩn bị payload thông báo qua Socket.IO cho luồng submissions của monitor
                         com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry = com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog
                                         .builder()
                                         .submissionId(submission.getId())
-                                        .username(submission.getUser().getUsername())
+                                        .fullname(submission.getUser().getFullName() != null ? submission.getUser().getFullName() : submission.getUser().getUsername())
                                         .problemId(submission.getProblem().getId())
                                         .problemTitle(submission.getProblem().getTitle())
                                         .status(finalStatus.name())

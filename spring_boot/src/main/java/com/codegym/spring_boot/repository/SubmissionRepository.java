@@ -151,13 +151,13 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
      List<Object[]> countByStatusForMod(@Param("modId") Integer modId);
 
      // --- Monitor Dashboard Queries ---
-     int countByContestId(Integer contestId);
+     int countByContestIdAndIsTestRunFalse(Integer contestId);
 
      long countByUserIdAndContestId(Integer userId, Integer contestId);
 
      long countByUserIdAndContestIdAndStatus(Integer userId, Integer contestId, SubmissionStatus status);
 
-     org.springframework.data.domain.Page<Submission> findByContestIdOrderByCreatedAtDesc(Integer contestId,
+     org.springframework.data.domain.Page<Submission> findByContestIdAndIsTestRunFalseOrderByCreatedAtDesc(Integer contestId,
                org.springframework.data.domain.Pageable pageable);
 
      // === Cơ chế nộp bài (50 lần) trong Contest ===

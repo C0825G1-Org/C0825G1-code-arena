@@ -97,8 +97,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
         // 1. Lấy tổng số người tham gia (chỉ đếm người đã vào thi)
         int activeParticipantsCount = (int) contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(contestId);
 
-        // 2. Lấy tổng số lượt nộp bài
-        int totalSubmissionsCount = submissionRepository.countByContestId(contestId);
+        // 2. Lấy tổng số lượt nộp bài thật (bỏ qua test run)
+        int totalSubmissionsCount = submissionRepository.countByContestIdAndIsTestRunFalse(contestId);
 
         // 3. Tính thời gian còn lại (seconds)
         long remainingTimeSeconds = 0L;
@@ -137,14 +137,14 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                     .build());
         }
 
-        // 5. Lấy 50 lượt nộp bài gần nhất để làm Feed (Live Log)
+        // 5. Lấy 50 lượt nộp bài gần nhất để làm Feed (Live Log), bỏ qua test run
         Pageable top50 = PageRequest.of(0, 50, Sort.by("createdAt").descending());
-        List<com.codegym.spring_boot.entity.Submission> recentSubs = submissionRepository.findByContestIdOrderByCreatedAtDesc(contestId, top50).getContent();
+        List<com.codegym.spring_boot.entity.Submission> recentSubs = submissionRepository.findByContestIdAndIsTestRunFalseOrderByCreatedAtDesc(contestId, top50).getContent();
 
         List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog> recentSubmissions = recentSubs.stream().map(sub ->
                 com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog.builder()
                         .submissionId(sub.getId())
-                        .username(sub.getUser().getUsername())
+                        .fullname(sub.getUser().getFullName() != null ? sub.getUser().getFullName() : sub.getUser().getUsername())
                         .problemId(sub.getProblem().getId())
                         .problemTitle(sub.getProblem().getTitle())
                         .status(sub.getStatus().name())

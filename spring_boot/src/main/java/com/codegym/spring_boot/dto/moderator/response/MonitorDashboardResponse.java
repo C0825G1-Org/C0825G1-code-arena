@@ -33,7 +33,7 @@ public class MonitorDashboardResponse {
     @Builder
     public static class MonitorSubmissionLog {
         private Integer submissionId;
-        private String username;
+        private String fullname;
         private Integer problemId;
         private String problemTitle;
         private String status;

@@ -93,7 +93,7 @@ export const MonitorPanelPage = () => {
                 // is to wait for leaderboard update or check current state
                 return { ...s, totalSubmissionsCount: s.totalSubmissionsCount + 1 };
             });
-            toast.success(`Thí sinh ${newSub.username} vừa nộp bài!`, { icon: '🔔' });
+            toast.success(`Thí sinh ${newSub.fullname} vừa nộp bài!`, { icon: '🔔' });
         });
 
         socket.on('monitor_leaderboard_update', () => {
@@ -518,10 +518,10 @@ export const MonitorPanelPage = () => {
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2">
                                         <span className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
-                                            {log.username?.substring(0, 2).toUpperCase()}
+                                            {log.fullname?.substring(0, 2).toUpperCase()}
                                         </span>
                                         <div>
-                                            <p className="text-sm font-medium text-white leading-tight">{log.username}</p>
+                                            <p className="text-sm font-medium text-white leading-tight">{log.fullname}</p>
                                             <span className="text-xs text-slate-500">{new Date(log.submittedAt).toLocaleTimeString()}</span>
                                         </div>
                                     </div>
