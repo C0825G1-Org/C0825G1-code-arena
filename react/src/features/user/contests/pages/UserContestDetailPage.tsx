@@ -181,9 +181,15 @@ export const UserContestDetailPage = () => {
 
     const handleConfirmRules = () => {
         if (!contest) return;
-        const firstProblemId = contest.problems && contest.problems.length > 0 ? contest.problems[0].id : 1;
+        const sortedProblems = contest.problems?.sort((a: any, b: any) => a.orderIndex - b.orderIndex);
+        const firstProblem = sortedProblems?.[0];
+        if (!firstProblem) {
+            // Đề bài chưa sẵn sàng (contest chưa active hoặc API chưa trả về)
+            toast.error('Đề bài chưa sẵn sàng. Vui lòng thử lại sau.');
+            return;
+        }
         setIsRulesOpen(false);
-        navigate('/code-editor/' + firstProblemId + '?contestId=' + contest.id);
+        navigate('/code-editor/' + firstProblem.id + '?contestId=' + contest.id);
     };
 
     if (loading && !contest) {
