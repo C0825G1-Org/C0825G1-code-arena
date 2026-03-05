@@ -124,7 +124,11 @@ export const router = createBrowserRouter([
     },
     {
         path: '/problems',
-        element: <UserProblemListPage />
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserProblemListPage />
+            </ProtectedRoute>
+        )
     },
     {
         path: '/contests/:id',
@@ -232,7 +236,11 @@ export const router = createBrowserRouter([
     },
     {
         path: '/code-editor/:problemId',
-        element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <CodeEditorPage />
+            </ProtectedRoute>
+        )
     },
     {
         path: '/tutorial',
