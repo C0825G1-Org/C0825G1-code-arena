@@ -54,18 +54,20 @@ export const useContestSync = ({
         if (!isExamMode || isSubmittingExit || isWaitingRoom || isDone || !contestId) return;
 
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            // Dùng fetch với keepalive:true – đảm bảo request gửi được dù page đang unload
-            // axios/axiosClient bị hủy khi page unload, fetch+keepalive thì không
-            const token = localStorage.getItem('token');
-            if (token) {
-                fetch(`http://localhost:8080/api/contests/${contestId}/violation`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    keepalive: true  // Key: request tiếp tục dù page đã unload
-                }).catch(() => { });
+            // Chỉ gửi báo cáo nếu trang đang ở trạng thái hiển thị (VISIBLE)
+            // Nếu trang đã ẩn (HIDDEN), logic visibilitychange trong useAntiCheat đã xử lý báo cáo rồi.
+            if (document.visibilityState === 'visible') {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    fetch(`http://localhost:8080/api/contests/${contestId}/violation`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        keepalive: true
+                    }).catch(() => { });
+                }
             }
             // Hiển thị dialog xác nhận của trình duyệt
             e.preventDefault();
@@ -82,13 +84,9 @@ export const useContestSync = ({
             if (e.key === 'user' && !e.newValue) {
                 navigate('/login');
             }
-            if (e.key && e.key.startsWith('arena:contest_finished:') && e.newValue) {
-                const finishedId = e.key.split(':').pop();
-                if (finishedId === contestId) {
-                    toast.info("Lượt thi đã được kết thúc ở tab khác.");
-                    navigate(`/contests/${contestId}`, { replace: true });
-                }
-            }
+            // Chỉ redirect nếu tab hiện tại chưa có contest đang active
+            // (Tránh trường hợp submit thành công ở tab 1 làm redirect tab 2 đang thi)
+            // Không handle ở đây - khi user submit xong họ sẽ tự biết cần tải lại nếu cần
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);

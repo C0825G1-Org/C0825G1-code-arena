@@ -37,12 +37,7 @@ export default function Home() {
 
     const { problemId: problemIdStr } = useParams<{ problemId: string }>();
     const problemId = problemIdStr ? parseInt(problemIdStr, 10) : 1;
-    // Biết ngay từ đầu (từ localStorage) nếu đây là lượt xem lại bài thi
-    // Để chặn useArena auto-load localStorage đè lên code do API trả về
-    const examReadOnly = isExamMode && !!localStorage.getItem(`arena:contest_finished:${contestId || '0'}`);
-    const { language, code, setCode, setRawCode, changeLanguage, resetCode } = useArena(problemId, contestId, examReadOnly);
 
-    const { settings, updateSettings } = useSettings();
     const navigate = useNavigate();
     const location = useLocation();
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -56,10 +51,22 @@ export default function Home() {
 
     const [problemStatus, setProblemStatus] = useState<Record<number, { submitCount: number, isAC: boolean }>>({});
     const [contest, setContest] = useState<ContestDetailData | null>(null);
+    const [isContestEnded, setIsContestEnded] = useState(false);
     const hasInitViolations = useRef(false);
 
-    // Sử dụng Custom Hooks mới tách
+    // Tính toán trạng thái Read-only
+    // QUAN TRỌNG: Khi contest=null (chưa load), KHÔNG được set isReadOnly=true,
+    // vì `null?.participantStatus !== 'JOINED'` → `undefined !== 'JOINED'` → TRUE (sai)
     const isWaitingRoom = isExamMode && contest?.status === 'upcoming';
+    const isReadOnly = isContestEnded
+        || (isExamMode && contest !== null && contest.participantStatus !== 'JOINED')
+        || (contest?.status === 'upcoming' || contest?.status === 'past');
+    const examReadOnly = isExamMode && !!localStorage.getItem(`arena:contest_finished:${contestId || '0'}`);
+
+    const { language, code, setCode, setRawCode, changeLanguage, resetCode } = useArena(problemId, contestId, examReadOnly || isReadOnly);
+    const { settings, updateSettings } = useSettings();
+
+    // Sử dụng Custom Hooks mới tách
     const { blocker } = useContestSync({
         isExamMode,
         isWaitingRoom,
@@ -71,9 +78,9 @@ export default function Home() {
     const {
         isConfirmExitOpen, setIsConfirmExitOpen,
         isConfirmSubmitOpen, setIsConfirmSubmitOpen,
-        handleConfirmExit, handleManualExit, submitLogic, submitAllProblems
+        handleConfirmExit, handleManualExit, submitLogic
     } = useContestSubmit({
-        contestId, problemId, language, code, userId,
+        contestId, problemId, language, code,
         isExamMode, isWaitingRoom, contest,
         blockerState: blocker.state,
         blockerProceed: () => blocker.proceed && blocker.proceed(),
@@ -81,7 +88,7 @@ export default function Home() {
         setIsSubmitting, setIsSubmittingExit
     });
 
-    const { serverOffset, waitingTimeLeftStr, isTimeUp, setIsTimeUp } = useWaitingRoomTimer({
+    const { serverOffset, waitingTimeLeftStr, isWaitingEnded } = useWaitingRoomTimer({
         contest,
         onTimeUp: () => {
             if (contestId) {
@@ -106,31 +113,37 @@ export default function Home() {
     });
 
     const { initViolations, triggerViolation } = useAntiCheat({
-        isExamMode: isExamMode && !!contest && contest.status === 'active',
+        isExamMode: isExamMode && !!contest && contest.status === 'active' && !isReadOnly && !examReadOnly,
         contestId: contestId || undefined,
         onDisqualified: async () => {
             if (!contestId || !contest) return;
             const currentContestId = parseInt(contestId);
 
-            // Bước 1: Cập nhật state local để UI chuyển sang read-only ngay lập tức
-            setIsTimeUp(true);
+            // Bước 1: Cập nhật state local để UI chuyển read-only ngay lập tức
+            setIsContestEnded(true);
             setContest(prev => prev ? { ...prev, participantStatus: 'DISQUALIFIED' } : prev);
 
-            // Bước 2: Nộp tất cả bài + gọi API finish ở nền (không redirect)
+            // Bước 2: Chỉ đánh dấu kết thúc trên server — không tự nộp bài thay thí sinh
+            // (Bài đã nộp thủ công trước đó vẫn được tính điểm bình thường)
             try {
-                await submitAllProblems(currentContestId, 'DISQUALIFIED');
+                await contestService.finishContest(currentContestId, 'DISQUALIFIED');
+                localStorage.setItem(`arena:contest_finished:${currentContestId}`, Date.now().toString());
             } catch (e) {
-                console.warn('Disqualified API error:', e);
+                console.warn('finishContest on disqualified:', e);
             }
-            // Không navigate - ở lại trang read-only, thí sinh tự bấm Exit
+            // Không navigate — ở lại trang read-only, thí sinh tự bấm Thoát
         }
     });
 
     const { isCapturing } = useCameraSnapshot({
         contestId: contestId ? parseInt(contestId) : 0,
-        enabled: isExamMode && !!contest && contest.status === 'active' && contest.participantStatus === 'JOINED' && !isTimeUp,
+        enabled: isExamMode && !!contest && contest.status === 'active' && contest.participantStatus === 'JOINED' && !isContestEnded,
         interval: 60000,
-        onCameraRefused: () => triggerViolation()
+        // Intentionally NOT calling triggerViolation() here.
+        // Camera denial is handled inside useCameraSnapshot with a warning toast.
+        // Treating camera denial the same as tab-switching would unfairly penalize
+        // contestants who don't have a camera or didn't grant permission in time.
+        onCameraRefused: undefined
     });
 
     // WebRTC Real-time proctoring state
@@ -359,13 +372,9 @@ export default function Home() {
 
 
 
-
     const problemsList = contest?.problems?.sort((a, b) => a.orderIndex - b.orderIndex) || [];
     const currentProblemIndex = problemsList.findIndex(p => p.id === problemId);
-
     const getLabel = (index: number) => (index + 1).toString();
-
-    const isReadOnly = isTimeUp || (isExamMode && contest?.participantStatus !== 'JOINED') || (contest?.status === 'upcoming');
 
     return (
         <div className={`h-screen bg-[#0f172a] text-slate-300 flex flex-col overflow-hidden font-sans relative ${isExamMode && !isWaitingRoom ? 'border-4 border-red-500/30' : ''}`}>
@@ -403,10 +412,10 @@ export default function Home() {
                     contestTitle={contest?.title}
                     contestEndTime={contest?.endTime}
                     isWaitingRoom={isWaitingRoom}
-                    isTimeUp={isTimeUp}
+                    isTimeUp={isContestEnded}
                     onTimeUp={() => {
-                        if (!isTimeUp) {
-                            setIsTimeUp(true);
+                        if (!isContestEnded) {
+                            setIsContestEnded(true);
                             toast.error("HẾT GIỜ LÀM BÀI! Tự động nộp toàn bộ bài...");
                             handleConfirmExit('FINISHED');
                         }
@@ -501,7 +510,7 @@ export default function Home() {
                                         language={language}
                                         onChangeLanguage={changeLanguage}
                                         isSubmitting={isSubmitting}
-                                        isTimeUp={isTimeUp}
+                                        isTimeUp={isContestEnded}
                                         isExamMode={isExamMode}
                                         participantStatus={contest?.participantStatus}
                                         submitCount={problemStatus[problemId]?.submitCount ?? 0}
