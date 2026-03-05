@@ -11,11 +11,7 @@ public interface ILeaderboardService {
      * result.
      * Also updates the real-time leaderboard in Redis.
      */
-<<<<<<< HEAD
-    void updateScore(Submission submission, boolean alreadySolvedThisProblem);
-=======
     void updateScore(Submission submission, boolean alreadyAC);
->>>>>>> origin/nguyen2
 
     /**
      * Retrieves the current leaderboard for a specific contest.

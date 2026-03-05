@@ -28,6 +28,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
                Integer contestId);
 
      // Kiểm tra xem user đã từng AC bài này trước đó trong contest chưa
+     boolean existsByUserIdAndProblemIdAndContestIdAndStatus(Integer userId, Integer problemId,
+               Integer contestId, SubmissionStatus status);
+
      boolean existsByUserIdAndProblemIdAndContestIdAndStatusAndIdLessThan(Integer userId, Integer problemId,
                Integer contestId, SubmissionStatus status, Integer submissionId);
 

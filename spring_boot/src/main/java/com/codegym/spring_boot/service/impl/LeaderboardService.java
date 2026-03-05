@@ -38,11 +38,7 @@ public class LeaderboardService implements ILeaderboardService {
 
     @Override
     @Transactional
-<<<<<<< HEAD
-    public void updateScore(Submission submission, boolean alreadySolvedThisProblem) {
-=======
     public void updateScore(Submission submission, boolean alreadyAC) {
->>>>>>> origin/nguyen2
         if (submission.getContest() == null || submission.getIsTestRun()) {
             return;
         }
@@ -52,12 +48,6 @@ public class LeaderboardService implements ILeaderboardService {
         Integer userId = submission.getUser().getId();
         Integer problemId = submission.getProblem().getId();
 
-<<<<<<< HEAD
-        // If this submission is AC and they haven't solved this problem before
-        // Note: alreadySolvedThisProblem is computed BEFORE the submission is saved as AC
-        // to avoid the race condition where the query finds the just-saved AC submission
-        if (submission.getStatus() == SubmissionStatus.AC && !alreadySolvedThisProblem) {
-=======
         ContestParticipantId participantId = new ContestParticipantId(contestId, userId);
         participantRepository.findById(participantId).ifPresent(participant -> {
             // 1. LUÔN CẬP NHẬT TỔNG ĐIỂM (totalScore) nếu điểm hiện tại cao hơn điểm cũ
@@ -72,7 +62,6 @@ public class LeaderboardService implements ILeaderboardService {
                 log.info("Total Score updated for userId={} (contestId={}): +{} (Problem {} score: {} -> {})",
                         userId, contestId, scoreDiff, problemId, prevMax, currentScore);
             }
->>>>>>> origin/nguyen2
 
             // 2. CHỈ CẬP NHẬT PENALTY VÀ AC COUNT KHI LẦN ĐẦU AC BÀI NÀY
             if (submission.getStatus() == SubmissionStatus.AC && !alreadyAC) {

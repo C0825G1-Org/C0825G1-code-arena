@@ -19,4 +19,7 @@ public interface ITestCaseRepository extends JpaRepository<TestCase, Integer> {
 
     // Đếm số test case của 1 problem
     long countByProblemId(Integer problemId);
+
+    @Query("SELECT COALESCE(SUM(t.scoreWeight), 0) FROM TestCase t WHERE t.problem.id = :problemId")
+    Integer sumScoreWeightByProblemId(@Param("problemId") Integer problemId);
 }
