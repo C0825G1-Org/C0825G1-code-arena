@@ -54,17 +54,19 @@ export const ConfirmExitModal: React.FC<ConfirmExitModalProps> = ({
                     ) : (
                         <>
                             <p className="text-slate-300 leading-relaxed">
-                                Bạn có chắc chắn muốn kết thúc bài thi sớm? <br />
-                                <span className="text-white font-semibold">Nếu xác nhận:</span>
+                                Bạn có chắc chắn muốn kết thúc và thoát khỏi bài thi?
                             </p>
                             <ul className="space-y-3">
                                 <li className="flex items-start gap-3 text-sm text-slate-400">
                                     <div className="mt-1 p-1 bg-red-500/10 rounded-full"><X size={14} className="text-red-400" /></div>
-                                    <span>Bạn <b className="text-red-300">không thể quay lại</b> để tiếp tục làm bài.</span>
+                                    <span>Bạn <b className="text-red-300">không thể quay lại</b> để tiếp tục làm bài sau khi thoát.</span>
                                 </li>
-                                <li className="flex items-start gap-3 text-sm text-slate-400">
-                                    <div className="mt-1 p-1 bg-emerald-500/10 rounded-full"><PaperPlaneRight size={14} className="text-emerald-400" /></div>
-                                    <span>Hệ thống sẽ <b className="text-emerald-300">tự động nộp bài</b> của tất cả các câu hỏi dựa trên code hiện tại của bạn.</span>
+                                <li className="flex items-start gap-3 text-sm text-amber-300 bg-amber-500/10 rounded-xl p-3 border border-amber-500/20">
+                                    <div className="mt-0.5 shrink-0">⚠️</div>
+                                    <span>
+                                        <b>Hệ thống KHÔNG tự nộp bài thay bạn.</b><br />
+                                        Hãy đảm bảo bạn đã bấm <b>"Nộp bài"</b> cho tất cả các câu hỏi trước khi xác nhận thoát.
+                                    </span>
                                 </li>
                             </ul>
                         </>
@@ -90,7 +92,7 @@ export const ConfirmExitModal: React.FC<ConfirmExitModalProps> = ({
                         ) : (
                             isCustom ? <PaperPlaneRight size={20} weight="bold" /> : <SignOut size={20} weight="bold" className="group-hover:translate-x-1 transition-transform" />
                         )}
-                        {isSubmitting ? 'Đang nộp bài...' : (confirmText || 'Xác nhận Kết thúc')}
+                        {isSubmitting ? 'Đang xử lý...' : (confirmText || 'Xác nhận Thoát')}
                     </button>
                 </div>
             </div>

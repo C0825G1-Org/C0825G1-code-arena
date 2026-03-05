@@ -20,6 +20,7 @@ public class LeaderboardDTO {
     private Integer totalScore; // Number of AC problems
     private Integer totalPenalty; // Total time penalty
     private Integer totalSolved; // Added
+    private Boolean hasScorePenalty; // Added
     private List<ProblemDetail> problemDetails;
 
     @Data
@@ -30,7 +31,9 @@ public class LeaderboardDTO {
         private Integer problemId;
         private Boolean isAccepted;
         private Integer failedAttempts;
-        private Integer solvedTimeMinutes; // Time passed from contest start to AC in minutes
-        private Integer score; // Added to show points achieved
+        private Integer solvedTimeMinutes; // Thời gian từ lúc bắt đầu thi đến khi AC (phút)
+        private Integer score; // Điểm thực tế (tổng scoreWeight các test pass)
+        private Integer maxScore; // Tổng scoreWeight tối đa của bài (điểm đầy đủ)
+        private Integer penaltyMinutes; // Penalty ICPC = solvedTimeMinutes + failedAttempts * 20
     }
 }

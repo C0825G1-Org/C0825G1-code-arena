@@ -34,7 +34,8 @@ export default function TutorialEditorPage() {
         { id: 2, inputData: '3\n-1 0 1', expectedOutput: '0' },
         { id: 3, inputData: '4\n10 20 30 40', expectedOutput: '100', isHidden: true }
     ];
-    const problemStatus = { 1: { submitCount: 0, isAC: false } };
+    // Bài 1: chưa nộp. Bài 2: đã nộp WA (màu cam). Demo cả 2 màu sắc.
+    const problemStatus = { 1: { submitCount: 0, isAC: false }, 2: { submitCount: 2, isAC: false } };
 
     const tutorialSteps: Step[] = [
         {
@@ -54,7 +55,7 @@ export default function TutorialEditorPage() {
             content: (
                 <div className="text-left space-y-1">
                     <h4 className="font-bold text-blue-500">⏱️ Đồng hồ đếm ngược</h4>
-                    <p className="text-sm text-slate-700">Hiển thị Thời gian còn lại và Tên kỳ thi. Khi vào thi đếm ngược về 0, hệ thống sẽ tự động thu bài của bạn.</p>
+                    <p className="text-sm text-slate-700">Hiển thị Thời gian còn lại và Tên kỳ thi. Khi đếm ngược về 0, hệ thống sẽ <strong>cảnh báo</strong> và tự động kết thúc lượt thi của bạn. Hãy đảm bảo đã <strong>Nộp bài</strong> trước khi hết giờ!</p>
                 </div>
             ),
         },
@@ -62,8 +63,8 @@ export default function TutorialEditorPage() {
             target: '.tour-exit-btn',
             content: (
                 <div className="text-left space-y-1">
-                    <h4 className="font-bold text-red-500">🚪 Khóa / Thoát kỳ thi</h4>
-                    <p className="text-sm text-slate-700">Sau khi đã hoàn thành hoặc muốn dừng làm bài, bạn có thể nhấn vào đây để nộp toàn bộ các câu, kết thúc bài thi và quay về trang chủ cuộc thi.</p>
+                    <h4 className="font-bold text-red-500">🚪 Thoát kỳ thi</h4>
+                    <p className="text-sm text-slate-700">Đã hoàn thành? Nhấn vào đây để kết thúc lượt thi. Lưu ý: hệ thống <strong>không tự nộp bài thay bạn</strong> — hãy chắc chắn đã nhấn <strong>Nộp bài</strong> cho từng câu trước khi thoát.</p>
                 </div>
             ),
         },
@@ -72,7 +73,7 @@ export default function TutorialEditorPage() {
             content: (
                 <div className="text-left space-y-1">
                     <h4 className="font-bold text-blue-500">📚 Danh sách Câu hỏi</h4>
-                    <p className="text-sm text-slate-700">Đề thi thường có nhiều câu (1, 2, 3...). Bấm vào các con số để chuyển đề. Màu sắc sẽ thay đổi khi bạn nộp đúng (Xanh) hoặc sai (Cam).</p>
+                    <p className="text-sm text-slate-700">Đề thi có nhiều câu (1, 2, 3...). Bấm vào số để chuyển đề. Màu sắc phản ánh trạng thái: <span className="text-emerald-400 font-bold">Xanh</span> = đã AC (pass toàn bộ test), <span className="text-orange-400 font-bold">Cam</span> = đã nộp nhưng chưa AC, Trắng = chưa nộp.</p>
                 </div>
             ),
         },
@@ -152,8 +153,8 @@ export default function TutorialEditorPage() {
             target: '.tour-submit-btn',
             content: (
                 <div className="text-left space-y-2">
-                    <h4 className="font-bold text-emerald-600">🚀 Nộp bài Dứt điểm (Submit)</h4>
-                    <p className="text-sm text-slate-700">Mang bài của bạn đưa vào đánh giá bằng các <strong>Hidden Test Cases</strong> khó nhằn. Kết quả sẽ được ghi vô Bảng xếp hạng.</p>
+                    <h4 className="font-bold text-emerald-600">🚀 Nộp bài (Submit)</h4>
+                    <p className="text-sm text-slate-700">Mang bài đi đánh giá bằng các <strong>Hidden Test Cases</strong>. Điểm = tổng <strong>scoreWeight</strong> của các test pass. Kết quả ghi vào Bảng xếp hạng ngay sau khi chấm xong.</p>
                     <p className="text-sm text-emerald-600 font-bold mt-2">Đó là toàn bộ hướng dẫn. Chúc bạn thi tốt! 🎉</p>
                 </div>
             ),
@@ -324,7 +325,7 @@ export default function TutorialEditorPage() {
                                             <div className="flex gap-4 text-sm text-slate-300 font-mono">
                                                 <span className="flex items-center gap-1">⏱️ 142ms</span>
                                                 <span className="flex items-center gap-1">💾 33.5KB</span>
-                                                <span className="text-emerald-400 font-bold ml-2 hidden md:block">100 ĐIỂM</span>
+                                                <span className="text-emerald-400 font-bold ml-2 hidden md:block">100/100 ĐIỂM</span>
                                             </div>
                                         </div>
 
@@ -336,7 +337,7 @@ export default function TutorialEditorPage() {
                                             <div className="flex gap-4 text-sm text-slate-300 font-mono">
                                                 <span className="flex items-center gap-1">⏱️ 120ms</span>
                                                 <span className="flex items-center gap-1">💾 32.1KB</span>
-                                                <span className="text-orange-400 font-bold ml-2 hidden md:block">40 ĐIỂM</span>
+                                                <span className="text-orange-400 font-bold ml-2 hidden md:block">30/100 ĐIỂM</span>
                                             </div>
                                         </div>
 

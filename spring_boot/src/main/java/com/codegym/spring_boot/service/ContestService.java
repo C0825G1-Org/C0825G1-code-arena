@@ -81,7 +81,8 @@ public class ContestService {
 
             if (!currentUser.getRole().name().equalsIgnoreCase("admin")) {
                 if (problem.getCreatedBy() == null || !problem.getCreatedBy().getId().equals(currentUser.getId())) {
-                    throw new SecurityException("Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID " + problemId + " không thuộc về bạn.");
+                    throw new SecurityException("Chỉ được thêm bài tập do chính bạn tạo vào cuộc thi. Bài tập ID "
+                            + problemId + " không thuộc về bạn.");
                 }
             }
 
@@ -100,8 +101,7 @@ public class ContestService {
                 contest.getId(),
                 contest.getTitle(),
                 contest.getStartTime(),
-                Collections.emptyList()
-        );
+                Collections.emptyList());
 
         return mapToDetailResponse(contest, false);
     }
@@ -141,7 +141,8 @@ public class ContestService {
                                 || request.getEndTime().equals(LocalDateTime.now())) {
                             throw new IllegalArgumentException("Thời gian kết thúc mới phải ở tương lai.");
                         }
-                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime() : contest.getStartTime();
+                        LocalDateTime effectiveStart = request.getStartTime() != null ? request.getStartTime()
+                                : contest.getStartTime();
                         if (java.time.Duration.between(effectiveStart, request.getEndTime()).toMinutes() > 180) {
                             throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
                         }
@@ -202,7 +203,8 @@ public class ContestService {
         contestEventScheduler.scheduleContestStartEvent(contest.getId(), contest.getStartTime());
         contestEventScheduler.scheduleContestEndEvent(contest.getId(), contest.getEndTime());
 
-        // Reschedule reminder với startTime mới (lấy lại danh sách participant hiện tại)
+        // Reschedule reminder với startTime mới (lấy lại danh sách participant hiện
+        // tại)
         List<Integer> participantIds = participantRepository
                 .findByIdContestId(contest.getId())
                 .stream()
@@ -212,8 +214,7 @@ public class ContestService {
                 contest.getId(),
                 contest.getTitle(),
                 contest.getStartTime(),
-                participantIds
-        );
+                participantIds);
 
         return mapToDetailResponse(contest, false);
     }
@@ -280,7 +281,8 @@ public class ContestService {
             // Kiểm tra bài tập phải có testcase
             if (problem.getTestcaseStatus() != TestCaseStatus.ready) {
                 throw new IllegalArgumentException(
-                        "Bài tập ID " + entry.getProblemId() + " chưa có testcase nào. Vui lòng thêm testcase trước khi đưa vào cuộc thi.");
+                        "Bài tập ID " + entry.getProblemId()
+                                + " chưa có testcase nào. Vui lòng thêm testcase trước khi đưa vào cuộc thi.");
             }
 
             // Kiểm tra trùng lặp
@@ -486,11 +488,11 @@ public class ContestService {
             if (finalFilterRegistered && currentUser != null) {
                 // Subquery to find if the user has registered for this contest
                 jakarta.persistence.criteria.Subquery<Integer> subquery = query.subquery(Integer.class);
-                jakarta.persistence.criteria.Root<com.codegym.spring_boot.entity.ContestParticipant> participantRoot = subquery.from(com.codegym.spring_boot.entity.ContestParticipant.class);
+                jakarta.persistence.criteria.Root<com.codegym.spring_boot.entity.ContestParticipant> participantRoot = subquery
+                        .from(com.codegym.spring_boot.entity.ContestParticipant.class);
                 subquery.select(cb.literal(1)).where(
                         cb.equal(participantRoot.get("contest").get("id"), root.get("id")),
-                        cb.equal(participantRoot.get("user").get("id"), currentUser.getId())
-                );
+                        cb.equal(participantRoot.get("user").get("id"), currentUser.getId()));
                 predicates.add(cb.exists(subquery));
             }
 
@@ -551,8 +553,7 @@ public class ContestService {
                     contest.getId(),
                     contest.getTitle(),
                     contest.getStartTime(),
-                    allParticipantIds
-            );
+                    allParticipantIds);
         }
 
     }
@@ -565,12 +566,13 @@ public class ContestService {
         ContestParticipant participant = participantRepository.findByContestIdAndUserId(contestId, currentUser.getId())
                 .orElseThrow(() -> new IllegalStateException("Bạn chưa đăng ký cuộc thi này."));
 
-        if (participant.getStatus() == ParticipantStatus.FINISHED) {
-            return; // Đã xong rồi thì thôi, không báo lỗi
-        }
-
-        if (participant.getStatus() == ParticipantStatus.DISQUALIFIED) {
-            throw new IllegalStateException("Bạn đã bị truất quyền thi.");
+        // Nếu đã FINISHED hoặc đã DISQUALIFIED rồi thì không làm gì nữa
+        // (Tránh race condition giữa reportViolation và finishContest)
+        if (participant.getStatus() == ParticipantStatus.FINISHED
+                || participant.getStatus() == ParticipantStatus.DISQUALIFIED) {
+            log.info("finishContest skipped: participant {} already has status {}",
+                    currentUser.getUsername(), participant.getStatus());
+            return;
         }
 
         participant.setStatus(status != null ? status : ParticipantStatus.FINISHED);
@@ -581,23 +583,12 @@ public class ContestService {
     // 9. USER: Báo cáo vi phạm (Rời màn hình)
     @Transactional
     public ContestParticipant reportViolation(Integer contestId, User currentUser) {
-        ContestParticipant participant = participantRepository.findByContestIdAndUserId(contestId, currentUser.getId())
+        // Thực hiện increment nguyên tử trong DB trước
+        participantRepository.incrementViolationCount(contestId, currentUser.getId());
+
+        // Sau đó fetch lại để trả về thông tin mới nhất cho Frontend
+        return participantRepository.findByContestIdAndUserId(contestId, currentUser.getId())
                 .orElseThrow(() -> new IllegalStateException("Bạn chưa đăng ký cuộc thi này."));
-
-        if (participant.getStatus() != ParticipantStatus.JOINED) {
-            return participant;
-        }
-
-        int newCount = (participant.getViolationCount() != null ? participant.getViolationCount() : 0) + 1;
-        participant.setViolationCount(newCount);
-
-        if (newCount == 2) {
-            participant.setHasScorePenalty(true);
-        } else if (newCount >= 3) {
-            participant.setStatus(ParticipantStatus.DISQUALIFIED);
-        }
-
-        return participantRepository.save(participant);
     }
 
     // =============================================
@@ -626,7 +617,7 @@ public class ContestService {
                 participantStatus = p.getStatus();
                 violationCount = p.getViolationCount();
                 hasScorePenalty = p.getHasScorePenalty();
-                
+
                 // Track "First Join in Active Mode" logic
                 if (realStatus == ContestStatus.active && !Boolean.TRUE.equals(p.getHasJoinedActive())) {
                     p.setHasJoinedActive(true);

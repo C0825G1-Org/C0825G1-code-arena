@@ -6,7 +6,9 @@ export interface LeaderboardProblemDetail {
     isAccepted: boolean;
     failedAttempts: number;
     solvedTimeMinutes: number;
-    score: number; // penalty của bài này = solvedTimeMinutes + 20 * failedAttempts
+    score: number;         // Điểm thực tế (tổng scoreWeight các test pass)
+    maxScore: number;      // Tổng scoreWeight tối đa của bài
+    penaltyMinutes: number;// Penalty ICPC = solvedTimeMinutes + failedAttempts * 20
 }
 
 export interface LeaderboardDTO {
@@ -15,9 +17,10 @@ export interface LeaderboardDTO {
     username: string;
     fullName: string;
     avatarUrl?: string;
-    totalScore: number;   // = số bài AC (ranking key 1: giảm dần)
-    totalPenalty: number; // = tổng penalty phút (ranking key 2: tăng dần)
-    totalSolved: number;  // = số bài AC (alias của totalScore)
+    totalScore: number;   // = tổng điểm thực tế từ các bài đã AC
+    totalPenalty: number; // = tổng penalty phút (ranking key tie-breaker)
+    totalSolved: number;  // = số bài AC
+    hasScorePenalty?: boolean; // Added
     problemDetails: LeaderboardProblemDetail[];
 }
 

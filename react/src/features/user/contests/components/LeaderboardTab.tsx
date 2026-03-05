@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LeaderboardDTO, leaderboardApiService } from '../services/leaderboardApiService';
 import { useLeaderboardSocket } from '../hooks/useLeaderboardSocket';
-import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info, UserCircle } from '@phosphor-icons/react';
+import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info } from '@phosphor-icons/react';
 import { toast } from 'react-hot-toast';
 
 interface LeaderboardTabProps {
@@ -9,18 +9,26 @@ interface LeaderboardTabProps {
 }
 
 // Tính lại rank từ problemDetails (luôn fresh từ submissions, không phụ thuộc DB stale)
-const computeAndSort = (data: LeaderboardDTO[]) => {
+export const computeAndSort = (data: LeaderboardDTO[]) => {
     const enriched = data.map(user => {
-        const accepted = (user.problemDetails ?? []).filter(p => p.isAccepted);
+        const details = user.problemDetails ?? [];
+        const accepted = details.filter(p => p.isAccepted);
         const computedSolved = accepted.length;
-        const computedPenalty = accepted.reduce((sum, p) => sum + (p.score ?? 0), 0);
-        // Tổng điểm = số bài giải × 100 điểm/bài
-        const computedPoints = computedSolved * 100;
+
+        // Thời gian tích lũy ICPC: tổng penaltyMinutes của các bài đã AC + 1000 nếu vi phạm
+        let computedPenalty = accepted.reduce((sum, p) => sum + (p.penaltyMinutes ?? 0), 0);
+        if (user.hasScorePenalty) {
+            computedPenalty += 1000;
+        }
+
+        // Tổng điểm thực tế = Σ score của TẤT CẢ các bài (bao gồm cả WA partial)
+        const computedPoints = details.reduce((sum, p) => sum + (p.score ?? 0), 0);
         return { ...user, computedSolved, computedPenalty, computedPoints, computedRank: 0 };
     });
 
-    // Sort: điểm cao hơn → thắng; cùng điểm → thời gian ít hơn → thắng
+    // Sort: Tổng điểm (DESC) -> Số bài AC (DESC) -> Penalty (ASC)
     enriched.sort((a, b) => {
+        if (b.computedPoints !== a.computedPoints) return b.computedPoints - a.computedPoints;
         if (b.computedSolved !== a.computedSolved) return b.computedSolved - a.computedSolved;
         return a.computedPenalty - b.computedPenalty;
     });
@@ -110,16 +118,16 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                     <div className="mt-3 grid sm:grid-cols-3 gap-3 text-xs text-slate-300">
                         <div className="bg-slate-800/60 rounded-xl p-3 flex flex-col gap-1">
                             <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                                <Star size={13} /> Mỗi bài giải đúng = 100 điểm
+                                <Star size={13} /> Điểm theo test case
                             </span>
-                            <span className="text-slate-400">Giải đúng hoàn toàn tất cả test mới được tính điểm.</span>
+                            <span className="text-slate-400">Mỗi test case có trọng số (scoreWeight). Điểm mỗi bài = tổng scoreWeight các test <strong className="text-slate-300">pass</strong>. Điểm cuộc thi = tổng điểm tất cả bài.</span>
                         </div>
                         <div className="bg-slate-800/60 rounded-xl p-3 flex flex-col gap-1">
                             <span className="text-yellow-400 font-semibold flex items-center gap-1">
                                 <Timer size={13} /> Thời gian tích lũy
                             </span>
                             <span className="text-slate-400">
-                                Thời gian từ lúc thi đến khi giải đúng, cộng thêm <strong className="text-slate-300">20 phút</strong> cho mỗi lần nộp sai trước đó.
+                                Chỉ tính cho bài đã <strong className="text-slate-300">AC hoàn toàn</strong>: thời gian từ lúc thi đến khi giải đúng + <strong className="text-slate-300">20 phút</strong> cho mỗi lần nộp sai.
                             </span>
                         </div>
                         <div className="bg-slate-800/60 rounded-xl p-3 flex flex-col gap-1">
@@ -127,8 +135,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                 <Trophy size={13} /> Thứ hạng
                             </span>
                             <span className="text-slate-400">
-                                Ai giải <strong className="text-slate-300">được nhiều bài hơn</strong> thì đứng trên.
-                                Nếu bằng nhau, ai có <strong className="text-slate-300">thời gian ít hơn</strong> thì thắng.
+                                Ưu tiên: <strong className="text-slate-300">Tổng điểm cao hơn</strong> → <strong className="text-slate-300">Số bài AC nhiều hơn</strong> → <strong className="text-slate-300">Thời gian ít hơn</strong>.
                             </span>
                         </div>
                     </div>
@@ -146,23 +153,15 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                 <th className="py-3 px-5">Thí sinh</th>
                                 <th className="py-3 px-4 text-center w-32">
                                     <div>Tổng điểm</div>
-                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">100đ
-                                        / bài
-                                    </div>
+                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">theo test case</div>
                                 </th>
                                 <th className="py-3 px-4 text-center w-28">
                                     <div>Bài giải được</div>
-                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">giải
-                                        đúng
-                                    </div>
+                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">giải đúng</div>
                                 </th>
                                 <th className="py-3 px-4 text-center w-40">
-                                    <div className="flex items-center gap-1 justify-center"><Timer size={11} />Thời gian tích
-                                        lũy
-                                    </div>
-                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">ít
-                                        hơn = tốt hơn
-                                    </div>
+                                    <div className="flex items-center gap-1 justify-center"><Timer size={11} />Thời gian tích lũy</div>
+                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">ít hơn = tốt hơn</div>
                                 </th>
                             </tr>
                         </thead>
@@ -195,7 +194,6 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                                         onError={(e) => {
                                                             e.currentTarget.onerror = null;
                                                             e.currentTarget.style.display = 'none';
-                                                            e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-400" viewBox="0 0 256 256" fill="currentColor"><path d="M172,120a44,44,0,1,1-44-44A44,44,0,0,1,172,120Zm60,8A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88,88.1,88.1,0,0,0,88-88Z"/></svg>';
                                                         }}
                                                     />
                                                 </div>
@@ -245,19 +243,18 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                                         {user.problemDetails
                                                             .filter(p => p.isAccepted)
                                                             .map((p) => {
-                                                                // Tìm đúng vị trí bài trong danh sách gốc (chưa filter)
-                                                                // để "B1, B2..." không bị nhảy số khi có bài chưa giải
                                                                 const allProblems = user.problemDetails ?? [];
                                                                 const sortedProblems = [...allProblems].sort((a, b) => a.problemId - b.problemId);
                                                                 const trueIndex = sortedProblems.findIndex(pd => pd.problemId === p.problemId);
                                                                 const label = trueIndex >= 0 ? trueIndex + 1 : '?';
+                                                                const penalty = p.penaltyMinutes ?? 0;
                                                                 return (
                                                                     <span
                                                                         key={p.problemId}
-                                                                        title={`Bài ${label}: thời gian giải ${formatMinutes(p.solvedTimeMinutes)}${p.failedAttempts > 0 ? ` + ${p.failedAttempts} lần sai ×20 phút = ${formatMinutes(p.failedAttempts * 20)} phạt)` : ''}`}
+                                                                        title={`Bài ${label}: ${p.score ?? 0}đ | penalty ${formatMinutes(penalty)}${p.failedAttempts > 0 ? ` (${p.failedAttempts} lần sai ×20p)` : ''}`}
                                                                         className="px-2 py-0.5 text-[10px] bg-slate-700/60 text-slate-400 rounded-md border border-slate-600/50 font-mono cursor-help hover:bg-slate-700 transition-colors"
                                                                     >
-                                                                        B{label}: {formatMinutes(p.score)}
+                                                                        B{label}: {p.score ?? 0}/{p.maxScore ?? '?'}
                                                                     </span>
                                                                 );
                                                             })}

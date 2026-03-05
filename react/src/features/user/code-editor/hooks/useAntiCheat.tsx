@@ -19,6 +19,7 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
     const [scorePenalty, setScorePenalty] = useState(false);
     const violationRef = useRef(0);
     const onDisqualifiedRef = useRef(onDisqualified);
+    const isReportingRef = useRef(false);
 
     useEffect(() => {
         onDisqualifiedRef.current = onDisqualified;
@@ -52,12 +53,15 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         }
     };
 
-    const violationHandlerRef = useRef<(() => Promise<void>) | undefined>(undefined);
-    violationHandlerRef.current = async () => {
-        if (!document.hidden) return;
+    const violationHandlerRef = useRef<((bypassHiddenCheck?: boolean) => Promise<void>) | undefined>(undefined);
+    violationHandlerRef.current = async (bypassHiddenCheck = false) => {
+        // Chỉ chấp nhận nếu: tab đang ẩn (chuyển tab) HOAC bypass (vi phạm Fullscreen)
+        if (!bypassHiddenCheck && !document.hidden) return;
         if (!contestId) return;
+        if (isReportingRef.current) return;
 
         try {
+            isReportingRef.current = true;
             const result = await contestService.reportViolation(parseInt(contestId));
             const count = result.violationCount;
 
@@ -87,6 +91,10 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
             }
         } catch (err) {
             console.error("Lỗi khi báo cáo vi phạm:", err);
+        } finally {
+            setTimeout(() => {
+                isReportingRef.current = false;
+            }, 1000);
         }
     };
 
@@ -139,13 +147,15 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
                     );
 
                     countdownTimer = setInterval(() => {
+                        // CHỈ tính vi phạm Fullscreen nếu tab đang active
+                        if (document.hidden) return;
+
                         timeLeft -= 1;
                         if (timeLeft <= 0) {
-                            // Ghi nhận 1 vi phạm rớt F11
-                            if (violationHandlerRef.current) {
-                                violationHandlerRef.current();
-                            }
-                            timeLeft = 10; // Đếm lại từ vòng mới
+                            // Truyền bypassHiddenCheck=true vì đây là vi phạm Fullscreen
+                            // (tab vẫn hiện nhưng không ở FullScreen)
+                            violationHandlerRef.current?.(true);
+                            timeLeft = 10;
                         }
 
                         // Render lại UI với số giây mớI
@@ -196,6 +206,7 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         violationCount,
         scorePenalty,
         initViolations,
-        triggerViolation: () => violationHandlerRef.current?.()
+        // bypass=true dành cho vi phạm Fullscreen (tab đang hiện nhưng không FullScreen)
+        triggerViolation: (bypass = false) => violationHandlerRef.current?.(bypass)
     };
 };

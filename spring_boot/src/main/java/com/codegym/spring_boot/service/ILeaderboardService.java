@@ -7,10 +7,15 @@ import java.util.List;
 
 public interface ILeaderboardService {
     /**
-     * Updates the user's score and penalty in the contest based on their submission result.
+     * Updates the user's score and penalty in the contest based on their submission
+     * result.
      * Also updates the real-time leaderboard in Redis.
      */
+<<<<<<< HEAD
     void updateScore(Submission submission, boolean alreadySolvedThisProblem);
+=======
+    void updateScore(Submission submission, boolean alreadyAC);
+>>>>>>> origin/nguyen2
 
     /**
      * Retrieves the current leaderboard for a specific contest.

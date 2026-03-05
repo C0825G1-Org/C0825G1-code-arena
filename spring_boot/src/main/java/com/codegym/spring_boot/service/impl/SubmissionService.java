@@ -191,6 +191,7 @@ public class SubmissionService implements ISubmissionService {
                         return;
                 }
 
+
                 // 1. Lưu TestResult chi tiết
                 if (msg.getTestCaseResults() != null) {
                         for (com.codegym.spring_boot.dto.TestCaseResult tcResult : msg.getTestCaseResults()) {
@@ -226,13 +227,28 @@ public class SubmissionService implements ISubmissionService {
                 submission.setMemoryUsed(msg.getMemoryUsed() != null ? msg.getMemoryUsed().intValue() : 0);
 
                 int score = 0;
-                if (finalStatus == SubmissionStatus.AC) {
+                if (msg.getTestCaseResults() != null && !msg.getTestCaseResults().isEmpty()) {
+                        // Tính điểm = tổng scoreWeight của test case pass (không normalize)
+                        // AC = tất cả test pass → score = tổng scoreWeight (ví dụ 100 nếu sum = 100)
+                        // WA partial → score = scoreWeight của các test đã pass
+                        int passedWeight = 0;
+                        for (com.codegym.spring_boot.dto.TestCaseResult tcResult : msg.getTestCaseResults()) {
+                                if (!tcResult.isPassed())
+                                        continue;
+                                String inputFilename = tcResult.getTestCaseNumber() + ".in";
+                                TestCase tcEntity = testCaseRepository.findByProblemIdAndInputFilename(
+                                                submission.getProblem().getId(), inputFilename);
+                                int weight = (tcEntity != null && tcEntity.getScoreWeight() != null)
+                                                ? tcEntity.getScoreWeight()
+                                                : 1;
+                                passedWeight += weight;
+                        }
+                        score = passedWeight;
+                } else if (finalStatus == SubmissionStatus.AC) {
+                        // Không có test case results (trường hợp đặc biệt) → full score mặc định
                         score = 100;
-                } else if (msg.getTestCaseResults() != null && !msg.getTestCaseResults().isEmpty()) {
-                        long passedCount = msg.getTestCaseResults().stream()
-                                        .filter(com.codegym.spring_boot.dto.TestCaseResult::isPassed).count();
-                        score = (int) ((passedCount * 100) / msg.getTestCaseResults().size());
                 }
+
                 submission.setScore(score);
                 submission.setStatus(finalStatus);
 
@@ -244,7 +260,7 @@ public class SubmissionService implements ISubmissionService {
                 submissionRepository.save(submission);
 
                 // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
-                // 3. Logic Penalty ACM-ICPC và Leaderboard Realtime
+                // alreadyAC được kiểm tra TRƯỚC khi save() → tránh race condition
                 if (submission.getContest() != null && !submission.getIsTestRun()) {
                         leaderboardService.updateScore(submission, alreadyAC);
                 }
@@ -292,8 +308,8 @@ public class SubmissionService implements ISubmissionService {
 
                 // --- Gửi Socket cho Live Monitor của Moderator ---
                 if (submission.getContest() != null && !Boolean.TRUE.equals(submission.getIsTestRun())) {
-                        com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry = 
-                                com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog.builder()
+                        com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry = com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog
+                                        .builder()
                                         .submissionId(submission.getId())
                                         .username(submission.getUser().getUsername())
                                         .problemId(submission.getProblem().getId())
@@ -305,33 +321,40 @@ public class SubmissionService implements ISubmissionService {
                         notificationService.sendToMonitor(submission.getContest().getId(), logEntry);
 
                         // Lấy top 5 cập nhật mới nhất để đẩy về Leaderboard Table
-                        java.util.List<com.codegym.spring_boot.entity.ContestParticipant> topParticipants =
-                                contestParticipantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(submission.getContest().getId())
+                        java.util.List<com.codegym.spring_boot.entity.ContestParticipant> topParticipants = contestParticipantRepository
+                                        .findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(
+                                                        submission.getContest().getId())
                                         .stream().limit(5).collect(Collectors.toList());
 
                         java.util.List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboard = new java.util.ArrayList<>();
                         int rank = 1;
                         for (var p : topParticipants) {
-                                String fullname = p.getUser().getFullName() != null ? p.getUser().getFullName() : p.getUser().getUsername();
-                                
+                                String fullname = p.getUser().getFullName() != null ? p.getUser().getFullName()
+                                                : p.getUser().getUsername();
+
                                 double acRate = 0.0;
-                                long totalUserSubs = submissionRepository.countByUserIdAndContestId(p.getUser().getId(), submission.getContest().getId());
-                                if(totalUserSubs > 0){
-                                        long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(p.getUser().getId(), submission.getContest().getId(), SubmissionStatus.AC);
+                                long totalUserSubs = submissionRepository.countByUserIdAndContestId(p.getUser().getId(),
+                                                submission.getContest().getId());
+                                if (totalUserSubs > 0) {
+                                        long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(
+                                                        p.getUser().getId(), submission.getContest().getId(),
+                                                        SubmissionStatus.AC);
                                         acRate = (double) acUserSubs / totalUserSubs * 100.0;
                                 }
 
-                                leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
-                                        .rank(rank++)
-                                        .userId(p.getUser().getId().longValue())
-                                        .username(p.getUser().getUsername())
-                                        .fullname(fullname)
-                                        .totalScore(p.getTotalScore())
-                                        .totalPenalty(p.getTotalPenalty())
-                                        .acRate(Math.round(acRate * 100.0) / 100.0)
-                                        .build());
+                                leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry
+                                                .builder()
+                                                .rank(rank++)
+                                                .userId(p.getUser().getId().longValue())
+                                                .username(p.getUser().getUsername())
+                                                .fullname(fullname)
+                                                .totalScore(p.getTotalScore())
+                                                .totalPenalty(p.getTotalPenalty())
+                                                .acRate(Math.round(acRate * 100.0) / 100.0)
+                                                .build());
                         }
-                        notificationService.sendLeaderboardUpdateToMonitor(submission.getContest().getId(), leaderboard);
+                        notificationService.sendLeaderboardUpdateToMonitor(submission.getContest().getId(),
+                                        leaderboard);
                 }
 
         }

@@ -101,30 +101,38 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onConfi
                     <section className="space-y-4">
                         <div className="flex items-center gap-3 text-emerald-400">
                             <Timer size={24} weight="duotone" />
-                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">3. Quy tắc chấm điểm & Giới hạn</h3>
+                            <h3 className="text-lg font-bold text-slate-100 uppercase tracking-wider">3. Quy tắc chấm điểm &amp; Giới hạn</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
                                 <div className="p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/20">
                                     <h4 className="text-emerald-400 font-bold text-sm mb-2 flex items-center gap-2">
-                                        <Scales weight="bold" /> Hệ thống ICPC
+                                        <Scales weight="bold" /> Hệ thống chấm điểm
                                     </h4>
                                     <ul className="text-xs text-slate-400 space-y-2">
-                                        <li>• Ưu tiên thí sinh giải được <b>nhiều bài hơn</b>.</li>
-                                        <li>• Nếu bằng số bài, thí sinh có <b>tổng Penalty (Thời gian) ít hơn</b> sẽ xếp trên.</li>
-                                        <li>• Mỗi lần nộp sai (WA, TLE, MLE, RE) sẽ bị cộng <b>20 phút penalty</b> (chỉ tính nếu sau đó bài được AC).</li>
+                                        <li>• Mỗi test case có <b>trọng số (scoreWeight)</b>. Điểm mỗi bài = tổng scoreWeight các test <b>pass</b>.</li>
+                                        <li>• Điểm cuộc thi = tổng điểm tất cả bài. AC toàn bộ = điểm tối đa.</li>
+                                        <li>• Xếp hạng theo: <b>Tổng điểm cao hơn</b> → <b>Số bài AC nhiều hơn</b> → <b>Thời gian tích lũy ít hơn</b>.</li>
+                                        <li>• Thời gian tích lũy: thời gian đến khi AC + <b>20 phút/lần nộp sai</b> (chỉ tính bài đã AC).</li>
                                     </ul>
                                 </div>
                             </div>
                             <div className="space-y-4">
                                 <div className="p-5 bg-blue-500/5 rounded-2xl border border-blue-500/20">
                                     <h4 className="text-blue-400 font-bold text-sm mb-2 flex items-center gap-2">
-                                        <Info weight="bold" /> Giới hạn nộp bài
+                                        <Info weight="bold" /> Giới hạn &amp; Màu sắc giao diện
                                     </h4>
                                     <ul className="text-xs text-slate-400 space-y-2">
-                                        <li>• Bạn được phép nộp tối đa <b>50 lần/bài tập</b>. Hãy kiểm tra kỹ với Test mẫu trước khi nộp.</li>
-                                        <li>• Mã nguồn được chấm trên môi trường Docker riêng biệt, đảm bảo công bằng tuyệt đối.</li>
-                                        <li>• Khi hết giờ, hệ thống <b>tự động thu bài</b> dựa trên code cuối cùng tại trình soạn thảo.</li>
+                                        <li>• Tối đa <b>50 lần nộp/bài</b>. Kiểm tra kỹ Test mẫu trước khi nộp chính thức.</li>
+                                        <li>• Mã nguồn chạy trong Docker sandbox, đảm bảo công bằng tuyệt đối.</li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="inline-block w-4 h-4 rounded bg-emerald-600/30 border border-emerald-600/40 shrink-0" />
+                                            <span>Nút bài <b className="text-emerald-400">xanh</b> = đã AC (pass all tests)</span>
+                                        </li>
+                                        <li className="flex items-center gap-2">
+                                            <span className="inline-block w-4 h-4 rounded bg-orange-600/30 border border-orange-600/40 shrink-0" />
+                                            <span>Nút bài <b className="text-orange-400">cam</b> = đã nộp nhưng chưa AC</span>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>

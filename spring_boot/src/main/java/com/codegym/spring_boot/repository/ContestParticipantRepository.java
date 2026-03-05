@@ -30,11 +30,23 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
     List<ContestParticipant> findByIdContestId(Integer contestId);
 
     // Bảng xếp hạng phân trang cho Monitor
-    Page<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId, Pageable pageable);
+    Page<ContestParticipant> findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(Integer contestId,
+            Pageable pageable);
 
     @Query("SELECT cp FROM ContestParticipant cp JOIN FETCH cp.user WHERE cp.contest.id = :contestId ORDER BY cp.totalScore DESC, cp.totalPenalty ASC")
     List<ContestParticipant> findAllWithUserByContestId(@Param("contestId") Integer contestId);
 
     @Query("SELECT COUNT(cp) FROM ContestParticipant cp WHERE cp.contest.createdBy.id = :modId")
     long countTotalParticipantsByModId(@Param("modId") Integer modId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE ContestParticipant cp SET " +
+            "cp.violationCount = cp.violationCount + 1, " +
+            "cp.hasScorePenalty = (CASE WHEN (cp.violationCount + 1) >= 2 THEN true ELSE cp.hasScorePenalty END), " +
+            "cp.totalPenalty = (CASE WHEN (cp.violationCount + 1) = 2 THEN cp.totalPenalty + 1000 ELSE cp.totalPenalty END), "
+            +
+            "cp.status = (CASE WHEN (cp.violationCount + 1) >= 3 THEN com.codegym.spring_boot.entity.enums.ParticipantStatus.DISQUALIFIED ELSE cp.status END) "
+            +
+            "WHERE cp.id.contestId = :contestId AND cp.id.userId = :userId AND cp.status = com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED")
+    void incrementViolationCount(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
 }

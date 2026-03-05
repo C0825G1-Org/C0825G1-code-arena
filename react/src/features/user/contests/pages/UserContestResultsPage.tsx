@@ -13,7 +13,8 @@ import {
     FacebookLogo, TwitterLogo, GithubLogo
 } from '@phosphor-icons/react';
 import { ContestDetailData } from './UserContestDetailPage';
-import {userDashboardService, UserStats} from "../../home/services/userDashboardService";
+import { userDashboardService, UserStats } from "../../home/services/userDashboardService";
+import { computeAndSort } from '../components/LeaderboardTab';
 
 export const UserContestResultsPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -78,8 +79,9 @@ export const UserContestResultsPage = () => {
 
     if (!contest) return null;
 
-    // Find current user's rank
-    const myResult = leaderboard.find(lb => lb.userId === user?.id);
+    // Find current user's rank — tính lại từ computeAndSort để khớp với bảng xếp hạng
+    const sortedLeaderboard = computeAndSort(leaderboard);
+    const myResult = sortedLeaderboard.find(lb => lb.userId === user?.id);
 
     const handleLogout = () => {
         navigate('/');
@@ -153,28 +155,28 @@ export const UserContestResultsPage = () => {
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 <Medal weight="fill" className={`text-4xl mx-auto mb-3 ${myResult.rank === 1 ? 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]' : myResult.rank === 2 ? 'text-slate-300 drop-shadow-[0_0_15px_rgba(203,213,225,0.5)]' : myResult.rank === 3 ? 'text-amber-600 drop-shadow-[0_0_15px_rgba(217,119,6,0.5)]' : 'text-blue-500'}`} />
                                 <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Thứ hạng</h3>
-                                <div className="text-4xl font-black text-white">#{myResult.rank} <span className="text-lg text-slate-500 font-medium">/ {contest.participantCount}</span></div>
+                                <div className="text-4xl font-black text-white">#{myResult.computedRank} <span className="text-lg text-slate-500 font-medium">/ {contest.participantCount}</span></div>
                             </div>
 
                             {/* Total Points Card */}
                             <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
                                 <Trophy weight="fill" className="text-4xl text-yellow-500 mx-auto mb-3" />
                                 <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Tổng Điểm</h3>
-                                <div className="text-4xl font-black text-emerald-400">{myResult.totalScore}</div>
+                                <div className="text-4xl font-black text-emerald-400">{myResult.computedPoints}<span className="text-xl text-slate-400 font-medium ml-1">đ</span></div>
                             </div>
 
                             {/* Solved Card */}
                             <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
                                 <CheckCircle weight="fill" className="text-4xl text-emerald-500 mx-auto mb-3" />
                                 <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Số bài giải</h3>
-                                <div className="text-4xl font-black text-white">{myResult.totalSolved} <span className="text-lg text-slate-500 font-medium">bài</span></div>
+                                <div className="text-4xl font-black text-white">{myResult.computedSolved} <span className="text-lg text-slate-500 font-medium">bài</span></div>
                             </div>
 
                             {/* Penalty Card */}
                             <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6 text-center transform hover:scale-105 transition-transform duration-300">
                                 <Clock weight="fill" className="text-4xl text-red-400 mx-auto mb-3" />
                                 <h3 className="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-1">Tổng Penalty</h3>
-                                <div className="text-4xl font-black text-white">{myResult.totalPenalty} <span className="text-lg text-slate-500 font-medium">phút</span></div>
+                                <div className="text-4xl font-black text-white">{myResult.computedPenalty} <span className="text-lg text-slate-500 font-medium">phút</span></div>
                             </div>
                         </div>
                     ) : (
@@ -199,13 +201,15 @@ export const UserContestResultsPage = () => {
                                         {contest.problems.sort((a, b) => a.orderIndex - b.orderIndex).map((p, idx) => {
                                             const pResult = myResult?.problemDetails?.find(pd => pd.problemId === p.id);
                                             const statusClass = pResult
-                                                ? (pResult.isAccepted ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-red-500/50 bg-red-500/10')
+                                                ? (pResult.isAccepted
+                                                    ? 'border-emerald-500/50 bg-emerald-500/10'
+                                                    : (pResult.score > 0 ? 'border-orange-500/50 bg-orange-500/10' : 'border-red-500/50 bg-red-500/10'))
                                                 : 'border-slate-700/50 bg-slate-900/50';
 
                                             return (
                                                 <div key={p.id} className={`border rounded-2xl p-5 flex items-center justify-between transition-colors ${statusClass}`}>
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner ${pResult?.isAccepted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : pResult && pResult.failedAttempts > 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-slate-800/80 text-slate-300 border border-slate-700'}`}>
+                                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl shadow-inner ${pResult?.isAccepted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : pResult && pResult.score > 0 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : pResult && pResult.failedAttempts > 0 ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-slate-800/80 text-slate-300 border border-slate-700'}`}>
                                                             {String.fromCharCode(65 + idx)}
                                                         </div>
                                                         <div>
@@ -214,16 +218,16 @@ export const UserContestResultsPage = () => {
                                                                 <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${p.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400' : p.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-400'}`}>
                                                                     {p.difficulty || 'Bình thường'}
                                                                 </span>
-                                                                <span className="text-slate-400 font-medium">{pResult ? pResult.score : 0} <span className="text-slate-500">/ 100 Điểm</span></span>
+                                                                <span className="text-slate-400 font-medium">{pResult ? pResult.score : 0} <span className="text-slate-500">/ {pResult?.maxScore ?? 0} Điểm</span></span>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-col items-end gap-1 text-sm font-medium">
                                                         {pResult ? (
                                                             <>
-                                                                <div className={`flex items-center gap-1.5 ${pResult.isAccepted ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                                    {pResult.isAccepted ? <CheckCircle weight="fill" className="text-lg" /> : <Clock weight="fill" className="text-lg" />}
-                                                                    {pResult.isAccepted ? 'Accepted' : 'Failed'}
+                                                                <div className={`flex items-center gap-1.5 ${pResult.isAccepted ? 'text-emerald-400' : (pResult.score > 0 ? 'text-orange-400' : 'text-red-400')}`}>
+                                                                    {pResult.isAccepted ? <CheckCircle weight="fill" className="text-lg" /> : (pResult.score > 0 ? <ChartLineUp weight="fill" className="text-lg" /> : <Clock weight="fill" className="text-lg" />)}
+                                                                    {pResult.isAccepted ? 'Accepted' : (pResult.score > 0 ? 'Partial' : 'Failed')}
                                                                 </div>
                                                                 {pResult.failedAttempts > 0 && <div className="text-slate-400">{pResult.failedAttempts} lần thử sai</div>}
                                                                 {pResult.isAccepted && pResult.solvedTimeMinutes > 0 && <div className="text-slate-400">Time: {pResult.solvedTimeMinutes}m</div>}
@@ -253,19 +257,19 @@ export const UserContestResultsPage = () => {
 
                                 <div className="rounded-2xl border border-slate-700/50 bg-slate-900/40 overflow-hidden shadow-xl">
                                     <div className="divide-y divide-slate-700/50">
-                                        {leaderboard.slice(0, 5).map((u) => (
+                                        {sortedLeaderboard.slice(0, 5).map((u) => (
                                             <div key={u.userId} className={`flex items-center gap-4 p-4 transition-colors ${u.userId === user?.id ? 'bg-blue-900/30' : 'hover:bg-slate-800/40'}`}>
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${u.rank === 1 ? 'bg-yellow-500/20 text-yellow-500' : u.rank === 2 ? 'bg-slate-300/20 text-slate-300' : u.rank === 3 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-400'}`}>
-                                                    {u.rank}
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${u.computedRank === 1 ? 'bg-yellow-500/20 text-yellow-500' : u.computedRank === 2 ? 'bg-slate-300/20 text-slate-300' : u.computedRank === 3 ? 'bg-amber-600/20 text-amber-500' : 'bg-slate-800 text-slate-400'}`}>
+                                                    {u.computedRank}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="font-bold text-slate-200 truncate">{u.fullName}</div>
                                                     <div className="text-xs text-slate-500 flex gap-2">
-                                                        <span className="text-yellow-500 font-bold">{u.totalScore} điểm</span>
+                                                        <span className="text-yellow-500 font-bold">{u.computedPoints} điểm</span>
                                                         <span>•</span>
-                                                        <span className="text-emerald-400">{u.totalSolved} bài</span>
+                                                        <span className="text-emerald-400">{u.computedSolved} bài</span>
                                                         <span>•</span>
-                                                        <span>{u.totalPenalty}m</span>
+                                                        <span>{u.computedPenalty}m</span>
                                                     </div>
                                                 </div>
                                             </div>
