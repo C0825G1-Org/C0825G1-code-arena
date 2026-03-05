@@ -148,9 +148,6 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                             <ShieldStar weight="duotone" className="text-lg"/>
                             <span>HomePage</span>
                         </Link>
-                        <button className="p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300">
-                            <Bell className="text-xl" />
-                        </button>
                         <Link
                             to="/profile"
                             className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
