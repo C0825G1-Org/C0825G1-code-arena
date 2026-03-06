@@ -8,7 +8,6 @@ import jakarta.persistence.NoResultException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TagService implements ITagService {
@@ -20,9 +19,7 @@ public class TagService implements ITagService {
 
     @Override
     public List<TagDTO> getAllTags() {
-        return tagRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return tagRepository.findAllTagsWithProblemCount();
     }
 
     @Override
@@ -59,6 +56,7 @@ public class TagService implements ITagService {
     }
 
     private TagDTO mapToDTO(Tag tag) {
-        return new TagDTO(tag.getId(), tag.getName());
+        int count = (tag.getProblems() != null) ? tag.getProblems().size() : 0;
+        return new TagDTO(tag.getId(), tag.getName(), count);
     }
 }

@@ -33,6 +33,7 @@ interface ProblemUserPageWrapperDTO {
 export const ListPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [data, setData] = useState<ProblemUserPageWrapperDTO | null>(null);
+    const [tags, setTags] = useState<TagDTO[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Filters
@@ -40,10 +41,24 @@ export const ListPage = () => {
     const title = searchParams.get('title') || '';
     const difficulty = searchParams.get('difficulty') || '';
     const status = searchParams.get('status') || '';
+    const tagId = searchParams.get('tagIds') || '';
 
     useEffect(() => {
         fetchProblems();
-    }, [page, title, difficulty, status]);
+    }, [page, title, difficulty, status, tagId]);
+
+    useEffect(() => {
+        fetchTags();
+    }, []);
+
+    const fetchTags = async () => {
+        try {
+            const response = await axiosClient.get('/tags');
+            setTags(response as any);
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách thẻ tag:', error);
+        }
+    };
 
     const fetchProblems = async () => {
         try {
@@ -54,6 +69,7 @@ export const ListPage = () => {
             if (title) params.append('title', title);
             if (difficulty) params.append('difficulty', difficulty);
             if (status) params.append('status', status);
+            if (tagId) params.append('tagIds', tagId);
 
             const response = await axiosClient.get(`/public/problems?${params.toString()}`);
             setData(response as any); // axiosClient in this project already returns response.data
@@ -169,6 +185,16 @@ export const ListPage = () => {
                             <option value="SOLVED">Đã giải</option>
                             <option value="UNATTEMPTED">Chưa giải</option>
                             <option value="ATTEMPTED">Đang làm</option>
+                        </select>
+                        <select
+                            value={tagId}
+                            onChange={(e) => handleFilterChange('tagIds', e.target.value)}
+                            className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-32 hidden sm:block"
+                        >
+                            <option value="">Thẻ Tag</option>
+                            {tags.map(tag => (
+                                <option key={tag.id} value={tag.id}>{tag.name}</option>
+                            ))}
                         </select>
                     </div>
                 </div>
