@@ -769,6 +769,8 @@ public class ContestService {
                 .serverTime(LocalDateTime.now())
                 .isRegistered(isRegistered)
                 .firstProblemId(firstProblemId)
+                .creatorName(contest.getCreatedBy() != null ? contest.getCreatedBy().getFullName() : "N/A")
+                .creatorUsername(contest.getCreatedBy() != null ? contest.getCreatedBy().getUsername() : "unknown")
                 .build();
     }
 

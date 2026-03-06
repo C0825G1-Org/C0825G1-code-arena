@@ -64,8 +64,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     <SidebarLink href="/admin/dashboard" icon={SquaresFour} label="System Dashboard" active={activeTab === 'dashboard'} />
                     <SidebarLink href="/admin/users"     icon={Users}       label="Quản lý Users" active={activeTab === 'users'} />
                     <SidebarLink href="/admin/tags"      icon={Tag}         label="Phân loại (Tags)" active={activeTab === 'tags'} />
-                    <SidebarLink href="/admin/problems"  icon={FileText}    label="Quản lý Bài tập" active={activeTab === 'problems'} />
-                    <SidebarLink href="/admin/contests"  icon={Trophy}      label="Quản lý Bài thi" active={activeTab === 'contests'} />
+                    <SidebarLink href="/admin/problems"  icon={FileText}    label="Quản lý bài tập" active={activeTab === 'problems'} />
+                    <SidebarLink href="/admin/contests"  icon={Trophy}      label="Quản lý cuộc thi" active={activeTab === 'contests'} />
                 </nav>
 
                 {/* Logout */}

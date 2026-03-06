@@ -5,10 +5,20 @@ import { toast } from 'react-hot-toast';
 import { useSocket } from '../../../../shared/hooks/useSocket';
 import { getIceServers } from '../../../../shared/config/webrtcConfig';
 import { SnapshotViewerModal } from '../components/SnapshotViewerModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../app/store';
+import { AdminLayout } from '../../../admin/components/AdminLayout';
+import { ModeratorLayout } from '../../components/ModeratorLayout';
+import { ArrowLeft } from '@phosphor-icons/react';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useSelector((state: RootState) => state.auth);
+    const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
+    const backPath = isAdmin ? '/admin/contests' : '/moderator/contests';
+    const resultsPath = `/moderator/contests/${id}/results`;
+
     const socket: any = useSocket();
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -182,7 +192,7 @@ export const MonitorPanelPage = () => {
                 if (s.remainingTimeSeconds > 0) {
                     if (s.remainingTimeSeconds === 1) {
                         toast.success('Cuộc thi đã kết thúc! Đang chuyển sang màn hình thống kê kết quả.', { icon: '🏁' });
-                        setTimeout(() => navigate(`/moderator/contests/${id}/results`), 3000);
+                        setTimeout(() => navigate(resultsPath), 3000);
                     }
                     return { ...s, remainingTimeSeconds: s.remainingTimeSeconds - 1 };
                 }
@@ -204,7 +214,7 @@ export const MonitorPanelPage = () => {
             setFeed(res.recentSubmissions || []);
         } catch (error) {
             toast.error('Lỗi khi tải dữ liệu Monitor.');
-            navigate('/moderator/contests');
+            navigate(backPath);
         } finally {
             setLoading(false);
         }
@@ -342,7 +352,7 @@ export const MonitorPanelPage = () => {
         </div>;
     }
 
-    return (
+    const content = (
         <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
             <div className="flex justify-between items-center">
                 <div>
@@ -355,7 +365,8 @@ export const MonitorPanelPage = () => {
                     </h1>
                     <p className="text-slate-400 mt-1">Giám sát theo thời gian thực cuộc thi #{id}</p>
                 </div>
-                <button onClick={() => navigate('/moderator/contests')} className="px-4 py-2 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
+                <button onClick={() => navigate(backPath)} className="px-4 py-2 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors flex items-center gap-2">
+                    <ArrowLeft size={18} />
                     Trở lại danh sách
                 </button>
             </div>
@@ -590,5 +601,19 @@ export const MonitorPanelPage = () => {
                 user={snapshotViewUser}
             />
         </div>
+    );
+
+    if (isAdmin) {
+        return (
+            <AdminLayout title={`Live Monitor #${id}`} activeTab="contests">
+                {content}
+            </AdminLayout>
+        );
+    }
+
+    return (
+        <ModeratorLayout headerTitle={`Live Monitor #${id}`}>
+            {content}
+        </ModeratorLayout>
     );
 };

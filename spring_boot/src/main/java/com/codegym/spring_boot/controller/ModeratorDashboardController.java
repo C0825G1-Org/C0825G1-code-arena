@@ -49,8 +49,9 @@ public class ModeratorDashboardController {
     public ResponseEntity<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse> getMonitorStats(
             @org.springframework.web.bind.annotation.PathVariable Integer contestId,
             @AuthenticationPrincipal User currentUser) {
+        boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("admin");
         com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse stats = 
-                moderatorDashboardService.getMonitorStats(contestId, currentUser.getId());
+                moderatorDashboardService.getMonitorStats(contestId, currentUser.getId(), isAdmin);
         return ResponseEntity.ok(stats);
     }
     @GetMapping("/contests/{contestId}/monitor/leaderboard")
@@ -61,8 +62,9 @@ public class ModeratorDashboardController {
             @RequestParam(defaultValue = "5") int size,
             @AuthenticationPrincipal User currentUser) {
         
+        boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("admin");
         // Ensure ownership before returning leaderboard
-        moderatorDashboardService.validateContestOwnership(contestId, currentUser.getId());
+        moderatorDashboardService.validateContestOwnership(contestId, currentUser.getId(), isAdmin);
         
         Page<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboardPage = 
                 moderatorDashboardService.getPaginatedMonitorLeaderboard(contestId, page, size);

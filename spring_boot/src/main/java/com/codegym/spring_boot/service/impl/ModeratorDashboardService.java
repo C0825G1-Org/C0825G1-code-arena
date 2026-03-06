@@ -86,11 +86,11 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     }
 
     @Override
-    public com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse getMonitorStats(Integer contestId, Integer moderatorId) {
+    public com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse getMonitorStats(Integer contestId, Integer moderatorId, boolean isAdmin) {
         // Validate ownership
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc thi ID: " + contestId));
-        if (!contest.getCreatedBy().getId().equals(moderatorId)) {
+        if (!isAdmin && !contest.getCreatedBy().getId().equals(moderatorId)) {
             throw new SecurityException("Bạn không có quyền giám sát cuộc thi này.");
         }
 
@@ -163,10 +163,10 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     }
 
     @Override
-    public void validateContestOwnership(Integer contestId, Integer moderatorId) {
+    public void validateContestOwnership(Integer contestId, Integer moderatorId, boolean isAdmin) {
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc thi ID: " + contestId));
-        if (!contest.getCreatedBy().getId().equals(moderatorId)) {
+        if (!isAdmin && !contest.getCreatedBy().getId().equals(moderatorId)) {
             throw new SecurityException("Bạn không có quyền giám sát cuộc thi này.");
         }
     }

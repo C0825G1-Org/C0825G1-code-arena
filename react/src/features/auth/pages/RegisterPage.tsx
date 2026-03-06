@@ -66,7 +66,7 @@ export const RegisterPage = () => {
                     playsInline
                     className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen scale-110"
                 >
-                    <source src="https://hrcdn.net/fcore/assets/onboarding/globe-5fdfa9a0f4.mp4" type="video/mp4" />
+                    <source src="/globe-5fdfa9a0f4.mp4" type="video/mp4" />
                 </video>
 
                 {/* Content Overlay */}

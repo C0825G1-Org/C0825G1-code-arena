@@ -15,6 +15,7 @@ import { CreatePage as ModeratorTestcaseCreatePage } from '../features/moderator
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
 import { AdminUserListPage } from '../features/admin/user/pages/AdminUserListPage';
 import { AdminTagListPage } from '../features/admin/tag/pages/AdminTagListPage';
+import { AdminContestManagementPage } from '../features/admin/contests/pages/AdminContestManagementPage';
 import { MonitorPanelPage } from '../features/moderator/contests/pages/MonitorPanelPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -240,6 +241,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminTagListPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/contests',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminContestManagementPage />
             </ProtectedRoute>
         )
     },
