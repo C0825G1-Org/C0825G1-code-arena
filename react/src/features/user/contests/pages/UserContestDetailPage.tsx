@@ -1,44 +1,24 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
-import { logout } from '../../../auth/store/authSlice';
 import { contestService } from '../../home/services/contestService';
 import { useContestWebSocket } from '../hooks/useContestWebSocket';
 import { toast } from 'react-hot-toast';
-import { NotificationBell } from '../../../../shared/components/NotificationBell';
 import {
-    Code, Bell, SignOut, ShieldStar, ArrowLeft,
-    CalendarStar, Users, Clock, ArrowRight,
-    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar, PlayCircle,
-    FacebookLogo, TwitterLogo, GithubLogo
+    ArrowLeft, CalendarStar, Users, Clock, ArrowRight,
+    CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar
 } from '@phosphor-icons/react';
 import { LeaderboardTab } from '../components/LeaderboardTab';
 import { RulesModal } from '../components/RulesModal';
 import { TutorialModal } from '../components/TutorialModal';
-import {userDashboardService, UserStats} from "../../home/services/userDashboardService";
+import { UserLayout } from '../../components/UserLayout';
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
     active: { label: 'Đang diễn ra', bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
     upcoming: { label: 'Sắp tới', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30' },
     finished: { label: 'Đã kết thúc', bg: 'bg-slate-500/20', text: 'text-slate-400', border: 'border-slate-500/30' },
-};
-
-const getTimeLeft = (targetTime: string, serverTime?: string): string => {
-    const now = serverTime ? new Date(serverTime) : new Date();
-    const target = new Date(targetTime);
-    const diffMs = target.getTime() - now.getTime();
-
-    if (diffMs <= 0) return 'Đã hết';
-
-    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (days > 0) return `${days} ngày ${hours}h nữa`;
-    if (hours > 0) return `${hours}h ${minutes}p nữa`;
-    return `${minutes} phút nữa`;
 };
 
 // Interface reflecting the API response
@@ -72,12 +52,7 @@ export interface ContestDetailData {
 export const UserContestDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const { user } = useSelector((state: RootState) => state.auth);
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [userStats, setUserStats] = useState<UserStats | null>(null);
-
-    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
-    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
     const [contest, setContest] = useState<ContestDetailData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -89,19 +64,6 @@ export const UserContestDetailPage = () => {
     const [timeLeftStr, setTimeLeftStr] = useState<string>('');
     const [serverOffset, setServerOffset] = useState<number>(0);
 
-    useEffect(() => {
-        const fetchUserStats = async () => {
-            if (user) {
-                try {
-                    const stats = await userDashboardService.getUserStats();
-                    setUserStats(stats);
-                } catch (error) {
-                    console.error('Failed to fetch user stats', error);
-                }
-            }
-        };
-        fetchUserStats();
-    }, [user]);
     useEffect(() => {
         if (contest && contest.serverTime) {
             setServerOffset(new Date(contest.serverTime).getTime() - Date.now());
@@ -169,12 +131,7 @@ export const UserContestDetailPage = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [contest]);
-
-    const handleLogout = () => {
-        navigate('/');
-        setTimeout(() => dispatch(logout()), 10);
-    };
+    }, [contest, serverOffset]);
 
     const handleRegister = async () => {
         if (!contest) return;
@@ -199,7 +156,6 @@ export const UserContestDetailPage = () => {
         const sortedProblems = contest.problems?.sort((a: any, b: any) => a.orderIndex - b.orderIndex);
         const firstProblem = sortedProblems?.[0];
         if (!firstProblem) {
-            // Đề bài chưa sẵn sàng (contest chưa active hoặc API chưa trả về)
             toast.error('Đề bài chưa sẵn sàng. Vui lòng thử lại sau.');
             return;
         }
@@ -223,7 +179,6 @@ export const UserContestDetailPage = () => {
     const badge = statusConfig[contest.status] || statusConfig.finished;
     const userIsRegistered = contest.isRegistered || (contest as any).registered;
 
-    // --- Action Button Logic ---
     const renderActionButton = () => {
         if (contest.status === 'finished') {
             return (
@@ -264,7 +219,6 @@ export const UserContestDetailPage = () => {
             const currentRealTime = Date.now() + serverOffset;
             const diffMs = startMs - currentRealTime;
 
-            // Nếu còn <= 15 phút (15 * 60 * 1000 ms) thì cho phép vào phòng chờ
             if (diffMs > 0 && diffMs <= 15 * 60 * 1000) {
                 return (
                     <button
@@ -307,7 +261,6 @@ export const UserContestDetailPage = () => {
             );
         }
 
-        // Active State
         return (
             <button
                 onClick={handleStartExam}
@@ -319,46 +272,7 @@ export const UserContestDetailPage = () => {
     };
 
     return (
-        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-purple-900/20 to-transparent pointer-events-none" />
-            <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
-            <div className="absolute right-[-5%] top-[20%] w-[30%] h-[40%] bg-purple-600/10 blur-[130px] rounded-full pointer-events-none" />
-
-            {/* Navbar */}
-            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                <div className="flex items-center gap-8">
-                    <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </Link>
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-                        <Link to="/home" className="hover:text-blue-400 transition-colors">Trang chủ</Link>
-                        <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
-                        <Link to="/contests" className="text-white hover:text-blue-400 transition-colors">Cuộc thi</Link>
-                        <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    {isModerator && (
-                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20">
-                            <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
-                        </Link>
-                    )}
-                    <NotificationBell />
-                    <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
-                        <div className="text-right hidden sm:block">
-                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">{userStats?.eloRanking}</span></div>
-                        </div>
-                        <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
-                    </Link>
-                    <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
-                </div>
-            </nav>
-
-            {/* Rules & Tutorial Modals */}
+        <UserLayout>
             <RulesModal
                 isOpen={isRulesOpen}
                 onClose={() => setIsRulesOpen(false)}
@@ -370,7 +284,6 @@ export const UserContestDetailPage = () => {
             />
 
             <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 z-10 max-w-6xl">
-                {/* Back Link */}
                 <Link to="/contests" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 font-medium">
                     <ArrowLeft weight="bold" /> Quay lại danh sách
                 </Link>
@@ -437,16 +350,12 @@ export const UserContestDetailPage = () => {
                             </h2>
                             <LeaderboardTab contestId={contest.id} />
                         </div>
-                        {/* Problems List Section (Removed to prevent leaking questions) */}
                     </div>
 
                     {/* Right Column: Sticky Sidebar Area */}
                     <div className="w-full lg:w-[380px] shrink-0 space-y-6">
-
                         {/* Registration Card */}
-                        <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-600/40 top-[100px] shadow-2xl">
-
-                            {/* Countdown / Status emphasis */}
+                        <div className="bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 sm:p-8 border border-slate-600/40 shadow-2xl">
                             <div className="text-center mb-8 pb-8 border-b border-slate-700/50">
                                 {contest.status === 'active' ? (
                                     <div className="animate-pulse">
@@ -471,7 +380,6 @@ export const UserContestDetailPage = () => {
                                 )}
                             </div>
 
-                            {/* Action Button */}
                             <div className="mb-6">
                                 {renderActionButton()}
                             </div>
@@ -486,10 +394,9 @@ export const UserContestDetailPage = () => {
                                 </div>
                                 <span className="text-2xl font-bold text-white"><span className="text-blue-400">{contest.participantCount}</span> / {contest.maxParticipants}</span>
                             </div>
-
                         </div>
 
-                        {/* Rules / Notes Placeholder */}
+                        {/* Rules / Notes */}
                         <div className="bg-slate-800/40 backdrop-blur-md rounded-3xl p-6 border border-slate-700/50 shadow-xl overflow-hidden relative group">
                             <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500/50 group-hover:bg-yellow-500 transition-colors" />
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-white">
@@ -498,50 +405,21 @@ export const UserContestDetailPage = () => {
                             <ul className="text-sm text-slate-400 space-y-4 font-medium">
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Nghiêm cấm sao chép code hoặc sử dụng AI. Hệ thống quét <b>Plagiarism</b> tự động bằng thuật toán MOSS.</span>
+                                    <span>Nghiêm cấm sao chép code hoặc sử dụng AI. Hệ thống quét <b>Plagiarism</b> tự động.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Vi phạm <b>rời khỏi trang quá 3 lần</b> sẽ bị truất quyền thi ngay lập tức (Nhấn F11 để vào Toàn màn hình).</span>
+                                    <span>Vi phạm <b>rời khỏi trang quá 3 lần</b> sẽ bị truất quyền thi ngay lập tức.</span>
                                 </li>
                                 <li className="flex gap-2">
                                     <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Giới hạn nộp bài: <b>50 lần/bài tập</b>. Penalty 20 phút cho mỗi lượt nộp sai (nếu bài đó AC sau này) theo chuẩn <b>ICPC</b>.</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <div className="w-1 h-1 rounded-full bg-yellow-500 shrink-0 mt-2" />
-                                    <span>Yêu cầu bật <b>Camera</b> để hệ thống Snapshot ngẫu nhiên xác minh danh tính suốt thời gian thi.</span>
+                                    <span>Giới hạn nộp bài: <b>50 lần/bài tập</b>. Penalty 20 phút cho mỗi lượt nộp sai.</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
-
                 </div>
             </main>
-
-            {/* Footer */}
-            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
-                <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </div>
-                    <div className="text-slate-500 text-sm">
-                        &copy; 2026 Code Arena Platform. All rights reserved.
-                    </div>
-                    <div className="flex gap-4">
-                        <a href="https://www.facebook.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-colors">
-                            <FacebookLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://x.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-400 transition-colors">
-                            <TwitterLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://github.com/C0825G1-Org/C0825G1-code-arena" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
-                            <GithubLogo weight="fill" className="text-xl" />
-                        </a>
-                    </div>
-                </div>
-            </footer>
-        </div>
+        </UserLayout>
     );
 };

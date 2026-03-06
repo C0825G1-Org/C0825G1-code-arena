@@ -1,42 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
-    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Code, Bell, SignOut, ShieldStar,
-    FacebookLogo, TwitterLogo, GithubLogo
+    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal
 } from '@phosphor-icons/react';
 import { RootState } from '../../../../app/store';
-import { logout } from '../../../auth/store/authSlice';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
-import { userDashboardService, UserStats } from '../../home/services/userDashboardService';
 import toast from 'react-hot-toast';
-import { NotificationBell } from '../../../../shared/components/NotificationBell';
+import { UserLayout } from '../../components/UserLayout';
 
 export const LeaderboardPage: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-
-    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
-    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
-
     const [users, setUsers] = useState<LeaderboardUserResponse[]>([]);
     const [top3, setTop3] = useState<LeaderboardUserResponse[]>([]);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-    const [userStats, setUserStats] = useState<UserStats | null>(null);
     const [loading, setLoading] = useState(true);
 
     const size = 10;
-
-    const handleLogout = () => {
-        navigate('/');
-        setTimeout(() => {
-            dispatch(logout());
-        }, 10);
-    };
 
     const fetchLeaderboard = async () => {
         setLoading(true);
@@ -59,20 +42,6 @@ export const LeaderboardPage: React.FC = () => {
     };
 
     useEffect(() => {
-        const fetchUserStats = async () => {
-            if (user) {
-                try {
-                    const stats = await userDashboardService.getUserStats();
-                    setUserStats(stats);
-                } catch (error) {
-                    console.error('Failed to fetch user stats', error);
-                }
-            }
-        };
-        fetchUserStats();
-    }, [user]);
-
-    useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
             fetchLeaderboard();
         }, 500);
@@ -93,7 +62,7 @@ export const LeaderboardPage: React.FC = () => {
         const thirdPlace = top3[2];
 
         return (
-            <div className="flex justify-center items-end gap-2 md:gap-6 w-full max-w-2xl mx-auto mb-16 h-64 mt-16">
+            <div className="flex justify-center items-end gap-2 md:gap-6 w-full max-w-2xl mx-auto mb-16 h-64 mt-16 relative z-10">
                 {/* 2nd Place */}
                 {secondPlace && (
                     <div className="flex flex-col items-center w-1/3 relative group animate-fade-in-up delay-100">
@@ -115,8 +84,8 @@ export const LeaderboardPage: React.FC = () => {
 
                 {/* 1st Place */}
                 {firstPlace && (
-                    <div className="flex flex-col items-center w-1/3 relative group animate-fade-in-up">
-                        <div className="absolute -top-12 text-3xl text-yellow-500 font-bold animate-bounce shadow-yellow-500/50">
+                    <div className="flex flex-col items-center w-1/3 relative group animate-fade-in-up text-center">
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-3xl text-yellow-500 font-bold animate-bounce shadow-yellow-500/50">
                             <Crown weight="fill" />
                         </div>
                         <img
@@ -124,10 +93,12 @@ export const LeaderboardPage: React.FC = () => {
                             className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-yellow-500 mb-3 z-10 bg-slate-800 shadow-[0_0_20px_rgba(234,179,8,0.5)] relative object-cover"
                             alt={firstPlace.username}
                         />
-                        <span className="font-bold text-white text-base md:text-lg truncate w-full px-2 text-center" >{firstPlace.fullName}</span>
-                        <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full mb-2 border border-yellow-500/20">
-                            {firstPlace.globalRating} ELO
-                        </span>
+                        <span className="font-bold text-white text-base md:text-lg truncate w-full px-2">{firstPlace.fullName}</span>
+                        <div className="flex justify-center mb-2">
+                            <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
+                                {firstPlace.globalRating} ELO
+                            </span>
+                        </div>
                         <div className="w-full h-[140px] border-t-2 border-yellow-500 bg-gradient-to-b from-yellow-500/20 to-transparent rounded-t-xl flex justify-center items-start pt-6 shadow-xl relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-t from-transparent to-yellow-500/10 w-full h-full"></div>
                             <span className="text-5xl font-black text-yellow-600/50 z-10">1</span>
@@ -158,49 +129,10 @@ export const LeaderboardPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col relative overflow-clip bg-[#0f172a] text-slate-100 font-sans">
-            {/* Background Decorative Elements */}
-            <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[120px]"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-teal-600/5 blur-[120px]"></div>
-            </div>
-
-            {/* Navbar */}
-            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                <div className="flex items-center gap-8">
-                    <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </Link>
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-                        <Link to="/home" className="hover:text-blue-400 transition-colors">Trang chủ</Link>
-                        <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
-                        <Link to="/contests" className="hover:text-blue-400 transition-colors">Cuộc thi</Link>
-                        <Link to="/leaderboard" className="text-white hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    {isModerator && (
-                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20">
-                            <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
-                        </Link>
-                    )}
-                    <NotificationBell />
-                    <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
-                        <div className="text-right hidden sm:block">
-                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span></div>
-                        </div>
-                        <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
-                    </Link>
-                    <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
-                </div>
-            </nav>
-
+        <UserLayout>
             <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl w-full flex flex-col z-10 relative">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 pb-3 mb-3">Bảng Vàng</h1>
+                    <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 pb-3 pt-3 mb-3 uppercase tracking-wider">Bảng Vàng</h1>
                     <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
                 </div>
 
@@ -208,7 +140,7 @@ export const LeaderboardPage: React.FC = () => {
                 {page === 0 && search.trim() === '' && renderPodium()}
 
                 {/* Table Container */}
-                <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 w-full mb-8">
+                <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 w-full mb-8 relative z-10">
                     {/* Toolbar */}
                     <div className="p-5 border-b border-slate-700/50 flex flex-wrap gap-4 justify-between items-center bg-slate-800/30">
                         <div className="flex gap-2">
@@ -331,9 +263,6 @@ export const LeaderboardPage: React.FC = () => {
                                     // Final safety check
                                     pageNum = Math.max(0, Math.min(pageNum, totalPages - 1));
 
-                                    // Prevent duplicate numbers from rendering if array math overlaps
-                                    if (pageNum < 0 || pageNum >= totalPages) return null;
-
                                     // Calculate if we should render this specifically (React key uniquely maps elements)
                                     return (
                                         <React.Fragment key={`page-${pageNum}`}>
@@ -362,31 +291,7 @@ export const LeaderboardPage: React.FC = () => {
                     </div>
                 </div>
             </main>
-
-            {/* Footer */}
-            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
-                <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </div>
-                    <div className="text-slate-500 text-sm">
-                        &copy; 2026 Code Arena Platform. All rights reserved.
-                    </div>
-                    <div className="flex gap-4">
-                        <a href="https://www.facebook.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-colors">
-                            <FacebookLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://x.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-400 transition-colors">
-                            <TwitterLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://github.com/C0825G1-Org/C0825G1-code-arena" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
-                            <GithubLogo weight="fill" className="text-xl" />
-                        </a>
-                    </div>
-                </div>
-            </footer>
-        </div>
+        </UserLayout>
     );
 };
 
