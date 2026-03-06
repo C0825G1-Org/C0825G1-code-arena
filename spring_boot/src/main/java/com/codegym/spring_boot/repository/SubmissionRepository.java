@@ -160,6 +160,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
      org.springframework.data.domain.Page<Submission> findByContestIdAndIsTestRunFalseOrderByCreatedAtDesc(Integer contestId,
                org.springframework.data.domain.Pageable pageable);
 
+     List<Submission> findByContestIdAndIsTestRunFalseOrderByIdAsc(Integer contestId);
+
      // === Cơ chế nộp bài (50 lần) trong Contest ===
 
      // Đếm số lần nộp bài chính thức (isTestRun=false) của user cho 1 problem trong

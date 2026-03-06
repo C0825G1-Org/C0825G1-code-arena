@@ -40,6 +40,7 @@ public class ContestService {
     private final ContestEventScheduler contestEventScheduler;
     private final SubmissionRepository submissionRepository; // Để kiểm tra run count và submit status
     private final NotificationService notificationService;
+    private final ITestCaseRepository testCaseRepository;
 
     // =============================================
     // 1. MODERATOR/ADMIN: Tạo cuộc thi
@@ -804,6 +805,7 @@ public class ContestService {
                             .frozenReason(cp.getFrozenReason())
                             .submitCount(submitCount)
                             .isAC(isAC)
+                            .maxScore(testCaseRepository.sumScoreWeightByProblemId(cp.getProblem().getId()))
                             .build();
                 })
                 .collect(Collectors.toList());

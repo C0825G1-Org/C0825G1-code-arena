@@ -99,8 +99,8 @@ public class LeaderboardService implements ILeaderboardService {
         List<ContestParticipant> participants = participantRepository
                 .findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId);
 
-        // Lấy tất cả submission của contest để tính chi tiết từng bài
-        List<Submission> allSubmissions = submissionRepository.findByContestIdOrderByIdAsc(contestId);
+        // Lấy tất cả submission thực sự của contest để tính chi tiết từng bài
+        List<Submission> allSubmissions = submissionRepository.findByContestIdAndIsTestRunFalseOrderByIdAsc(contestId);
 
         // Map: userId → (problemId → ProblemDetail)
         Map<Integer, Map<Integer, LeaderboardDTO.ProblemDetail>> userProblemDetails = new java.util.HashMap<>();
@@ -142,8 +142,9 @@ public class LeaderboardService implements ILeaderboardService {
 
             if (sub.getStatus() == SubmissionStatus.AC) {
                 detail.setIsAccepted(true);
-                // score thực tế từ submission (0–100, tính theo scoreWeight)
-                detail.setScore(sub.getScore() != null ? sub.getScore() : 100);
+                // score thực tế từ submission (tổng scoreWeight các test pass)
+                // Nếu sub.getScore() null (lỗi logic judge), mặc định lấy maxScore của bài
+                detail.setScore(sub.getScore() != null ? sub.getScore() : detail.getMaxScore());
 
                 LocalDateTime startTime = sub.getContest().getStartTime();
                 LocalDateTime subTime = sub.getCreatedAt() != null ? sub.getCreatedAt() : LocalDateTime.now();

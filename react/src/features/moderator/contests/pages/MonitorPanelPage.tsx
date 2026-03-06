@@ -181,8 +181,8 @@ export const MonitorPanelPage = () => {
             setStats(s => {
                 if (s.remainingTimeSeconds > 0) {
                     if (s.remainingTimeSeconds === 1) {
-                        toast.success('Cuộc thi đã kết thúc! Tự động quay về danh sách.', { icon: '🏁' });
-                        setTimeout(() => navigate('/moderator/contests'), 3000);
+                        toast.success('Cuộc thi đã kết thúc! Đang chuyển sang màn hình thống kê kết quả.', { icon: '🏁' });
+                        setTimeout(() => navigate(`/moderator/contests/${id}/results`), 3000);
                     }
                     return { ...s, remainingTimeSeconds: s.remainingTimeSeconds - 1 };
                 }
