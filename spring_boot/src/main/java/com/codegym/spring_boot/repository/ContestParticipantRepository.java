@@ -34,4 +34,6 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
 
     @Query("SELECT COUNT(cp) FROM ContestParticipant cp WHERE cp.contest.createdBy.id = :modId")
     long countTotalParticipantsByModId(@Param("modId") Integer modId);
+
+    void deleteAllByUserId(Integer userId);
 }

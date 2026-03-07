@@ -15,6 +15,10 @@ import { CreatePage as ModeratorTestcaseCreatePage } from '../features/moderator
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
 import { AdminUserListPage } from '../features/admin/user/pages/AdminUserListPage';
 import { AdminTagListPage } from '../features/admin/tag/pages/AdminTagListPage';
+import { AdminProblemPage } from '../features/admin/problem/page/AdminProblemPage';
+import { AdminProblemCreatePage } from '../features/admin/problem/page/AdminProblemCreatePage';
+import { AdminProblemEditPage } from '../features/admin/problem/page/AdminProblemEditPage';
+import { AdminTestcaseCreatePage } from '../features/admin/testcase/page/AdminTestcaseCreatePage';
 import { MonitorPanelPage } from '../features/moderator/contests/pages/MonitorPanelPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -239,6 +243,38 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminTagListPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/problems',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminProblemPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/problems/create',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminProblemCreatePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/problems/edit/:id',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminProblemEditPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/testcases',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminTestcaseCreatePage />
             </ProtectedRoute>
         )
     },

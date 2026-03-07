@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
     MagnifyingGlass,
     CaretLeft, CaretRight, FunnelSimple, SpinnerGap,
-    UserSwitch, LockKey, LockKeyOpen,
+    UserSwitch, LockKey, LockKeyOpen, Trash, WarningCircle
 } from '@phosphor-icons/react';
 import { adminUserApi, AdminUserDTO } from '../services/adminUserApi';
 import { ConfirmRoleModal, TargetRole } from '../components/ConfirmRoleModal';
 import { ConfirmLockModal } from '../components/ConfirmLockModal';
+import { ConfirmDeleteUserModal } from '../components/ConfirmDeleteUserModal';
 import { AdminLayout } from '../../components/AdminLayout';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -43,6 +44,11 @@ export const AdminUserListPage: React.FC = () => {
     // ── Modal state — Lock
     const [lockModalTarget, setLockModalTarget]   = useState<AdminUserDTO | null>(null);
     const [lockModalLoading, setLockModalLoading] = useState(false);
+
+    // ── Modal state — Delete
+    const [deleteModalTarget, setDeleteModalTarget] = useState<AdminUserDTO | null>(null);
+    const [deleteModalType, setDeleteModalType] = useState<'soft' | 'hard'>('soft');
+    const [deleteModalLoading, setDeleteModalLoading] = useState(false);
 
     const [search, setSearch]         = useState('');
     const [roleFilter, setRoleFilter] = useState('');
@@ -130,6 +136,30 @@ export const AdminUserListPage: React.FC = () => {
         }
     };
 
+    // ── Delete modal
+    const openDeleteModal = (u: AdminUserDTO, type: 'soft' | 'hard') => {
+        setDeleteModalTarget(u);
+        setDeleteModalType(type);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteModalTarget) return;
+        setDeleteModalLoading(true);
+        try {
+            if (deleteModalType === 'soft') {
+                await adminUserApi.softDelete(deleteModalTarget.id);
+            } else {
+                await adminUserApi.hardDelete(deleteModalTarget.id);
+            }
+            setDeleteModalTarget(null);
+            await fetchUsers(search, roleFilter, currentPage);
+        } catch {
+            alert('Không thể chuyển đổi trạng thái xóa cho user. Vui lòng thử lại.');
+        } finally {
+            setDeleteModalLoading(false);
+        }
+    };
+
     // ── Pagination display (1-indexed)
     const displayPage = currentPage + 1;
 
@@ -180,16 +210,16 @@ export const AdminUserListPage: React.FC = () => {
                     )}
 
                     {/* Table */}
-                    <div className="bg-slate-800/50 rounded-xl overflow-hidden border border-slate-700">
+                    <div className="bg-slate-800/50 rounded-xl overflow-x-auto border border-slate-700">
                         <table className="w-full text-sm text-left text-slate-400">
                             <thead className="text-xs uppercase bg-slate-800 text-slate-300">
                                 <tr>
-                                    <th className="px-6 py-4 font-semibold">Thành viên</th>
-                                    <th className="px-6 py-4 font-semibold">Username</th>
-                                    <th className="px-6 py-4 font-semibold">Email</th>
-                                    <th className="px-6 py-4 font-semibold">Quyền hạn</th>
-                                    <th className="px-6 py-4 font-semibold text-center">Ngày đăng ký</th>
-                                    <th className="px-6 py-4 font-semibold text-right">Hành động</th>
+                                    <th className="px-4 py-3 font-semibold truncate max-w-[150px]">Thành viên</th>
+                                    <th className="px-4 py-3 font-semibold">Tài khoản</th>
+                                    <th className="px-4 py-3 font-semibold whitespace-nowrap">Quyền hạn</th>
+                                    <th className="px-4 py-3 font-semibold text-center whitespace-nowrap hidden xl:table-cell">Ngày đăng ký</th>
+                                    <th className="px-4 py-3 font-semibold text-center whitespace-nowrap">Trạng thái</th>
+                                    <th className="px-4 py-3 font-semibold text-right whitespace-nowrap">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -197,12 +227,12 @@ export const AdminUserListPage: React.FC = () => {
                                 {loading && users.length === 0 && (
                                     Array.from({ length: 5 }).map((_, i) => (
                                         <tr key={i} className="border-b border-slate-700/50 animate-pulse">
-                                            <td className="px-6 py-4"><div className="flex items-center gap-3"><div className="w-9 h-9 rounded-full bg-slate-700 shrink-0" /><div className="space-y-1"><div className="h-3 bg-slate-700 rounded w-28" /><div className="h-2 bg-slate-700/60 rounded w-16" /></div></div></td>
-                                            <td className="px-6 py-4"><div className="h-3 bg-slate-700 rounded w-24" /></td>
-                                            <td className="px-6 py-4"><div className="h-3 bg-slate-700 rounded w-44" /></td>
-                                            <td className="px-6 py-4"><div className="h-5 bg-slate-700 rounded w-14" /></td>
-                                            <td className="px-6 py-4 text-center"><div className="h-3 bg-slate-700 rounded w-20 mx-auto" /></td>
-                                            <td className="px-6 py-4 text-right"><div className="h-7 bg-slate-700 rounded w-24 ml-auto" /></td>
+                                            <td className="px-4 py-3"><div className="flex items-center gap-3"><div className="w-9 h-9 rounded-full bg-slate-700 shrink-0" /><div className="space-y-1"><div className="h-3 bg-slate-700 rounded w-28" /><div className="h-2 bg-slate-700/60 rounded w-16" /></div></div></td>
+                                            <td className="px-4 py-3 space-y-2"><div className="h-3 bg-slate-700 rounded w-24" /><div className="h-2 bg-slate-700/60 rounded w-32" /></td>
+                                            <td className="px-4 py-3"><div className="h-5 bg-slate-700 rounded w-14" /></td>
+                                            <td className="px-4 py-3 text-center hidden xl:table-cell"><div className="h-3 bg-slate-700 rounded w-16 mx-auto" /></td>
+                                            <td className="px-4 py-3 text-center"><div className="h-5 bg-slate-700 rounded w-16 mx-auto" /></td>
+                                            <td className="px-4 py-3 text-right"><div className="h-7 bg-slate-700 rounded w-24 ml-auto" /></td>
                                         </tr>
                                     ))
                                 )}
@@ -225,15 +255,15 @@ export const AdminUserListPage: React.FC = () => {
                                             className={`border-b border-slate-700/50 hover:bg-slate-800 transition-colors ${isActioning ? 'opacity-60' : ''}`}
                                         >
                                             {/* Avatar + name */}
-                                            <td className="px-6 py-4">
+                                            <td className="px-4 py-3">
                                                 <div className="flex items-center gap-3">
                                                     <img
                                                         src={`https://i.pravatar.cc/150?u=${u.id}`}
                                                         alt={u.fullName}
                                                         className={`w-9 h-9 rounded-full border-2 ${style.dot} shrink-0`}
                                                     />
-                                                    <div>
-                                                        <span className={`block font-semibold ${isRoot ? 'text-red-400' : 'text-slate-200'}`}>
+                                                    <div className="min-w-0">
+                                                        <span className={`block font-semibold truncate max-w-[130px] sm:max-w-[160px] ${isRoot ? 'text-red-400' : 'text-slate-200'}`} title={u.fullName}>
                                                             {u.fullName}
                                                         </span>
                                                         <span className="text-xs text-slate-500 font-mono">ID: {u.id}</span>
@@ -241,14 +271,18 @@ export const AdminUserListPage: React.FC = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Username */}
-                                            <td className="px-6 py-4 font-mono text-slate-300">{u.username}</td>
-
-                                            {/* Email */}
-                                            <td className="px-6 py-4 font-mono text-slate-400">{u.email}</td>
+                                            {/* Account Details */}
+                                            <td className="px-4 py-3 min-w-[200px]">
+                                                <div className="font-mono text-slate-300 truncate max-w-[180px]" title={u.username}>
+                                                    {u.username}
+                                                </div>
+                                                <div className="font-mono text-slate-500 text-xs truncate max-w-[180px] mt-0.5" title={u.email}>
+                                                    {u.email}
+                                                </div>
+                                            </td>
 
                                             {/* Role badge */}
-                                            <td className="px-6 py-4">
+                                            <td className="px-4 py-3 whitespace-nowrap">
                                                 <span className={`px-2.5 py-1 rounded text-xs font-bold uppercase tracking-wider ${style.badge}`}>
                                                     {style.label}
                                                 </span>
@@ -260,14 +294,31 @@ export const AdminUserListPage: React.FC = () => {
                                             </td>
 
                                             {/* Date */}
-                                            <td className="px-6 py-4 text-center text-slate-400 font-mono">{u.createdAt}</td>
+                                            <td className="px-4 py-3 text-center text-slate-400 font-mono hidden xl:table-cell whitespace-nowrap">
+                                                {u.createdAt}
+                                            </td>
+
+                                            {/* Status */}
+                                            <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                {u.isDeleted ? (
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">
+                                                        Đã xóa
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                        Hoạt động
+                                                    </span>
+                                                )}
+                                            </td>
 
                                             {/* Actions */}
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-4 py-3 text-right">
                                                 {isRoot ? (
-                                                    <span className="text-xs italic text-slate-600">Không thể sửa Root</span>
+                                                    <div className="flex items-center justify-end whitespace-nowrap">
+                                                        <span className="text-xs italic text-slate-600 block">Không thể sửa Root</span>
+                                                    </div>
                                                 ) : (
-                                                    <div className="flex items-center justify-end gap-2">
+                                                    <div className="flex items-center justify-end gap-1.5 sm:gap-2">
                                                         {isActioning ? (
                                                             <SpinnerGap weight="bold" className="text-slate-400 animate-spin text-lg" />
                                                         ) : (
@@ -292,10 +343,30 @@ export const AdminUserListPage: React.FC = () => {
                                                                             : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'
                                                                     }`}
                                                                 >
-                                                                    {u.isLocked
+                                                                        {u.isLocked
                                                                         ? <LockKeyOpen weight="bold" className="text-sm" />
                                                                         : <LockKey weight="bold" className="text-sm" />
                                                                     }
+                                                                </button>
+
+                                                                {/* Xoá mềm */}
+                                                                {!u.isDeleted && (
+                                                                    <button
+                                                                        onClick={() => openDeleteModal(u, 'soft')}
+                                                                        title="Xoá mềm tài khoản (chờ 30 ngày)"
+                                                                        className="w-8 h-8 flex items-center justify-center rounded-lg border bg-slate-500/10 text-slate-400 border-slate-500/20 hover:bg-slate-500/20 transition"
+                                                                    >
+                                                                        <Trash weight="bold" className="text-sm" />
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Xoá cứng */}
+                                                                <button
+                                                                    onClick={() => openDeleteModal(u, 'hard')}
+                                                                    title="Xoá vĩnh viễn (Không thể phục hồi)"
+                                                                    className="w-8 h-8 flex items-center justify-center rounded-lg border bg-red-900/20 text-red-500 border-red-500/20 hover:bg-red-500/20 hover:text-red-400 transition"
+                                                                >
+                                                                    <WarningCircle weight="bold" className="text-sm" />
                                                                 </button>
                                                             </>
                                                         )}
@@ -382,6 +453,23 @@ export const AdminUserListPage: React.FC = () => {
                 onConfirm={handleConfirmLock}
                 onCancel={() => setLockModalTarget(null)}
                 loading={lockModalLoading}
+            />
+        )}
+
+        {/* ── Delete Confirmation Modal */}
+        {deleteModalTarget && (
+            <ConfirmDeleteUserModal
+                isOpen={!!deleteModalTarget}
+                onClose={() => setDeleteModalTarget(null)}
+                onConfirm={handleConfirmDelete}
+                isSubmitting={deleteModalLoading}
+                title={deleteModalType === 'soft' ? `Xóa tạm thời User` : `CẢNH BÁO: Xóa Vĩnh Viễn`}
+                description={deleteModalType === 'soft' 
+                    ? `Bạn có chắc chắn muốn xóa tạm thời user ${deleteModalTarget.username}? User sẽ mất quyền truy cập và sẽ rác vĩnh viễn sau 30 ngày.`
+                    : `Hành động này sẽ XÓA VĨNH VIỄN user ${deleteModalTarget.username} và \n- Xoá toàn bộ dữ liệu cá nhân (Bài nộp).\n- Chuyển quyền Tác giả Bài tập và Cuộc thi cho Admin vĩnh viễn.\n\nHành động này KHÔNG THỂ PHỤC HỒI.`
+                }
+                requireConfirmationWord={deleteModalType === 'hard'}
+                confirmationWord={deleteModalTarget.username}
             />
         )}
         </>

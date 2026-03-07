@@ -8,4 +8,6 @@ public interface IAdminUserService {
     void promoteToModerator(Integer userId);
     void demoteToUser(Integer userId);
     void toggleLock(Integer userId);
+    void softDeleteUser(Integer userId);
+    void hardDeleteUser(Integer userId);
 }

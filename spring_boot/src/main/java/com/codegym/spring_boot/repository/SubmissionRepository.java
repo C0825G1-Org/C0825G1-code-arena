@@ -116,4 +116,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
     long countByUserIdAndContestIdAndStatus(Integer userId, Integer contestId, SubmissionStatus status);
 
     org.springframework.data.domain.Page<Submission> findByContestIdOrderByCreatedAtDesc(Integer contestId, org.springframework.data.domain.Pageable pageable);
+
+    void deleteAllByUserId(Integer userId);
 }

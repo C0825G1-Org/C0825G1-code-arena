@@ -16,4 +16,6 @@ public interface IProblemRepository extends JpaRepository<Problem, Integer> {
     long countPendingProblemsByCreator(@org.springframework.data.repository.query.Param("modId") Integer modId);
 
     long countByIsDeletedFalse();
+
+    List<Problem> findByCreatedById(Integer createdById);
 }
