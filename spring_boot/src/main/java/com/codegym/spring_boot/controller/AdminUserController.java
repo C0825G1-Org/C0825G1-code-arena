@@ -57,4 +57,24 @@ public class AdminUserController {
         adminUserService.toggleLock(id);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * DELETE /api/admin/users/{id}/soft  — Soft Delete
+     */
+    @DeleteMapping("/{id}/soft")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> softDelete(@PathVariable Integer id) {
+        adminUserService.softDeleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * DELETE /api/admin/users/{id}/hard  — Hard Delete
+     */
+    @DeleteMapping("/{id}/hard")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> hardDelete(@PathVariable Integer id) {
+        adminUserService.hardDeleteUser(id);
+        return ResponseEntity.ok().build();
+    }
 }

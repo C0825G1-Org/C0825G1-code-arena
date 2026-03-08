@@ -4,13 +4,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import {
-    HardDrives, SquaresFour, Users, Tag, SignOut, FileText, Trophy
+    HardDrives, SquaresFour, Users, Tag, SignOut, FileText, Trophy, Flask
 } from '@phosphor-icons/react';
 
 // ─── Sidebar Nav Item ─────────────────────────────────────────────────────────
 const SidebarLink = ({
     href, icon: Icon, label, active,
-}: {
+}: {    
     href: string; icon: React.ElementType; label: string; active?: boolean;
 }) => (
     <Link
@@ -27,7 +27,7 @@ const SidebarLink = ({
 
 export interface AdminLayoutProps {
     title: string;
-    activeTab: 'dashboard' | 'users' | 'tags' | 'problems' | 'contests';
+    activeTab: 'dashboard' | 'users' | 'tags' | 'problems' | 'contests' | 'testcases';
     children: React.ReactNode;
     contentClassName?: string;
 }
@@ -64,8 +64,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     <SidebarLink href="/admin/dashboard" icon={SquaresFour} label="System Dashboard" active={activeTab === 'dashboard'} />
                     <SidebarLink href="/admin/users"     icon={Users}       label="Quản lý Users" active={activeTab === 'users'} />
                     <SidebarLink href="/admin/tags"      icon={Tag}         label="Phân loại (Tags)" active={activeTab === 'tags'} />
-                    <SidebarLink href="/admin/problems"  icon={FileText}    label="Quản lý bài tập" active={activeTab === 'problems'} />
-                    <SidebarLink href="/admin/contests"  icon={Trophy}      label="Quản lý cuộc thi" active={activeTab === 'contests'} />
+                    <SidebarLink href="/admin/problems"  icon={FileText}    label="Quản lý Bài tập" active={activeTab === 'problems'} />
+                    <SidebarLink href="/admin/testcases" icon={Flask}       label="Quản lý Testcases" active={activeTab === 'testcases'} />
+                    <SidebarLink href="/admin/contests"  icon={Trophy}      label="Quản lý Cuộc thi" active={activeTab === 'contests'} />
                 </nav>
 
                 {/* Logout */}

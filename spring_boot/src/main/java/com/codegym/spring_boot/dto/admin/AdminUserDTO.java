@@ -17,4 +17,5 @@ public class AdminUserDTO {
     private String role;        // "user" | "moderator" | "admin"
     private String createdAt;   // formatted dd/MM/yyyy
     private Boolean isLocked;
+    private Boolean isDeleted;
 }

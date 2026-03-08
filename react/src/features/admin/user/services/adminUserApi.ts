@@ -8,6 +8,7 @@ export interface AdminUserDTO {
     role: 'user' | 'moderator' | 'admin';
     createdAt: string;
     isLocked: boolean;
+    isDeleted: boolean;
 }
 
 export interface PageResponse<T> {
@@ -35,4 +36,10 @@ export const adminUserApi = {
 
     toggleLock: (id: number): Promise<void> =>
         axiosClient.put(`/admin/users/${id}/toggle-lock`),
+
+    softDelete: (id: number): Promise<void> =>
+        axiosClient.delete(`/admin/users/${id}/soft`),
+
+    hardDelete: (id: number): Promise<void> =>
+        axiosClient.delete(`/admin/users/${id}/hard`),
 };

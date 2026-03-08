@@ -17,6 +17,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findByEmail(String email);
 
+    List<User> findByIsDeletedTrueAndUpdatedAtBefore(java.time.LocalDateTime cutoff);
+
     Boolean existsByUsername(String username);
 
     Boolean existsByEmail(String email);

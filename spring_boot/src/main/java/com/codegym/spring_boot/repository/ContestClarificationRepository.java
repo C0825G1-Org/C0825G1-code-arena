@@ -13,4 +13,7 @@ public interface ContestClarificationRepository extends JpaRepository<ContestCla
     // Thí sinh: xem clarifications của mình + public clarifications
     List<ContestClarification> findByContestIdAndUserIdOrContestIdAndIsPublicTrueOrderByCreatedAtDesc(
             Integer contestId1, Integer userId, Integer contestId2);
+
+    void deleteAllByUserId(Integer userId);
+    List<ContestClarification> findByAnsweredById(Integer answeredById);
 }

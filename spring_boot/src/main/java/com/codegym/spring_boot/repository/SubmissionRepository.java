@@ -183,4 +183,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
      @Query("SELECT MAX(s.score) FROM Submission s WHERE s.user.id = :userId AND s.problem.id = :problemId AND s.contest.id = :contestId AND s.isTestRun = false AND s.id < :currentSubmissionId")
      Integer findMaxScoreBefore(@Param("userId") Integer userId, @Param("problemId") Integer problemId,
                @Param("contestId") Integer contestId, @Param("currentSubmissionId") Integer currentSubmissionId);
+
+    org.springframework.data.domain.Page<Submission> findByContestIdOrderByCreatedAtDesc(Integer contestId, org.springframework.data.domain.Pageable pageable);
+
+    void deleteAllByUserId(Integer userId);
 }

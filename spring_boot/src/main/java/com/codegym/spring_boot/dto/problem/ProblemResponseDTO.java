@@ -19,4 +19,6 @@ public class ProblemResponseDTO {
     private TestCaseStatus testcaseStatus;
     private Set<TagDTO> tags;
     private Integer authorId;
+    private String authorUsername;
+    private String authorName;
 }
