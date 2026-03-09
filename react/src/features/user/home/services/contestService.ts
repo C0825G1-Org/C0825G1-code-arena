@@ -27,6 +27,10 @@ export const contestService = {
     registerForContest: async (id: number): Promise<any> => {
         return axiosClient.post(`/contests/${id}/register`);
     },
+    reportViolation: async (id: number, force: boolean = false): Promise<any> => {
+        // axiosClient interceptor đã unwrap response.data sẵn, không gọi thêm .data nữa
+        return axiosClient.post(`/contests/${id}/violation?force=${force}`);
+    },
     getContestDetail: async (id: number): Promise<any> => {
         return axiosClient.get(`/contests/${id}`);
     },
@@ -34,9 +38,5 @@ export const contestService = {
         await axiosClient.post(`/contests/${id}/finish`, null, {
             params: status ? { status } : {}
         });
-    },
-    reportViolation: async (id: number): Promise<any> => {
-        // axiosClient interceptor đã unwrap response.data sẵn, không gọi thêm .data nữa
-        return axiosClient.post(`/contests/${id}/violation`);
     }
 };

@@ -54,6 +54,15 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
                         +
                         "WHERE cp.id.contestId = :contestId AND cp.id.userId = :userId AND cp.status = com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED")
         void incrementViolationCount(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
+        
+        @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Query("UPDATE ContestParticipant cp SET " +
+                        "cp.violationCount = 3, " +
+                        "cp.hasScorePenalty = true, " +
+                        "cp.totalPenalty = cp.totalPenalty + 1000, " +
+                        "cp.status = com.codegym.spring_boot.entity.enums.ParticipantStatus.DISQUALIFIED " +
+                        "WHERE cp.id.contestId = :contestId AND cp.id.userId = :userId AND cp.status = com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED")
+        void forceDisqualify(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
 
         void deleteAllByUserId(Integer userId);
 }

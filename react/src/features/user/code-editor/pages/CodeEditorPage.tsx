@@ -55,6 +55,7 @@ export default function Home() {
     const [problemStatus, setProblemStatus] = useState<Record<number, { submitCount: number, isAC: boolean }>>({});
     const [contest, setContest] = useState<ContestDetailData | null>(null);
     const [isContestEnded, setIsContestEnded] = useState(false);
+    const [cameraWarning, setCameraWarning] = useState<string | null>(null);
     const hasInitViolations = useRef(false);
 
     // Tính toán trạng thái Read-only
@@ -142,11 +143,16 @@ export default function Home() {
         contestId: contestId ? parseInt(contestId) : 0,
         enabled: isExamMode && !!contest && contest.status === 'active' && contest.participantStatus === 'JOINED' && !isContestEnded,
         interval: 60000,
-        // Intentionally NOT calling triggerViolation() here.
-        // Camera denial is handled inside useCameraSnapshot with a warning toast.
-        // Treating camera denial the same as tab-switching would unfairly penalize
-        // contestants who don't have a camera or didn't grant permission in time.
-        onCameraRefused: undefined
+        // Khi từ chối camera -> Báo cho Moderator thay vì truất quyền ngay lập tức
+        onCameraRefused: () => {
+            if (webRTCSocket && contestId) {
+                webRTCSocket.emit('report-camera-violation', { 
+                    contestId: parseInt(contestId), 
+                    isViolating: true 
+                });
+                toast.warning("Hệ thống ghi nhận bạn chưa bật camera. Moderator đã được thông báo.", { toastId: 'camera-refused' });
+            }
+        }
     });
 
     // WebRTC Real-time proctoring state
@@ -358,10 +364,26 @@ export default function Home() {
         webRTCSocket.on('webrtc-signal', handleWebrtcSignal);
         webRTCSocket.on('stop-proctoring', stopProctoringLocally);
 
+        webRTCSocket.on('warn-camera', (msg: string) => {
+            setCameraWarning(msg);
+        });
+
+        webRTCSocket.on('kick-contest', (msg: string) => {
+            toast.error(msg, { autoClose: false });
+            // Kích hoạt logic truất quyền thi đã có sẵn
+            setIsContestEnded(true);
+            setContest(prev => prev ? { ...prev, participantStatus: 'DISQUALIFIED' } : prev);
+            if (contestId) {
+                localStorage.setItem(`arena:contest_finished:${contestId}`, Date.now().toString());
+            }
+        });
+
         return () => {
             webRTCSocket.off('moderator-request-cam', handleRequestCam);
             webRTCSocket.off('webrtc-signal', handleWebrtcSignal);
             webRTCSocket.off('stop-proctoring', stopProctoringLocally);
+            webRTCSocket.off('warn-camera');
+            webRTCSocket.off('kick-contest');
             stopProctoringLocally();
         };
     }, [webRTCSocket, isExamMode]);
@@ -586,6 +608,28 @@ export default function Home() {
                 }}
                 onCancel={() => setIsConfirmSubmitOpen(false)}
             />
+
+            {cameraWarning && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+                    <div className="bg-[#1e293b] border-2 border-red-500 rounded-2xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.3)] text-center animate-in fade-in zoom-in duration-300">
+                        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <LockKey size={40} weight="fill" className="text-red-500" />
+                        </div>
+                        <h2 className="text-2xl font-black text-white mb-4 uppercase tracking-tight">CẢNH BÁO VI PHẠM</h2>
+                        <p className="text-slate-300 mb-8 leading-relaxed">
+                            {cameraWarning}
+                            <br /><br />
+                            <span className="text-red-400 font-bold italic">Lưu ý: Nếu không tuân thủ, bạn sẽ bị truất quyền thi ngay lập tức.</span>
+                        </p>
+                        <button 
+                            onClick={() => setCameraWarning(null)}
+                            className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-red-500/50"
+                        >
+                            Tôi đã hiểu và đang thực hiện
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {isExamMode && contestId && (contest?.isRegistered || contest?.participantStatus !== undefined || isModerator) && user && (isWaitingRoom || contest?.status === 'finished' || isModerator) && (
                 <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} />

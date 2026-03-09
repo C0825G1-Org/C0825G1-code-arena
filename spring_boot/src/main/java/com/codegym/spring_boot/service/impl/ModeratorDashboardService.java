@@ -134,6 +134,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                     .totalScore(p.getTotalScore())
                     .totalPenalty(p.getTotalPenalty())
                     .acRate(Math.round(acRate * 100.0) / 100.0)
+                    .status(p.getStatus().name())
+                    .isCameraViolating(p.getIsCameraViolating())
                     .build());
         }
 
@@ -200,6 +202,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                     .totalScore(p.getTotalScore())
                     .totalPenalty(p.getTotalPenalty())
                     .acRate(Math.round(acRate * 100.0) / 100.0)
+                    .status(p.getStatus().name())
+                    .isCameraViolating(p.getIsCameraViolating())
                     .build());
         }
         

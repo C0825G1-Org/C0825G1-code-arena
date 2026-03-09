@@ -45,9 +45,14 @@ export const MonitorPanelPage = () => {
     const [streamToPlay, setStreamToPlay] = useState<MediaStream | null>(null);
     const [isInitiatingCamera, setIsInitiatingCamera] = useState(false);
 
-    // Snapshot Viewer State
     const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false);
     const [snapshotViewUser, setSnapshotViewUser] = useState<any | null>(null);
+
+    // Camera Action Modal State
+    const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+    const [actionUser, setActionUser] = useState<any | null>(null);
+
+    const [isKickConfirmOpen, setIsKickConfirmOpen] = useState(false);
 
     useEffect(() => {
         if (streamToPlay && videoRef.current) {
@@ -116,6 +121,15 @@ export const MonitorPanelPage = () => {
             toast.success(`Một thí sinh mới vừa tham gia vòng thi!`, { icon: '👋' });
         });
 
+        socket.on('monitor_camera_violation', (data: { userId: number, isCameraViolating: boolean }) => {
+            setLeaderboard(prev => prev.map(u => 
+                u.userId === data.userId ? { ...u, isCameraViolating: data.isCameraViolating } : u
+            ));
+            if (data.isCameraViolating) {
+                toast.error(`Thí sinh vừa bị phát hiện vi phạm Camera!`, { icon: '📷' });
+            }
+        });
+
         const handleWebrtcSignal = async (data: any) => {
             console.log("[Moderator] Received WebRTC signal from Contestant", data.fromUserId, ":", data.signal.type || "candidate");
             const pc = peerRef.current;
@@ -177,6 +191,7 @@ export const MonitorPanelPage = () => {
             socket.off('monitor_submission_update');
             socket.off('monitor_leaderboard_update');
             socket.off('monitor_new_participant');
+            socket.off('monitor_camera_violation');
             socket.off('webrtc-signal', handleWebrtcSignal);
             socket.off('stop-proctoring', handleStopProctoring);
             socket.off('camera-denied', handleCameraDenied);
@@ -440,11 +455,31 @@ export const MonitorPanelPage = () => {
                                             </span>
                                         </td>
                                         <td className="py-4 px-4">
-                                            <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{user.fullname}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{user.fullname}</div>
+                                                {user.isCameraViolating && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            setActionUser(user);
+                                                            setIsActionModalOpen(true);
+                                                        }}
+                                                        className="text-rose-500 animate-pulse cursor-pointer hover:scale-110 transition-transform"
+                                                        title="Vi phạm Camera! Click để xử lý"
+                                                    >
+                                                        <i className="ph-fill ph-video-camera-slash text-lg"></i>
+                                                    </button>
+                                                )}
+                                            </div>
                                             <div className="text-xs text-slate-500">@{user.username}</div>
                                         </td>
                                         <td className="py-4 px-4 text-center">
-                                            <span className="text-sm text-emerald-400 font-mono">{user.acRate.toFixed(1)}%</span>
+                                            {user.status === 'DISQUALIFIED' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2 py-1 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20 text-xs font-bold">
+                                                    <i className="ph-fill ph-prohibit"></i> Bị loại
+                                                </span>
+                                            ) : (
+                                                <span className="text-sm text-emerald-400 font-mono">{user.acRate.toFixed(1)}%</span>
+                                            )}
                                         </td>
                                         <td className="py-4 px-4 text-center">
                                             <span className="text-rose-400 font-mono text-sm">{user.totalPenalty}</span>
@@ -600,6 +635,97 @@ export const MonitorPanelPage = () => {
                 contestId={Number(id)}
                 user={snapshotViewUser}
             />
+
+            {/* CAMERA ACTION MODAL */}
+            {isActionModalOpen && actionUser && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in zoom-in duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mb-4">
+                                <i className="ph-fill ph-warning-octagon text-3xl text-rose-500"></i>
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">Xử lý vi phạm Camera</h3>
+                            <p className="text-slate-400 text-sm mb-6">
+                                Thí sinh <strong>{actionUser.fullname}</strong> đang từ chối bật camera. Bạn muốn làm gì?
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-4 w-full">
+                                <button 
+                                    onClick={() => {
+                                        socket.emit('moderator-warn-participant', { toUserId: actionUser.userId });
+                                        toast.success('Đã gửi cảnh báo tới thí sinh');
+                                        setIsActionModalOpen(false);
+                                    }}
+                                    className="py-3 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold rounded-xl transition-all"
+                                >
+                                    Cảnh báo
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setIsKickConfirmOpen(true);
+                                    }}
+                                    className="py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all"
+                                >
+                                    Kick
+                                </button>
+                            </div>
+                            
+                            <button 
+                                onClick={() => setIsActionModalOpen(false)}
+                                className="mt-4 text-slate-500 hover:text-slate-300 text-sm font-medium"
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* KICK CONFIRMATION MODAL */}
+            {isKickConfirmOpen && actionUser && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[300] flex items-center justify-center p-4">
+                    <div className="bg-slate-900 border border-slate-700/50 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(244,63,94,0.2)] animate-in zoom-in duration-200">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-20 h-20 bg-rose-500/20 rounded-full flex items-center justify-center mb-6 ring-4 ring-rose-500/10">
+                                <i className="ph-fill ph-warning-octagon text-4xl text-rose-500 animate-pulse"></i>
+                            </div>
+                            <h3 className="text-2xl font-black text-white mb-3 tracking-tight">Xác nhận truất quyền thi?</h3>
+                            <p className="text-slate-400 leading-relaxed mb-8">
+                                Bạn có chắc chắn muốn kick thí sinh <strong className="text-white bg-slate-800 px-2 py-0.5 rounded">{actionUser.fullname}</strong> khỏi cuộc thi? Hành động này <strong className="text-rose-400">không thể hoàn tác</strong>.
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-4 w-full">
+                                <button 
+                                    onClick={() => setIsKickConfirmOpen(false)}
+                                    className="py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl transition-all border border-slate-700"
+                                >
+                                    Hủy bỏ
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        socket.emit('moderator-kick-participant', { toUserId: actionUser.userId, contestId: parseInt(id!) });
+                                        toast.error('Đã truất quyền thi thí sinh', {
+                                            icon: '🚫',
+                                            style: {
+                                                borderRadius: '12px',
+                                                background: '#1e293b',
+                                                color: '#fff',
+                                            },
+                                        });
+                                        setIsKickConfirmOpen(false);
+                                        setIsActionModalOpen(false);
+                                        // Update local status to avoid flicker
+                                        setLeaderboard(prev => prev.map(u => u.userId === actionUser.userId ? { ...u, status: 'DISQUALIFIED', isCameraViolating: false } : u));
+                                    }}
+                                    className="py-4 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-rose-600/20 active:scale-[0.98]"
+                                >
+                                    Xác nhận Kick
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 

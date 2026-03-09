@@ -581,15 +581,36 @@ public class ContestService {
         log.info("User {} finished contest {}", currentUser.getUsername(), contestId);
     }
 
-    // 9. USER: Báo cáo vi phạm (Rời màn hình)
+    // 9. USER: Báo cáo vi phạm (Rời màn hình / Từ chối camera)
     @Transactional
-    public ContestParticipant reportViolation(Integer contestId, User currentUser) {
-        // Thực hiện increment nguyên tử trong DB trước
-        participantRepository.incrementViolationCount(contestId, currentUser.getId());
+    public ContestParticipant reportViolation(Integer contestId, User currentUser, boolean force) {
+        if (force) {
+            participantRepository.forceDisqualify(contestId, currentUser.getId());
+        } else {
+            participantRepository.incrementViolationCount(contestId, currentUser.getId());
+        }
 
         // Sau đó fetch lại để trả về thông tin mới nhất cho Frontend
         return participantRepository.findByContestIdAndUserId(contestId, currentUser.getId())
-                .orElseThrow(() -> new IllegalStateException("Bạn chưa đăng ký cuộc thi này."));
+                .orElseThrow(() -> new IllegalArgumentException("Bạn chưa đăng ký cuộc thi này."));
+    }
+
+    @Transactional
+    public void updateCameraViolationStatus(Integer contestId, Integer userId, boolean isViolating) {
+        ContestParticipant participant = participantRepository.findByContestIdAndUserId(contestId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thí sinh trong cuộc thi."));
+        participant.setIsCameraViolating(isViolating);
+        participantRepository.save(participant);
+        log.info("User {} camera violation status updated to {} in contest {}", userId, isViolating, contestId);
+    }
+
+    @Transactional
+    public void finishContestForUser(Integer contestId, Integer userId, ParticipantStatus status) {
+        ContestParticipant participant = participantRepository.findByContestIdAndUserId(contestId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thí sinh trong cuộc thi."));
+        participant.setStatus(status);
+        participantRepository.save(participant);
+        log.info("User {} finished contest {} with status {}", userId, contestId, status);
     }
 
     // =============================================

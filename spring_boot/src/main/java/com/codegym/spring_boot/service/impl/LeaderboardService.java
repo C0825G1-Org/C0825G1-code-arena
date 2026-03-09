@@ -177,6 +177,7 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setUserId(uid);
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
+            dto.setStatus(p.getStatus().name());
             if (p.getUser().getProfile() != null) {
                 dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
             }

@@ -27,6 +27,8 @@ public class MonitorDashboardResponse {
         private Integer totalScore;
         private Integer totalPenalty;
         private Double acRate;
+        private String status;
+        private Boolean isCameraViolating;
     }
 
     @Data

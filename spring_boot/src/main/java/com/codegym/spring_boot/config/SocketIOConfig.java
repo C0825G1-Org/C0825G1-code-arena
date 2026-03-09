@@ -7,6 +7,7 @@ import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.codegym.spring_boot.dto.chat.request.SocketChatMessageRequest;
 import com.codegym.spring_boot.entity.mongo.ChatMessage;
+import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.service.IChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class SocketIOConfig {
 
     private final JwtService jwtService;
+    private final ContestParticipantRepository participantRepository;
 
     @Bean
     public SocketIOServer socketIOServer() {
@@ -192,6 +194,75 @@ public class SocketIOConfig {
                                 data != null ? data.getClass().getName() : "null");
                     }
                 });
+
+        // Camera Violation Reporting (Participant -> Moderator)
+        server.addEventListener("report-camera-violation", java.util.Map.class, (client, data, ackSender) -> {
+            Integer userId = extractUserIdFromClient(client);
+            if (userId != null) {
+                try {
+                    Integer contestId = Integer.parseInt(data.get("contestId").toString());
+                    Boolean isViolating = (Boolean) data.get("isViolating");
+
+                    var participantOpt = participantRepository.findByContestIdAndUserId(contestId, userId);
+                    if (participantOpt.isPresent()) {
+                        var p = participantOpt.get();
+                        p.setIsCameraViolating(isViolating);
+                        participantRepository.save(p);
+                        log.info("User {} camera violation status updated to {} in contest {}", userId, isViolating, contestId);
+
+                        // Broadcast to monitor room
+                        String monitorRoom = "contest_monitor_" + contestId;
+                        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                        payload.put("userId", userId);
+                        payload.put("isCameraViolating", isViolating);
+                        server.getRoomOperations(monitorRoom).sendEvent("monitor_camera_violation", payload);
+                    }
+                } catch (Exception e) {
+                    log.error("Error in report-camera-violation", e);
+                }
+            }
+        });
+
+        // Moderator Actions (Moderator -> Participant)
+        server.addEventListener("moderator-warn-participant", java.util.Map.class, (client, data, ackSender) -> {
+            Integer userId = extractUserIdFromClient(client);
+            String role = extractRoleFromClient(client);
+            if (userId != null && ("moderator".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role))) {
+                try {
+                    Integer toUserId = Integer.parseInt(data.get("toUserId").toString());
+                    String targetRoom = "user_" + toUserId;
+                    server.getRoomOperations(targetRoom).sendEvent("warn-camera", "Moderator yêu cầu bạn bật Camera ngay lập tức để tiếp tục bài thi.");
+                    log.info("Moderator {} sent camera warning to User {}", userId, toUserId);
+                } catch (Exception e) {
+                    log.error("Error in moderator-warn-participant", e);
+                }
+            }
+        });
+
+        server.addEventListener("moderator-kick-participant", java.util.Map.class, (client, data, ackSender) -> {
+            Integer userId = extractUserIdFromClient(client);
+            String role = extractRoleFromClient(client);
+            if (userId != null && ("moderator".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role))) {
+                try {
+                    Integer toUserId = Integer.parseInt(data.get("toUserId").toString());
+                    Integer contestId = Integer.parseInt(data.get("contestId").toString());
+
+                    // Mark as disqualified in DB
+                    var participantOpt = participantRepository.findByContestIdAndUserId(contestId, toUserId);
+                    if (participantOpt.isPresent()) {
+                        var p = participantOpt.get();
+                        p.setStatus(com.codegym.spring_boot.entity.enums.ParticipantStatus.DISQUALIFIED);
+                        participantRepository.save(p);
+                        log.info("Moderator {} kicked User {} from contest {}", userId, toUserId, contestId);
+
+                        String targetRoom = "user_" + toUserId;
+                        server.getRoomOperations(targetRoom).sendEvent("kick-contest", "Bạn đã bị truất quyền thi bởi Moderator.");
+                    }
+                } catch (Exception e) {
+                    log.error("Error in moderator-kick-participant", e);
+                }
+            }
+        });
 
         return server;
     }

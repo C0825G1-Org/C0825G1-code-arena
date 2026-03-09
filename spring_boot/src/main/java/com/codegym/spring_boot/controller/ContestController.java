@@ -167,8 +167,9 @@ public class ContestController {
     @PostMapping("/{id}/violation")
     public ResponseEntity<Map<String, Object>> reportViolation(
             @PathVariable Integer id,
-            @AuthenticationPrincipal User currentUser) {
-        var participant = contestService.reportViolation(id, currentUser);
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(required = false, defaultValue = "false") boolean force) {
+        var participant = contestService.reportViolation(id, currentUser, force);
         return ResponseEntity.ok(Map.of(
                 "violationCount", participant.getViolationCount(),
                 "status", participant.getStatus(),

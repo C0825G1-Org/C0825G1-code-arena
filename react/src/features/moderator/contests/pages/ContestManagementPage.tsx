@@ -334,7 +334,7 @@ export const ContestManagementPage = () => {
                                                     <i className="ph-duotone ph-chart-pie-slice text-base"></i>
                                                 </Link>
                                             )}
-                                            {contest.status === 'upcoming' && (
+                                            {(contest.status === 'upcoming' || contest.status === 'active') && (
                                                 <button
                                                     onClick={() => {
                                                         setSelectedContest({ id: contest.id, title: contest.title });
