@@ -236,7 +236,7 @@ export const LeaderboardPage: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
                                                 ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
-                                                    : u.globalRating >= 2000 ? 'text-red-400' : u.globalRating >= 1700 ? 'text-purple-400' : u.globalRating >= 1600 ? 'text-blue-400' : 'text-slate-300'}`}>
+                                                    : u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300'}`}>
                                                 {u.globalRating}
                                             </span>
                                         </td>

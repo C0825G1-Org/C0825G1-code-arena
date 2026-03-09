@@ -11,12 +11,12 @@ interface RankTier {
 }
 
 const RANK_TIERS: RankTier[] = [
-    { name: 'Tân binh (Newbie)', min: 0, max: 1199, color: 'text-slate-400', bgGradient: 'from-slate-500 to-slate-400', textShadow: 'shadow-slate-500/50' },
-    { name: 'Học viên (Pupil)', min: 1200, max: 1399, color: 'text-green-400', bgGradient: 'from-green-600 to-green-400', textShadow: 'shadow-green-500/50' },
-    { name: 'Chuyên gia (Expert)', min: 1400, max: 1599, color: 'text-blue-400', bgGradient: 'from-blue-600 to-blue-400', textShadow: 'shadow-blue-500/50' },
-    { name: 'Bậc thầy (Master)', min: 1600, max: 1899, color: 'text-purple-400', bgGradient: 'from-purple-600 to-purple-400', textShadow: 'shadow-purple-500/50' },
-    { name: 'Đại sư (Grandmaster)', min: 1900, max: 2199, color: 'text-yellow-400', bgGradient: 'from-yellow-600 to-yellow-400', textShadow: 'shadow-yellow-500/50' },
-    { name: 'Huyền thoại (Legendary)', min: 2200, max: 10000, color: 'text-red-400', bgGradient: 'from-red-600 to-red-400', textShadow: 'shadow-red-500/50' },
+    { name: 'Tân binh (Newbie)', min: 0, max: 99, color: 'text-slate-400', bgGradient: 'from-slate-500 to-slate-400', textShadow: 'shadow-slate-500/50' },
+    { name: 'Học viên (Pupil)', min: 100, max: 249, color: 'text-green-400', bgGradient: 'from-green-600 to-green-400', textShadow: 'shadow-green-500/50' },
+    { name: 'Chuyên gia (Expert)', min: 250, max: 449, color: 'text-blue-400', bgGradient: 'from-blue-600 to-blue-400', textShadow: 'shadow-blue-500/50' },
+    { name: 'Bậc thầy (Master)', min: 450, max: 699, color: 'text-purple-400', bgGradient: 'from-purple-600 to-purple-400', textShadow: 'shadow-purple-500/50' },
+    { name: 'Đại sư (Grandmaster)', min: 700, max: 999, color: 'text-yellow-400', bgGradient: 'from-yellow-600 to-yellow-400', textShadow: 'shadow-yellow-500/50' },
+    { name: 'Huyền thoại (Legendary)', min: 1000, max: 10000, color: 'text-red-400', bgGradient: 'from-red-600 to-red-400', textShadow: 'shadow-red-500/50' },
 ];
 
 interface Props {
