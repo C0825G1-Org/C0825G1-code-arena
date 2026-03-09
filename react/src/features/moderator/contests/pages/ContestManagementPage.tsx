@@ -334,36 +334,42 @@ export const ContestManagementPage = () => {
                                                     <i className="ph-duotone ph-chart-pie-slice text-base"></i>
                                                 </Link>
                                             )}
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedContest({ id: contest.id, title: contest.title });
-                                                    setManageProblemModalOpen(true);
-                                                }}
-                                                className="inline-block p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 tooltip"
-                                                title="Quản lý bài tập"
-                                            >
-                                                <i className="ph-duotone ph-list-magnifying-glass text-base"></i>
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedContest({ id: contest.id, title: contest.title });
-                                                    setEditModalOpen(true);
-                                                }}
-                                                className="inline-block p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
-                                                title="Chỉnh sửa"
-                                            >
-                                                <i className="ph-bold ph-pencil-simple text-base"></i>
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedContest({ id: contest.id, title: contest.title });
-                                                    setDeleteModalOpen(true);
-                                                }}
-                                                className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20 tooltip"
-                                                title="Xóa cuộc thi"
-                                            >
-                                                <i className="ph-bold ph-trash text-base"></i>
-                                            </button>
+                                            {contest.status === 'upcoming' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedContest({ id: contest.id, title: contest.title });
+                                                        setManageProblemModalOpen(true);
+                                                    }}
+                                                    className="inline-block p-1.5 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 tooltip"
+                                                    title="Quản lý bài tập"
+                                                >
+                                                    <i className="ph-duotone ph-list-magnifying-glass text-base"></i>
+                                                </button>
+                                            )}
+                                            {contest.status !== 'finished' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedContest({ id: contest.id, title: contest.title });
+                                                        setEditModalOpen(true);
+                                                    }}
+                                                    className="inline-block p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
+                                                    title="Chỉnh sửa"
+                                                >
+                                                    <i className="ph-bold ph-pencil-simple text-base"></i>
+                                                </button>
+                                            )}
+                                            {contest.status === 'upcoming' && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedContest({ id: contest.id, title: contest.title });
+                                                        setDeleteModalOpen(true);
+                                                    }}
+                                                    className="p-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20 tooltip"
+                                                    title="Xóa cuộc thi"
+                                                >
+                                                    <i className="ph-bold ph-trash text-base"></i>
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
