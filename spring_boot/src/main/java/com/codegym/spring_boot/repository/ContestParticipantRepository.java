@@ -40,20 +40,6 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
         @Query("SELECT cp FROM ContestParticipant cp JOIN FETCH cp.user WHERE cp.contest.id = :contestId ORDER BY cp.totalScore DESC, cp.totalPenalty ASC")
         List<ContestParticipant> findAllWithUserByContestId(@Param("contestId") Integer contestId);
 
-<<<<<<< HEAD
-    @org.springframework.data.jpa.repository.Modifying
-    @org.springframework.data.jpa.repository.Query("UPDATE ContestParticipant cp SET " +
-            "cp.violationCount = cp.violationCount + 1, " +
-            "cp.hasScorePenalty = (CASE WHEN (cp.violationCount + 1) >= 2 THEN true ELSE cp.hasScorePenalty END), " +
-            "cp.totalPenalty = (CASE WHEN (cp.violationCount + 1) = 2 THEN cp.totalPenalty + 1000 ELSE cp.totalPenalty END), "
-            +
-            "cp.status = (CASE WHEN (cp.violationCount + 1) >= 3 THEN com.codegym.spring_boot.entity.enums.ParticipantStatus.DISQUALIFIED ELSE cp.status END) "
-            +
-            "WHERE cp.id.contestId = :contestId AND cp.id.userId = :userId AND cp.status = com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED")
-    void incrementViolationCount(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
-
-    void deleteAllByUserId(Integer userId);
-=======
         @Query("SELECT COUNT(cp) FROM ContestParticipant cp WHERE cp.contest.createdBy.id = :modId")
         long countTotalParticipantsByModId(@Param("modId") Integer modId);
 
@@ -68,5 +54,6 @@ public interface ContestParticipantRepository extends JpaRepository<ContestParti
                         +
                         "WHERE cp.id.contestId = :contestId AND cp.id.userId = :userId AND cp.status = com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED")
         void incrementViolationCount(@Param("contestId") Integer contestId, @Param("userId") Integer userId);
->>>>>>> origin/nguyen2
+
+        void deleteAllByUserId(Integer userId);
 }
