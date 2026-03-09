@@ -20,7 +20,7 @@ interface UseContestSubmitProps {
     blockerState: string;
     blockerProceed: () => void;
     setProblemStatus: React.Dispatch<React.SetStateAction<Record<number, { submitCount: number, isAC: boolean }>>>;
-    setActiveTab: (tab: 'problem' | 'submissions' | 'hints' | 'discussions') => void;
+    setActiveTab: (tab: 'problem' | 'submissions' | 'hints' | 'discussion') => void;
     setIsSubmitting: (val: boolean) => void;
     setIsSubmittingExit: (val: boolean) => void;
 }
