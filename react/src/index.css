@@ -45,24 +45,40 @@
   @apply text-slate-300 leading-relaxed;
 }
 
-.prose-markdown h1, .prose-markdown h2, .prose-markdown h3 {
+.prose-markdown h1,
+.prose-markdown h2,
+.prose-markdown h3 {
   @apply text-white font-bold mt-6 mb-3;
 }
 
-.prose-markdown h1 { @apply text-2xl; }
-.prose-markdown h2 { @apply text-xl; }
-.prose-markdown h3 { @apply text-lg; }
+.prose-markdown h1 {
+  @apply text-2xl;
+}
+
+.prose-markdown h2 {
+  @apply text-xl;
+}
+
+.prose-markdown h3 {
+  @apply text-lg;
+}
 
 .prose-markdown p {
   @apply mb-4;
 }
 
-.prose-markdown ul, .prose-markdown ol {
+.prose-markdown ul,
+.prose-markdown ol {
   @apply my-4 pl-6;
 }
 
-.prose-markdown ul { @apply list-disc; }
-.prose-markdown ol { @apply list-decimal; }
+.prose-markdown ul {
+  @apply list-disc;
+}
+
+.prose-markdown ol {
+  @apply list-decimal;
+}
 
 .prose-markdown li {
   @apply mb-1;
@@ -84,7 +100,8 @@
   @apply w-full my-6 border-collapse;
 }
 
-.prose-markdown th, .prose-markdown td {
+.prose-markdown th,
+.prose-markdown td {
   @apply border border-slate-700 px-4 py-2 text-sm;
 }
 
@@ -102,4 +119,17 @@
 
 .prose-markdown em {
   @apply text-slate-400;
+}
+
+/* KaTeX Customization for Dark Mode */
+.prose-markdown .katex {
+  @apply text-blue-200;
+}
+
+.prose-markdown .katex-display {
+  @apply my-6 overflow-x-auto overflow-y-hidden py-2 custom-scrollbar;
+}
+
+.prose-markdown .katex-html {
+  @apply select-all;
 }
