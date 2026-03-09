@@ -29,9 +29,15 @@ export const LeaderboardPage: React.FC = () => {
             setTotalPages(data.totalPages);
             setTotalElements(data.totalElements);
 
-            // Fetch Top 3 unconditionally for the podium if we are on page 0 and no search
-            if (page === 0 && search.trim() === '') {
-                setTop3(data.content.slice(0, 3));
+            // Fetch Top 3 for the podium if no search is active
+            if (search.trim() === '') {
+                if (page === 0) {
+                    setTop3(data.content.slice(0, 3));
+                } else if (top3.length === 0) {
+                    // If we start on a page other than 0, fetch the top 3 separately
+                    const topData = await getLeaderboard('', 0, 3);
+                    setTop3(topData.content);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch leaderboard', error);
@@ -136,8 +142,8 @@ export const LeaderboardPage: React.FC = () => {
                     <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
                 </div>
 
-                {/* Show podium only if no search filter and on page 0 */}
-                {page === 0 && search.trim() === '' && renderPodium()}
+                {/* Show podium only if no search filter */}
+                {search.trim() === '' && renderPodium()}
 
                 {/* Table Container */}
                 <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 w-full mb-8 relative z-10">
