@@ -69,7 +69,7 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
             return ContestListResponse.builder()
                     .id(c.getId())
                     .title(c.getTitle())
-                    .status(c.getStatus().name())
+                    .status(c.getStatus() != null ? c.getStatus().name() : com.codegym.spring_boot.entity.enums.ContestStatus.upcoming.name())
                     .startTime(c.getStartTime())
                     .endTime(c.getEndTime())
                     .participantCount(contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(c.getId()))
@@ -143,7 +143,7 @@ leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardR
                     .totalScore(p.getTotalScore())
                     .totalPenalty(p.getTotalPenalty())
                     .acRate(Math.round(acRate * 100.0) / 100.0)
-                    .status(p.getStatus().name())
+                    .status(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name())
                     .isCameraViolating(p.getIsCameraViolating())
                     .build());
 
@@ -161,7 +161,7 @@ leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardR
                         .fullname(sub.getUser().getFullName() != null ? sub.getUser().getFullName() : sub.getUser().getUsername())
                         .problemId(sub.getProblem().getId())
                         .problemTitle(sub.getProblem().getTitle())
-                        .status(sub.getStatus().name())
+                        .status(sub.getStatus() != null ? sub.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                         .score(sub.getScore())
                         .submittedAt(sub.getCreatedAt().toString())
                         .build())
@@ -171,7 +171,7 @@ leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardR
                 .activeParticipantsCount(activeParticipantsCount)
                 .totalSubmissionsCount(totalSubmissionsCount)
                 .remainingTimeSeconds(remainingTimeSeconds)
-                .status(contest.getStatus().name())
+                .status(contest.getStatus() != null ? contest.getStatus().name() : com.codegym.spring_boot.entity.enums.ContestStatus.upcoming.name())
                 .startTime(contest.getStartTime() != null ? contest.getStartTime().toString() : null)
                 .endTime(contest.getEndTime() != null ? contest.getEndTime().toString() : null)
                 .leaderboard(leaderboard)
@@ -219,7 +219,7 @@ leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardR
                     .totalScore(p.getTotalScore())
                     .totalPenalty(p.getTotalPenalty())
                     .acRate(Math.round(acRate * 100.0) / 100.0)
-                    .status(p.getStatus().name())
+                    .status(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name())
                     .isCameraViolating(p.getIsCameraViolating())
                     .build());
 

@@ -172,7 +172,7 @@ public class AdminDashboardService implements IAdminDashboardService {
             .map(c -> new ActiveContestDTO(
                 c.getId(),
                 c.getTitle(),
-                c.getStatus().name(),
+                (c.getStatus() != null ? c.getStatus().name() : com.codegym.spring_boot.entity.enums.ContestStatus.upcoming.name()),
                 c.getStartTime(),
                 c.getEndTime(),
                 participantRepository.countByIdContestId(c.getId()),

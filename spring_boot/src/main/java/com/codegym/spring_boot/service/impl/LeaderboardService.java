@@ -177,7 +177,7 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setUserId(uid);
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
-            dto.setStatus(p.getStatus().name());
+            dto.setStatus(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name());
             if (p.getUser().getProfile() != null) {
                 dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
             }

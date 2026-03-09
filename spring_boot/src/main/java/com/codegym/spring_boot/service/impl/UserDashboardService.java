@@ -121,7 +121,7 @@ public class UserDashboardService implements IUserDashboardService {
                                                 .id(sub.getId())
                                                 .problemTitle(sub.getProblem().getTitle())
                                                 .problemId(sub.getProblem().getId())
-                                                .status(sub.getStatus().name())
+                                                .status(sub.getStatus() != null ? sub.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                                 .language(sub.getLanguage().getName())
                                                 .executionTime(sub.getExecutionTime() != null
                                                                 ? sub.getExecutionTime().longValue()

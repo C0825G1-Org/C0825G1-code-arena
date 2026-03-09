@@ -87,8 +87,8 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                 if (!discussion.getUser().getId().equals(userId)) {
                         // Check nếu không phải Mod/Admin
                         User user = userRepository.findById(userId).orElseThrow();
-                        if (!user.getRole().name().equalsIgnoreCase("ADMIN")
-                                        && !user.getRole().name().equalsIgnoreCase("MODERATOR")) {
+                        if (!"ADMIN".equalsIgnoreCase(user.getRole() != null ? user.getRole().name() : "")
+                                        && !"MODERATOR".equalsIgnoreCase(user.getRole() != null ? user.getRole().name() : "")) {
                                 throw new RuntimeException("You don't have permission to delete this discussion");
                         }
                 }

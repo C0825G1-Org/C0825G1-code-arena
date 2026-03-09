@@ -163,7 +163,7 @@ public class AdminUserService implements IAdminUserService {
                 .username(u.getUsername())
                 .fullName(u.getFullName())
                 .email(u.getEmail())
-                .role(u.getRole().name())
+                .role(u.getRole() != null ? u.getRole().name() : com.codegym.spring_boot.entity.enums.UserRole.user.name())
                 .createdAt(u.getCreatedAt() != null ? u.getCreatedAt().format(DATE_FMT) : "—")
                 .isLocked(Boolean.TRUE.equals(u.getIsLocked()))
                 .isDeleted(Boolean.TRUE.equals(u.getIsDeleted()))

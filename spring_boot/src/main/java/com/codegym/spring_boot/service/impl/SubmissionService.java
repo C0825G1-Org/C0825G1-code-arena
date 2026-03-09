@@ -142,7 +142,7 @@ public class SubmissionService implements ISubmissionService {
 
                 return SubmissionResultDTO.builder()
                                 .submissionId(submission.getId().longValue())
-                                .status(submission.getStatus().name())
+                                .status(submission.getStatus() != null ? submission.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .executionTime(submission.getExecutionTime().longValue())
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
@@ -182,7 +182,7 @@ public class SubmissionService implements ISubmissionService {
                         SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                         .submissionId(msg.getSubmissionId())
                                         .problemId(submission.getProblem().getId())
-                                        .status(finalStatus.name())
+                                        .status(finalStatus != null ? finalStatus.name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                         .build();
                         notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
                         return;
@@ -298,7 +298,7 @@ public class SubmissionService implements ISubmissionService {
                                 .submissionId(msg.getSubmissionId())
                                 .problemId(submission.getProblem().getId())
                                 .contestId(submission.getContest() != null ? submission.getContest().getId() : null)
-                                .status(finalStatus.name())
+                                .status(finalStatus != null ? finalStatus.name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .executionTime(submission.getExecutionTime().longValue())
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
@@ -316,7 +316,7 @@ public class SubmissionService implements ISubmissionService {
                                         .fullname(submission.getUser().getFullName() != null ? submission.getUser().getFullName() : submission.getUser().getUsername())
                                         .problemId(submission.getProblem().getId())
                                         .problemTitle(submission.getProblem().getTitle())
-                                        .status(finalStatus.name())
+                                        .status(finalStatus != null ? finalStatus.name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                         .score(submission.getScore())
                                         .submittedAt(submission.getCreatedAt().toString())
                                         .build();
@@ -427,7 +427,7 @@ public class SubmissionService implements ISubmissionService {
 
                 return submissions.stream().map(sub -> SubmissionHistoryDTO.builder()
                                 .id(sub.getId())
-                                .status(sub.getStatus().name())
+                                .status(sub.getStatus() != null ? sub.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .executionTime(sub.getExecutionTime())
                                 .memoryUsed(sub.getMemoryUsed())
                                 .score(sub.getScore())
@@ -487,7 +487,7 @@ public class SubmissionService implements ISubmissionService {
 
                                         return TestCaseResultDetailDTO.builder()
                                                         .id(tr.getId())
-                                                        .status(tr.getStatus().name())
+                                                        .status(tr.getStatus() != null ? tr.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.RE.name())
                                                         .executionTime(tr.getExecutionTime() != null
                                                                         ? tr.getExecutionTime()
                                                                         : 0)
@@ -513,7 +513,7 @@ public class SubmissionService implements ISubmissionService {
 
                 return SubmissionDetailDTO.builder()
                                 .id(submission.getId())
-                                .status(submission.getStatus().name())
+                                .status(submission.getStatus() != null ? submission.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .score(submission.getScore())
                                 .maxScore(maxScoreVal)
                                 .executionTime(submission.getExecutionTime())
