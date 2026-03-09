@@ -105,7 +105,7 @@ export const ProfilePage: React.FC = () => {
     return (
         <UserLayout>
             <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl w-full flex flex-col md:flex-row gap-8">
-                <ProfileSidebar profile={profile} />
+                <ProfileSidebar profile={profile} stats={stats} />
 
                 <div className="w-full md:w-2/3 xl:w-3/4 space-y-6">
                     <ProfileStatsPanel stats={stats} />

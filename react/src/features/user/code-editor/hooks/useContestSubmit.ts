@@ -116,7 +116,7 @@ export const useContestSubmit = ({
                 setIsConfirmExitOpen(true);
             }
         } else {
-            navigate('/contests');
+            navigate('/problems');
         }
     };
 

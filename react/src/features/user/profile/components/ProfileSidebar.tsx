@@ -1,13 +1,15 @@
 import React from 'react';
-import { UserProfileResponse } from '../services/profileService';
+import { UserProfileResponse, UserStats } from '../services/profileService';
 import { Link } from 'react-router-dom';
 import { Avatar } from '../../../../shared/components/Avatar';
+import RankProgression from './RankProgression';
 
 interface Props {
     profile?: UserProfileResponse;
+    stats?: UserStats;
 }
 
-const ProfileSidebar: React.FC<Props> = ({ profile }) => {
+const ProfileSidebar: React.FC<Props> = ({ profile, stats }) => {
     const joinDate = profile?.createdAt
         ? new Date(profile.createdAt).toLocaleDateString("vi-VN")
         : "...";
@@ -38,6 +40,10 @@ const ProfileSidebar: React.FC<Props> = ({ profile }) => {
                 <p className="text-sm text-slate-400 mb-6 italic">
                     {profile?.bio ? `"${profile.bio}"` : "Chưa cập nhật tiểu sử."}
                 </p>
+
+                <div className="w-full mb-6">
+                    <RankProgression rating={stats?.eloRanking || 0} />
+                </div>
 
                 <Link
                     to="/settings"
