@@ -129,7 +129,7 @@ export const SnapshotViewerModal: React.FC<SnapshotViewerModalProps> = ({ isOpen
                                                 The imageUrl from backend is likely /uploads/snapshots/xxx.jpg
                                             */}
                                             <img
-                                                src={`http://localhost:8080${snapshot.imageUrl}`}
+                                                src={snapshot.imageUrl.startsWith('http') ? snapshot.imageUrl : `http://localhost:8080${snapshot.imageUrl}`}
                                                 alt={`Snapshot ${snapshot.id}`}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                 loading="lazy"
