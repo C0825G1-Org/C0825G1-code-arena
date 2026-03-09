@@ -48,6 +48,14 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "global_rating")
     private Integer globalRating = 0;
 
+    @Column(name = "is_contest_chat_locked")
+    @Builder.Default
+    private Boolean isContestChatLocked = false;
+
+    @Column(name = "is_discussion_locked")
+    @Builder.Default
+    private Boolean isDiscussionLocked = false;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     private Profile profile;
