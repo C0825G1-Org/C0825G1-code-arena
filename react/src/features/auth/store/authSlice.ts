@@ -7,6 +7,8 @@ export interface User {
     email: string;
     role: string;
     avatarUrl?: string;
+    isContestChatLocked?: boolean;
+    isDiscussionLocked?: boolean;
 }
 
 interface AuthState {
@@ -39,8 +41,18 @@ export const authSlice = createSlice({
             localStorage.removeItem('user');
             localStorage.removeItem('token');
         },
+        updateLockStatus: (state, action: PayloadAction<{ type: 'chat' | 'discussion'; locked: boolean }>) => {
+            if (state.user) {
+                if (action.payload.type === 'chat') {
+                    state.user.isContestChatLocked = action.payload.locked;
+                } else if (action.payload.type === 'discussion') {
+                    state.user.isDiscussionLocked = action.payload.locked;
+                }
+                localStorage.setItem('user', JSON.stringify(state.user));
+            }
+        },
     },
 });
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess, logout, updateLockStatus } = authSlice.actions;
 export default authSlice.reducer;

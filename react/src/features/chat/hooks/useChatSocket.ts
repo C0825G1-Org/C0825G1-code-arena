@@ -2,9 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { ChatMessage } from '../services/chatService';
 
-export const useChatSocket = (contestId: number, onNewMessage: (msg: ChatMessage) => void) => {
+export const useChatSocket = (
+    contestId: number,
+    onNewMessage: (msg: ChatMessage) => void,
+    onChatError?: (error: string) => void
+) => {
     const socketRef = useRef<Socket | null>(null);
     const [connected, setConnected] = useState(false);
+    const errorCallbackRef = useRef(onChatError);
+
+    useEffect(() => {
+        errorCallbackRef.current = onChatError;
+    }, [onChatError]);
 
     useEffect(() => {
         let token = '';
@@ -52,6 +61,9 @@ export const useChatSocket = (contestId: number, onNewMessage: (msg: ChatMessage
 
         socket.on('chat_error', (error: string) => {
             console.error('Chat Error:', error);
+            if (errorCallbackRef.current) {
+                errorCallbackRef.current(error);
+            }
         });
 
         return () => {

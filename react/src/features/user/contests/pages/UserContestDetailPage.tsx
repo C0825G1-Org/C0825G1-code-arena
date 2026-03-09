@@ -426,7 +426,19 @@ export const UserContestDetailPage = () => {
 
                 {/* Integration of Group Chat */}
                 {(userIsRegistered || isModerator) && user && (contest.status === 'upcoming' || contest.status === 'finished' || isModerator) && (
-                    <GroupChat contestId={Number(id)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName }} />
+                    <GroupChat
+                        contestId={Number(id)}
+                        currentUser={{
+                            id: user.id,
+                            username: user.username,
+                            fullName: user.fullName,
+                            role: user.role,
+                            isContestChatLocked: user.isContestChatLocked
+                        }}
+                        contestTitle={contest?.title}
+                        contestStatus={contest.status}
+                        endTime={contest.endTime}
+                    />
                 )}
             </main>
         </UserLayout>

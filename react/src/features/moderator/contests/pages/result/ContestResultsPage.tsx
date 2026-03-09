@@ -3,13 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ModeratorLayout } from '../../../components/ModeratorLayout';
 import {
     ArrowLeft, Trophy, UsersThree, WarningCircle, ListNumbers, Star, Clock,
-    Medal, ChartBar, Target, Timer, CheckCircle, XCircle as XCircleIcon, Crown
+    Medal, ChartBar, Target, Timer, CheckCircle, XCircle as XCircleIcon, Crown, ChatCircleDots
 } from '@phosphor-icons/react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import axiosClient from '../../../../../shared/services/axiosClient';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../app/store';
 import { AdminLayout } from '../../../../admin/components/AdminLayout';
+import { GroupChat } from '../../../../chat/components/GroupChat';
+import { chatService, ChatMessage } from '../../../../chat/services/chatService';
+import dayjs from 'dayjs';
 
 /* ────── Types ────── */
 interface Problem {
@@ -64,7 +67,99 @@ const diffMs = (a: string, b: string) => {
 };
 
 const MEDAL_COLORS = ['#FFD700', '#C0C0C0', '#CD7F32'] as const;
+
 const BAND_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'];
+
+/* ────── Components ────── */
+const ChatSection = ({ contestId, contestStatus, endTime, user, contestTitle }: any) => {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [showChatWindow, setShowChatWindow] = useState(true);
+
+    useEffect(() => {
+        if (contestStatus?.toLowerCase() === 'finished' && endTime) {
+            const calculateTimeLeft = () => {
+                const end = new Date(endTime).getTime();
+                const now = new Date().getTime();
+                const diffSeconds = Math.floor((now - end) / 1000);
+
+                if (diffSeconds >= 900) {
+                    setShowChatWindow(false);
+                } else {
+                    setShowChatWindow(true);
+                }
+            };
+            calculateTimeLeft();
+            const timer = setInterval(calculateTimeLeft, 1000);
+            return () => clearInterval(timer);
+        } else {
+            setShowChatWindow(true);
+        }
+    }, [contestStatus, endTime]);
+
+    useEffect(() => {
+        if (!showChatWindow) {
+            const fetchHistory = async () => {
+                try {
+                    const history = await chatService.getHistory(contestId);
+                    setMessages(Array.isArray(history) ? history : []);
+                } catch (error) {
+                    console.error("Failed to fetch chat history", error);
+                }
+            };
+            fetchHistory();
+        }
+    }, [contestId, showChatWindow]);
+
+    if (showChatWindow) {
+        return (
+            <GroupChat
+                contestId={contestId}
+                currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }}
+                contestTitle={contestTitle}
+                contestStatus={contestStatus}
+                endTime={endTime}
+            />
+        );
+    }
+
+    return (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden mt-8 shadow-xl">
+            <div className="p-4 border-b border-slate-800 bg-slate-800/50">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <ChatCircleDots className="text-blue-500" size={24} weight="fill" />
+                    Lịch sử trò chuyện
+                </h3>
+            </div>
+            <div className="p-6 h-[400px] overflow-y-auto space-y-4 scrollbar-thin scrollbar-thumb-slate-700">
+                {messages.length === 0 ? (
+                    <div className="text-center text-slate-500 py-10">Danh sách tin nhắn trống</div>
+                ) : (
+                    messages.map((msg, idx) => {
+                        const isMe = msg.senderId === user.id;
+                        const showName = idx === 0 || messages[idx - 1].senderId !== msg.senderId;
+
+                        return (
+                            <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                                {showName && !isMe && (
+                                    <span className="text-xs text-slate-400 mb-1 ml-1">{msg.senderName}</span>
+                                )}
+                                <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                                    <div className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-700 bg-slate-800 flex items-center justify-center`}>
+                                        <img src={msg.senderAvatar || `https://i.pravatar.cc/150?u=${msg.senderId}`} alt={msg.senderName} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-blue-600/90 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700'}`}>
+                                        {msg.content}
+                                    </div>
+                                </div>
+                                <span className="text-[10px] text-slate-500 mt-1 mx-1">{dayjs(msg.timestamp).format('DD/MM/YYYY HH:mm')}</span>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+        </div>
+    );
+};
 
 /* ────── Component ────── */
 export const ContestResultsPage = () => {
@@ -73,7 +168,6 @@ export const ContestResultsPage = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
     const backPath = isAdmin ? '/admin/contests' : '/moderator/contests';
-
     const [contest, setContest] = useState<ContestDetails | null>(null);
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -522,6 +616,19 @@ export const ContestResultsPage = () => {
                     </table>
                 </div>
             </div>
+
+            {/* Chat integration */}
+            {user && contest && (
+                <div className="mt-8">
+                    <ChatSection
+                        contestId={Number(id)}
+                        contestStatus={contest.status}
+                        endTime={contest.endTime}
+                        user={user}
+                        contestTitle={contest.title}
+                    />
+                </div>
+            )}
         </div>
     );
 

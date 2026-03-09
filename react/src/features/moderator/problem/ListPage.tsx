@@ -6,6 +6,7 @@ import { ModeratorLayout } from '../components/ModeratorLayout';
 import { problemApi, ProblemResponseDTO } from '../services/problemApi';
 import { DeleteModal } from './DeleteModal';
 import { RootState } from '../../../app/store';
+import { DiscussionModal } from './DiscussionModal';
 
 export const ListPage = () => {
     const navigate = useNavigate();
@@ -24,6 +25,11 @@ export const ListPage = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [problemToDelete, setProblemToDelete] = useState<ProblemResponseDTO | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Discussion Modal state
+    const [discussionModalOpen, setDiscussionModalOpen] = useState(false);
+    const [selectedProblemId, setSelectedProblemId] = useState<number | null>(null);
+    const [selectedProblemTitle, setSelectedProblemTitle] = useState<string | null>(null);
 
     const handleDeleteConfirm = async () => {
         if (!problemToDelete) return;
@@ -50,8 +56,12 @@ export const ListPage = () => {
                     problemApi.getProblems(true),
                     problemApi.getDifficulties()
                 ]);
-                
-                setProblems(problemsData);
+                // Filter problems: Admins see all, Moderators see only their own
+                const filteredProblems = problemsData.filter(prob =>
+                    currentUser?.role === 'admin' || prob.authorId === currentUser?.id
+                );
+
+                setProblems(filteredProblems);
                 setDifficulties(difficultiesData);
             } catch (err: any) {
                 setError('Lỗi khi tải dữ liệu. Vui lòng thử lại sau.');
@@ -98,7 +108,7 @@ export const ListPage = () => {
         <ModeratorLayout headerTitle="Quản Lý Bài Tập">
             {/* Header Title inside Content Area replacing the generic header */}
             <div className="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
-                
+
                 <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4 mb-6">
                     {/* Search & Filter */}
                     <div className="flex flex-wrap gap-4">
@@ -189,6 +199,17 @@ export const ListPage = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right flex justify-end gap-2 whitespace-nowrap">
                                         <button
+                                            onClick={() => {
+                                                setSelectedProblemId(prob.id);
+                                                setSelectedProblemTitle(prob.title);
+                                                setDiscussionModalOpen(true);
+                                            }}
+                                            className="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
+                                            title="Xem thảo luận"
+                                        >
+                                            <i className="ph-bold ph-chat-circle-dots"></i>
+                                        </button>
+                                        <button
                                             onClick={() => navigate('/moderator/testcases', { state: { problemId: prob.id } })}
                                             className="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 relative tooltip"
                                             title="Chỉnh sửa Tests"
@@ -248,7 +269,7 @@ export const ListPage = () => {
                                 >
                                     Trang trước
                                 </button>
-                                
+
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                                     <button
                                         key={number}
@@ -280,6 +301,16 @@ export const ListPage = () => {
                 title="Xác nhận Xóa Bài Tập"
                 description={`Bạn có thực sự muốn xóa bài tập "${problemToDelete?.title}"? Hành động này sẽ không thể khôi phục.`}
                 isDeleting={isDeleting}
+            />
+            <DiscussionModal
+                isOpen={discussionModalOpen}
+                onClose={() => {
+                    setDiscussionModalOpen(false);
+                    setSelectedProblemId(null);
+                    setSelectedProblemTitle(null);
+                }}
+                problemId={selectedProblemId}
+                problemTitle={selectedProblemTitle}
             />
         </ModeratorLayout>
     );

@@ -9,13 +9,21 @@ export interface ChatMessage {
     content: string;
     timestamp: string;
     isSystem: boolean;
+    userIsChatLocked?: boolean;
 }
 
 const CHAT_API_URL = '/chat';
+const MODERATOR_API_URL = '/moderator/dashboard';
 
 export const chatService = {
     getHistory: async (contestId: number): Promise<ChatMessage[]> => {
         const response: any = await axiosInstance.get(`${CHAT_API_URL}/${contestId}/history`);
-        return response; // axiosClient interceptor đã trả về response.data rồi
+        return response;
+    },
+
+    toggleUserLock: async (userId: number, type: 'chat' | 'discussion', locked: boolean): Promise<void> => {
+        await axiosInstance.put(`${MODERATOR_API_URL}/users/${userId}/lock`, null, {
+            params: { type, locked }
+        });
     }
 };

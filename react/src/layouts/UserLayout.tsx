@@ -2,9 +2,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../app/store';
-import { logout } from '../features/auth/store/authSlice';
+import { logout, updateLockStatus } from '../features/auth/store/authSlice';
 import { userDashboardService, UserStats } from '../features/user/home/services/userDashboardService';
 import { NotificationBell } from '../shared/components/NotificationBell';
+import { useSocket } from '../shared/hooks/useSocket';
+import { toast } from 'react-hot-toast';
 import {
     Code,
     SignOut,
@@ -96,7 +98,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                             </div>
                         </div>
                         <img
-                            src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
+                            src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id || 1}`}
                             alt="Avatar"
                             className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover"
                         />

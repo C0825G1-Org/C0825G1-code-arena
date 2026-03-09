@@ -24,4 +24,5 @@ public class ChatMessage {
     private String content;
     private LocalDateTime timestamp;
     private boolean isSystem;
+    private Boolean userIsChatLocked;
 }

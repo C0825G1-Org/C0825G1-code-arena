@@ -10,6 +10,7 @@ import { RootState } from '../../../../app/store';
 import { AdminLayout } from '../../../admin/components/AdminLayout';
 import { ModeratorLayout } from '../../components/ModeratorLayout';
 import { ArrowLeft } from '@phosphor-icons/react';
+import { GroupChat } from '../../../chat/components/GroupChat';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
@@ -18,7 +19,6 @@ export const MonitorPanelPage = () => {
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
     const backPath = isAdmin ? '/admin/contests' : '/moderator/contests';
     const resultsPath = `/moderator/contests/${id}/results`;
-
     const socket: any = useSocket();
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -26,7 +26,10 @@ export const MonitorPanelPage = () => {
     const [stats, setStats] = useState({
         activeParticipantsCount: 0,
         totalSubmissionsCount: 0,
-        remainingTimeSeconds: 0
+        remainingTimeSeconds: 0,
+        remainingStartTimeSeconds: 0,
+        status: 'UNKNOWN',
+        endTime: undefined as string | undefined
     });
 
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -204,7 +207,16 @@ export const MonitorPanelPage = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setStats(s => {
-                if (s.remainingTimeSeconds > 0) {
+                if (s.status === 'upcoming' && s.remainingStartTimeSeconds > 0) {
+                    if (s.remainingStartTimeSeconds === 1) {
+                        toast.success('Cuộc thi đã bắt đầu!', { icon: '🔥' });
+                        // Chờ một chút rồi reload data để chuyển trạng thái sang ACTIVE
+                        setTimeout(() => fetchInitialData(), 2000);
+                    }
+                    return { ...s, remainingStartTimeSeconds: s.remainingStartTimeSeconds - 1 };
+                }
+
+                if (s.status === 'active' && s.remainingTimeSeconds > 0) {
                     if (s.remainingTimeSeconds === 1) {
                         toast.success('Cuộc thi đã kết thúc! Đang chuyển sang màn hình thống kê kết quả.', { icon: '🏁' });
                         setTimeout(() => navigate(resultsPath), 3000);
@@ -221,10 +233,20 @@ export const MonitorPanelPage = () => {
         try {
             setLoading(true);
             const res: any = await axiosClient.get(`/moderator/dashboard/contests/${id}/monitor`);
+
+            let startCountdown = 0;
+            if (res.status?.toLowerCase() === 'upcoming' && res.startTime) {
+                const diff = (new Date(res.startTime).getTime() - new Date().getTime()) / 1000;
+                startCountdown = diff > 0 ? Math.floor(diff) : 0;
+            }
+
             setStats({
-                activeParticipantsCount: res.activeParticipantsCount,
-                totalSubmissionsCount: res.totalSubmissionsCount,
-                remainingTimeSeconds: res.remainingTimeSeconds
+                activeParticipantsCount: res.activeParticipantsCount || 0,
+                totalSubmissionsCount: res.totalSubmissionsCount || 0,
+                remainingTimeSeconds: res.remainingTimeSeconds || 0,
+                remainingStartTimeSeconds: startCountdown,
+                status: res.status?.toLowerCase() || 'unknown',
+                endTime: res.endTime
             });
             setFeed(res.recentSubmissions || []);
         } catch (error) {
@@ -412,14 +434,26 @@ export const MonitorPanelPage = () => {
                     </div>
                 </div>
 
-                <div className={`bg-gradient-to-br border rounded-2xl p-6 flex flex-col justify-between ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'from-amber-500/10 to-rose-500/5 border-amber-500/30' : 'from-emerald-500/10 to-teal-500/5 border-emerald-500/20'}`}>
+                <div className={`bg-gradient-to-br border rounded-2xl p-6 flex flex-col justify-between ${stats.status === 'upcoming' ? 'from-purple-500/10 to-indigo-500/5 border-purple-500/30' :
+                    (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'from-amber-500/10 to-rose-500/5 border-amber-500/30' : 'from-emerald-500/10 to-teal-500/5 border-emerald-500/20')
+                    }`}>
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className={`font-medium text-sm mb-1 uppercase tracking-wider ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400' : 'text-emerald-400/80'}`}>Thời gian còn lại</p>
-                            <h3 className="text-4xl font-bold text-white font-mono">{formatTime(stats.remainingTimeSeconds)}</h3>
+                            <p className={`font-medium text-sm mb-1 uppercase tracking-wider ${stats.status === 'upcoming' ? 'text-purple-400' :
+                                (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400' : 'text-emerald-400/80')
+                                }`}>
+                                {stats.status === 'upcoming' ? 'Bắt đầu sau' : 'Thời gian còn lại'}
+                            </p>
+                            <h3 className="text-4xl font-bold text-white font-mono">
+                                {stats.status === 'upcoming' ? formatTime(stats.remainingStartTimeSeconds) : formatTime(stats.remainingTimeSeconds)}
+                            </h3>
                         </div>
-                        <div className={`p-3 rounded-xl ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'bg-amber-500/20' : 'bg-emerald-500/20'}`}>
-                            <i className={`ph-fill ph-clock text-2xl ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400'}`}></i>
+                        <div className={`p-3 rounded-xl ${stats.status === 'upcoming' ? 'bg-purple-500/20' :
+                            (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'bg-amber-500/20' : 'bg-emerald-500/20')
+                            }`}>
+                            <i className={`ph-fill ${stats.status === 'upcoming' ? 'ph-hourglass-high text-purple-400' : 'ph-clock'} text-2xl ${stats.status === 'upcoming' ? 'animate-pulse' :
+                                (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400')
+                                }`}></i>
                         </div>
                     </div>
                 </div>
@@ -563,9 +597,13 @@ export const MonitorPanelPage = () => {
                             <div key={log.submissionId + "-" + i} className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 p-4 rounded-xl transition-all animate-slide-up group">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
-                                            {log.fullname?.substring(0, 2).toUpperCase()}
-                                        </span>
+                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-blue-500/30">
+                                            <img
+                                                src={log.userAvatar || `https://i.pravatar.cc/150?u=${log.userId || 1}`}
+                                                alt={log.username}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
                                         <div>
                                             <p className="text-sm font-medium text-white leading-tight">{log.fullname}</p>
                                             <span className="text-xs text-slate-500">{new Date(log.submittedAt).toLocaleTimeString()}</span>
@@ -726,9 +764,25 @@ export const MonitorPanelPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* CHAT DÀNH CHO GIÁM THỊ */}
+            {user && id && (
+                <GroupChat
+                    contestId={Number(id)}
+                    currentUser={{
+                        id: user.id,
+                        username: user.username,
+                        fullName: user.fullName || '',
+                        role: user.role,
+                        isContestChatLocked: user.isContestChatLocked
+                    }}
+                    contestTitle={`Phòng thi ${id}`}
+                    contestStatus={stats.status}
+                    endTime={stats.endTime}
+                />
+            )}
         </div>
     );
-
     if (isAdmin) {
         return (
             <AdminLayout title={`Live Monitor #${id}`} activeTab="contests">

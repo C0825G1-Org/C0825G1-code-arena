@@ -1,17 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {Link, NavLink, Outlet, useNavigate} from 'react-router-dom';
-import {useSelector, useDispatch} from 'react-redux';
-import {RootState} from '../../../app/store';
-import {logout} from '../../auth/store/authSlice';
-import {userDashboardService, UserStats} from "../../user/home/services/userDashboardService";
-import {Bell, ShieldStar} from "@phosphor-icons/react";
+import React, { useEffect, useState } from 'react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../../app/store';
+import { logout } from '../../auth/store/authSlice';
+import { userDashboardService, UserStats } from "../../user/home/services/userDashboardService";
+import { Bell, ShieldStar } from "@phosphor-icons/react";
 
 interface ModeratorLayoutProps {
     children?: React.ReactNode;
     headerTitle?: React.ReactNode;
 }
 
-export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) => {
+export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps) => {
     const user = useSelector((state: RootState) => state.auth.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -57,7 +57,7 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
 
                     <NavLink
                         to="/moderator/dashboard"
-                        className={({isActive}) =>
+                        className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
                                 ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
                                 : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
@@ -68,7 +68,7 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                     </NavLink>
                     <NavLink
                         to="/moderator/problems"
-                        className={({isActive}) =>
+                        className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive || window.location.pathname.includes('/moderator/problems')
                                 ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
                                 : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
@@ -79,7 +79,7 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                     </NavLink>
                     <NavLink
                         to="/moderator/testcases"
-                        className={({isActive}) =>
+                        className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
                                 ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
                                 : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
@@ -90,7 +90,7 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                     </NavLink>
                     <NavLink
                         to="/moderator/contests"
-                        className={({isActive}) =>
+                        className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
                                 ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
                                 : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
@@ -99,28 +99,29 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                     >
                         <i className="ph-duotone ph-trophy text-xl"></i> Quản lý kỳ thi
                     </NavLink>
-                    {/*<NavLink*/}
-                    {/*    to="/moderator/submissions"*/}
-                    {/*    className={({isActive}) =>*/}
-                    {/*        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive*/}
-                    {/*            ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'*/}
-                    {/*            : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'*/}
-                    {/*        }`*/}
-                    {/*    }*/}
-                    {/*>*/}
-                    {/*    <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử chấm bài*/}
-                    {/*</NavLink>*/}
-                    {/*<NavLink*/}
-                    {/*    to="/moderator/candidates"*/}
-                    {/*    className={({isActive}) =>*/}
-                    {/*        `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive*/}
-                    {/*            ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'*/}
-                    {/*            : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'*/}
-                    {/*        }`*/}
-                    {/*    }*/}
-                    {/*>*/}
-                    {/*    <i className="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh*/}
-                    {/*</NavLink>*/}
+                    <NavLink
+                        to="/moderator/submissions"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            }`
+                        }
+                    >
+                        <i className="ph-duotone ph-list-dashes text-xl"></i> Lịch sử chấm bài
+                    </NavLink>
+
+                    <NavLink
+                        to="/moderator/candidates"
+                        className={({ isActive }) =>
+                            `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${isActive
+                                ? 'bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(59,130,246,0.39)]'
+                                : 'text-[#94a3b8] hover:bg-blue-500/10 hover:text-blue-400'
+                            }`
+                        }
+                    >
+                        <i className="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh
+                    </NavLink>
                 </nav>
             </aside>
 
@@ -145,7 +146,7 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
                             to='/home'
                             className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600/40 hover:text-blue-100 transition-all text-sm font-medium border border-blue-500/20"
                         >
-                            <ShieldStar weight="duotone" className="text-lg"/>
+                            <ShieldStar weight="duotone" className="text-lg" />
                             <span>HomePage</span>
                         </Link>
                         <Link
@@ -179,7 +180,7 @@ export const ModeratorLayout = ({children, headerTitle}: ModeratorLayoutProps) =
 
                 {/* Page Content injected via Outlet or children props */}
                 <div className="flex-1 overflow-y-auto bg-[#0f172a] relative flex flex-col min-h-0">
-                    {children || <Outlet/>}
+                    {children || <Outlet />}
                 </div>
             </main>
         </div>

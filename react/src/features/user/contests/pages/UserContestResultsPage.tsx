@@ -221,7 +221,13 @@ export const UserContestResultsPage = () => {
 
                 {/* Group Chat for Post-Contest */}
                 {user && (contest.status === 'upcoming' || contest.status === 'finished' || isModerator) && (
-                    <GroupChat contestId={Number(id)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName }} />
+                    <GroupChat
+                        contestId={Number(id)}
+                        currentUser={{ id: user.id, username: user.username, fullName: user.fullName }}
+                        contestTitle={contest?.title}
+                        contestStatus={contest.status}
+                        endTime={contest.endTime}
+                    />
                 )}
             </main>
         </UserLayout>

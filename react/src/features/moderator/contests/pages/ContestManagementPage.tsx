@@ -304,11 +304,11 @@ export const ContestManagementPage = () => {
                                             {contest.participantCount} / {contest.maxParticipants} <span className="text-slate-500 font-sans text-xs">thí sinh</span>
                                         </td>
                                         <td className="px-6 py-3 text-right space-x-1 whitespace-nowrap">
-                                            {contest.status === 'active' && (
+                                            {(contest.status === 'active' || contest.status === 'upcoming') && (
                                                 <Link
                                                     to={`/moderator/contests/${contest.id}/monitor`}
-                                                    className="inline-block p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors border border-emerald-500/20 tooltip"
-                                                    title="Monitor (Theo dõi diễn biến)"
+                                                    className={`inline-block p-1.5 rounded-lg transition-colors border tooltip ${contest.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20' : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border-purple-500/20'}`}
+                                                    title={contest.status === 'active' ? "Monitor (Theo dõi diễn biến)" : "Phòng chờ & Giám sát"}
                                                 >
                                                     <i className="ph-duotone ph-chart-line-up text-base"></i>
                                                 </Link>

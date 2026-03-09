@@ -9,6 +9,8 @@ import com.codegym.spring_boot.repository.ContestProblemRepository;
 import com.codegym.spring_boot.repository.ContestRepository;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
+import com.codegym.spring_boot.repository.UserRepository;
+import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.service.IModeratorDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,21 +41,24 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     private final SubmissionRepository submissionRepository;
     private final IProblemRepository problemRepository;
     private final ContestProblemRepository contestProblemRepository;
+    private final UserRepository userRepository;
+    private final com.codegym.spring_boot.service.NotificationService notificationService;
 
     @Override
     public ModeratorDashboardResponse getDashboardStats(Integer moderatorId) {
 
         long totalParticipants = contestParticipantRepository.countTotalParticipantsByModId(moderatorId);
         long totalContests = contestRepository.countByCreatedById(moderatorId);
-        
+
         LocalDateTime cutoff24h = LocalDateTime.now().minusDays(1);
         long submissionsLast24h = submissionRepository.countSubmissionsForModRecent(moderatorId, cutoff24h);
-        
+
         long pendingProblems = problemRepository.countPendingProblemsByCreator(moderatorId);
 
         Pageable top5Active = PageRequest.of(0, 5, Sort.by("startTime").descending());
-        Page<Contest> activeContestPage = contestRepository.findByCreatedByIdAndStatus(moderatorId, ContestStatus.active, top5Active);
-        
+        Page<Contest> activeContestPage = contestRepository.findByCreatedByIdAndStatus(moderatorId,
+                ContestStatus.active, top5Active);
+
         List<ContestListResponse> activeContests = activeContestPage.getContent().stream().map(c -> {
             Integer firstProblemId = null;
             var problems = contestProblemRepository.findByIdContestIdOrderByOrderIndexAsc(c.getId());
@@ -62,16 +67,16 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
             }
 
             return ContestListResponse.builder()
-                .id(c.getId())
-                .title(c.getTitle())
-                .status(c.getStatus().name())
-                .startTime(c.getStartTime())
-                .endTime(c.getEndTime())
-                .participantCount(contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(c.getId()))
-                .serverTime(LocalDateTime.now())
-                .isRegistered(false)
-                .firstProblemId(firstProblemId)
-                .build();
+                    .id(c.getId())
+                    .title(c.getTitle())
+                    .status(c.getStatus().name())
+                    .startTime(c.getStartTime())
+                    .endTime(c.getEndTime())
+                    .participantCount(contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(c.getId()))
+                    .serverTime(LocalDateTime.now())
+                    .isRegistered(false)
+                    .firstProblemId(firstProblemId)
+                    .build();
         }).collect(Collectors.toList());
 
         return ModeratorDashboardResponse.builder()
@@ -95,7 +100,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
         }
 
         // 1. Lấy tổng số người tham gia (chỉ đếm người đã vào thi)
-        int activeParticipantsCount = (int) contestParticipantRepository.countByContestIdAndHasJoinedActiveTrue(contestId);
+        int activeParticipantsCount = (int) contestParticipantRepository
+                .countByContestIdAndHasJoinedActiveTrue(contestId);
 
         // 2. Lấy tổng số lượt nộp bài thật (bỏ qua test run)
         int totalSubmissionsCount = submissionRepository.countByContestIdAndIsTestRunFalse(contestId);
@@ -108,25 +114,28 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
         }
 
         // 4. Lấy Top 5 Bảng xếp hạng (Leaderboard ban đầu)
-        List<com.codegym.spring_boot.entity.ContestParticipant> topParticipants =
-                contestParticipantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId)
-                        .stream().limit(5).collect(Collectors.toList());
+        List<com.codegym.spring_boot.entity.ContestParticipant> topParticipants = contestParticipantRepository
+                .findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId)
+                .stream().limit(5).collect(Collectors.toList());
 
         List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboard = new java.util.ArrayList<>();
         int rank = 1;
         for (var p : topParticipants) {
             String fullname = p.getUser().getFullName() != null ? p.getUser().getFullName() : p.getUser().getUsername();
-            
-            // Tính ACRate = Nộp trúng / Tổng Nộp (Cái này cần query thêm, tạm để 0.0 nếu chưa có hàm đếm, hoăc fetch lượt nộp của user)
-            // Tạm thời AC Rate = 0.0, sẽ bổ sung phương thức trong SubmissionRepository nếu cần thiết.
+
+            // Tính ACRate = Nộp trúng / Tổng Nộp (Cái này cần query thêm, tạm để 0.0 nếu
+            // chưa có hàm đếm, hoăc fetch lượt nộp của user)
+            // Tạm thời AC Rate = 0.0, sẽ bổ sung phương thức trong SubmissionRepository nếu
+            // cần thiết.
             double acRate = 0.0;
             long totalUserSubs = submissionRepository.countByUserIdAndContestId(p.getUser().getId(), contestId);
-            if(totalUserSubs > 0){
-                long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(p.getUser().getId(), contestId, com.codegym.spring_boot.entity.enums.SubmissionStatus.AC);
+            if (totalUserSubs > 0) {
+                long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(p.getUser().getId(),
+                        contestId, com.codegym.spring_boot.entity.enums.SubmissionStatus.AC);
                 acRate = (double) acUserSubs / totalUserSubs * 100.0;
             }
 
-            leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
+leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
                     .rank(rank++)
                     .userId(p.getUser().getId().longValue())
                     .username(p.getUser().getUsername())
@@ -137,14 +146,17 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                     .status(p.getStatus().name())
                     .isCameraViolating(p.getIsCameraViolating())
                     .build());
+
         }
 
         // 5. Lấy 50 lượt nộp bài gần nhất để làm Feed (Live Log), bỏ qua test run
         Pageable top50 = PageRequest.of(0, 50, Sort.by("createdAt").descending());
         List<com.codegym.spring_boot.entity.Submission> recentSubs = submissionRepository.findByContestIdAndIsTestRunFalseOrderByCreatedAtDesc(contestId, top50).getContent();
 
-        List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog> recentSubmissions = recentSubs.stream().map(sub ->
-                com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog.builder()
+        List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog> recentSubmissions = recentSubs
+                .stream()
+                .map(sub -> com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog
+                        .builder()
                         .submissionId(sub.getId())
                         .fullname(sub.getUser().getFullName() != null ? sub.getUser().getFullName() : sub.getUser().getUsername())
                         .problemId(sub.getProblem().getId())
@@ -152,13 +164,16 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                         .status(sub.getStatus().name())
                         .score(sub.getScore())
                         .submittedAt(sub.getCreatedAt().toString())
-                        .build()
-        ).collect(Collectors.toList());
+                        .build())
+                .collect(Collectors.toList());
 
         return com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.builder()
                 .activeParticipantsCount(activeParticipantsCount)
                 .totalSubmissionsCount(totalSubmissionsCount)
                 .remainingTimeSeconds(remainingTimeSeconds)
+                .status(contest.getStatus().name())
+                .startTime(contest.getStartTime() != null ? contest.getStartTime().toString() : null)
+                .endTime(contest.getEndTime() != null ? contest.getEndTime().toString() : null)
                 .leaderboard(leaderboard)
                 .recentSubmissions(recentSubmissions)
                 .build();
@@ -174,27 +189,29 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     }
 
     @Override
-    public Page<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> getPaginatedMonitorLeaderboard(Integer contestId, int page, int size) {
+    public Page<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> getPaginatedMonitorLeaderboard(
+            Integer contestId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<com.codegym.spring_boot.entity.ContestParticipant> participantPage =
-                contestParticipantRepository.findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId, pageable);
+        Page<com.codegym.spring_boot.entity.ContestParticipant> participantPage = contestParticipantRepository
+                .findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId, pageable);
 
         List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboard = new java.util.ArrayList<>();
-        
+
         // Calculate rank offset correctly
         int rank = page * size + 1;
-        
+
         for (var p : participantPage.getContent()) {
             String fullname = p.getUser().getFullName() != null ? p.getUser().getFullName() : p.getUser().getUsername();
-            
+
             double acRate = 0.0;
             long totalUserSubs = submissionRepository.countByUserIdAndContestId(p.getUser().getId(), contestId);
-            if(totalUserSubs > 0){
-                long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(p.getUser().getId(), contestId, com.codegym.spring_boot.entity.enums.SubmissionStatus.AC);
+            if (totalUserSubs > 0) {
+                long acUserSubs = submissionRepository.countByUserIdAndContestIdAndStatus(p.getUser().getId(),
+                        contestId, com.codegym.spring_boot.entity.enums.SubmissionStatus.AC);
                 acRate = (double) acUserSubs / totalUserSubs * 100.0;
             }
 
-            leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
+leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
                     .rank(rank++)
                     .userId(p.getUser().getId().longValue())
                     .username(p.getUser().getUsername())
@@ -205,8 +222,9 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                     .status(p.getStatus().name())
                     .isCameraViolating(p.getIsCameraViolating())
                     .build());
+
         }
-        
+
         return new PageImpl<>(leaderboard, pageable, participantPage.getTotalElements());
     }
 
@@ -218,9 +236,9 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
             return buildDailyTrend(modId);
         }
         int hours = switch (range) {
-            case "6h"  -> 6;
+            case "6h" -> 6;
             case "12h" -> 12;
-            default    -> 24;
+            default -> 24;
         };
         return buildHourlyTrend(modId, hours);
     }
@@ -263,7 +281,7 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     @Override
     public List<HourlySubmissionDTO> getTrendByRange(Integer modId, LocalDate from, LocalDate to) {
         LocalDateTime fromDT = from.atStartOfDay();
-        LocalDateTime toDT   = to.plusDays(1).atStartOfDay(); // inclusive to
+        LocalDateTime toDT = to.plusDays(1).atStartOfDay(); // inclusive to
 
         List<Object[]> rows = submissionRepository.countByDateRangeForMod(fromDT, toDT, modId);
 
@@ -285,13 +303,12 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     }
 
     private static final Map<SubmissionStatus, String[]> VERDICT_META = Map.of(
-        SubmissionStatus.AC,      new String[]{"Accepted",       "#22c55e"},
-        SubmissionStatus.WA,      new String[]{"Wrong Answer",   "#ef4444"},
-        SubmissionStatus.TLE,     new String[]{"Time Limit",     "#f59e0b"},
-        SubmissionStatus.MLE,     new String[]{"Memory Limit",   "#8b5cf6"},
-        SubmissionStatus.RE,      new String[]{"Runtime Error",  "#a855f7"},
-        SubmissionStatus.CE,      new String[]{"Compile Error",  "#64748b"}
-    );
+            SubmissionStatus.AC, new String[] { "Accepted", "#22c55e" },
+            SubmissionStatus.WA, new String[] { "Wrong Answer", "#ef4444" },
+            SubmissionStatus.TLE, new String[] { "Time Limit", "#f59e0b" },
+            SubmissionStatus.MLE, new String[] { "Memory Limit", "#8b5cf6" },
+            SubmissionStatus.RE, new String[] { "Runtime Error", "#a855f7" },
+            SubmissionStatus.CE, new String[] { "Compile Error", "#64748b" });
 
     private List<VerdictStatsDTO> buildVerdictStats(Integer modId) {
         List<Object[]> rows = submissionRepository.countByStatusForMod(modId);
@@ -299,11 +316,26 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
         for (Object[] row : rows) {
             SubmissionStatus status = (SubmissionStatus) row[0];
             long count = ((Number) row[1]).longValue();
-            if (count == 0) continue;
+            if (count == 0)
+                continue;
             String[] meta = VERDICT_META.get(status);
-            if (meta == null) continue;
+            if (meta == null)
+                continue;
             result.add(new VerdictStatsDTO(meta[0], count, meta[1]));
         }
         return result;
+    }
+
+    @Override
+    public void toggleUserLock(Integer userId, String type, boolean locked) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if ("chat".equalsIgnoreCase(type)) {
+            user.setIsContestChatLocked(locked);
+        } else if ("discussion".equalsIgnoreCase(type)) {
+            user.setIsDiscussionLocked(locked);
+        }
+        userRepository.save(user);
+        notificationService.sendUserLockUpdate(userId, type, locked);
     }
 }

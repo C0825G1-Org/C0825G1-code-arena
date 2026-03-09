@@ -28,6 +28,7 @@ import { useContestSubmit } from '../hooks/useContestSubmit';
 import { EditorHeader } from '../components/EditorHeader';
 import { ProblemStrip } from '../components/ProblemStrip';
 import { ActionToolbar } from '../components/ActionToolbar';
+import { ProblemDiscussionPanel } from '../components/ProblemDiscussionPanel';
 import { Clock, LockKey, PlayCircle } from '@phosphor-icons/react';
 import { GroupChat } from '../../../chat/components/GroupChat';
 
@@ -50,7 +51,7 @@ export default function Home() {
     const [testCases, setTestCases] = useState<TestCase[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmittingExit, setIsSubmittingExit] = useState(false);
-    const [activeTab, setActiveTab] = useState<'problem' | 'submissions' | 'hints' | 'discussions'>('problem');
+    const [activeTab, setActiveTab] = useState<'problem' | 'submissions' | 'hints' | 'discussion'>('problem');
 
     const [problemStatus, setProblemStatus] = useState<Record<number, { submitCount: number, isAC: boolean }>>({});
     const [contest, setContest] = useState<ContestDetailData | null>(null);
@@ -501,6 +502,7 @@ export default function Home() {
                                 {!isExamMode && (
                                     <>
                                         <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'hints' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('hints')}>Gợi ý</button>
+                                        <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'discussion' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('discussion')}>Thảo luận</button>
                                     </>
                                 )}
                             </div>
@@ -515,6 +517,7 @@ export default function Home() {
                                         <button className="mt-4 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/20 font-medium hover:bg-blue-600/30 transition-colors">Mở khóa gợi ý</button>
                                     </div>
                                 )}
+                                {activeTab === 'discussion' && <div className="absolute inset-0"><ProblemDiscussionPanel problemId={Number(problemId)} /></div>}
                             </div>
                         </div>
 
@@ -632,7 +635,7 @@ export default function Home() {
             )}
 
             {isExamMode && contestId && (contest?.isRegistered || contest?.participantStatus !== undefined || isModerator) && user && (isWaitingRoom || contest?.status === 'finished' || isModerator) && (
-                <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} />
+                <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} contestTitle={contest?.title} />
             )}
         </div>
     );

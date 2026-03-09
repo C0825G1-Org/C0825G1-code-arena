@@ -42,13 +42,21 @@ export const useSocket = (onMessage) => {
         socket.on('submission_update', (data) => {
             console.log('Socket.IO Received submission_update:', data);
             if (onMessage) {
-                onMessage(data);
+                onMessage({ event: 'submission_update', data });
+            }
+        });
+
+        socket.on('user_lock_update', (data) => {
+            console.log('Socket.IO Received user_lock_update:', data);
+            if (onMessage) {
+                onMessage({ event: 'user_lock_update', data });
             }
         });
 
         return () => {
             console.log('Socket.IO Disconnecting...');
             socket.off('submission_update');
+            socket.off('user_lock_update');
             socket.disconnect();
         };
     }, []);
