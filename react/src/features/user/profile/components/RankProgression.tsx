@@ -29,7 +29,8 @@ const RankProgression: React.FC<Props> = ({ rating }) => {
     const nextTier = RANK_TIERS[currentTierIndex + 1];
 
     const range = tier.max - tier.min;
-    const progress = range > 0 ? ((rating - tier.min) / range) * 100 : 100;
+    // Nếu là cấp tối cao (không có cấp tiếp theo), luôn hiển thị full thanh progress
+    const progress = !nextTier ? 100 : (range > 0 ? ((rating - tier.min) / range) * 100 : 100);
 
     return (
         <div className="w-full glass p-5 rounded-2xl border border-slate-700/50 bg-slate-800/40 relative group overflow-hidden transition-all hover:bg-slate-800/60">
