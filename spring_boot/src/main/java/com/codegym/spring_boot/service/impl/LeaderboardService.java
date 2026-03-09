@@ -51,10 +51,12 @@ public class LeaderboardService implements ILeaderboardService {
         ContestParticipantId participantId = new ContestParticipantId(contestId, userId);
         participantRepository.findById(participantId).ifPresent(participant -> {
             // 1. LUÔN CẬP NHẬT TỔNG ĐIỂM (totalScore) nếu điểm hiện tại cao hơn điểm cũ
-            int currentScore = submission.getScore() != null ? submission.getScore() : 0;
+            int maxScoreVal = testCaseRepository.sumScoreWeightByProblemId(problemId);
+            int currentScore = Math.min(submission.getScore() != null ? submission.getScore() : 0, maxScoreVal);
+
             Integer maxScoreBefore = submissionRepository.findMaxScoreBefore(userId, problemId, contestId,
                     submission.getId());
-            int prevMax = (maxScoreBefore != null) ? maxScoreBefore : 0;
+            int prevMax = (maxScoreBefore != null) ? Math.min(maxScoreBefore, maxScoreVal) : 0;
 
             if (currentScore > prevMax) {
                 int scoreDiff = currentScore - prevMax;
@@ -142,8 +144,9 @@ public class LeaderboardService implements ILeaderboardService {
 
             if (sub.getStatus() == SubmissionStatus.AC) {
                 detail.setIsAccepted(true);
-                // score thực tế từ submission (0–100, tính theo scoreWeight)
-                detail.setScore(sub.getScore() != null ? sub.getScore() : 100);
+                // score thực tế từ submission, giới hạn bởi maxScore
+                int subScore = sub.getScore() != null ? sub.getScore() : maxScore;
+                detail.setScore(Math.min(subScore, maxScore));
 
                 LocalDateTime startTime = sub.getContest().getStartTime();
                 LocalDateTime subTime = sub.getCreatedAt() != null ? sub.getCreatedAt() : LocalDateTime.now();
@@ -158,9 +161,12 @@ public class LeaderboardService implements ILeaderboardService {
             } else if (sub.getStatus() == SubmissionStatus.WA || sub.getStatus() == SubmissionStatus.TLE
                     || sub.getStatus() == SubmissionStatus.MLE || sub.getStatus() == SubmissionStatus.RE) {
                 detail.setFailedAttempts(detail.getFailedAttempts() + 1);
-                // Cập nhật điểm cao nhất (partial score)
-                if (sub.getScore() != null && sub.getScore() > detail.getScore()) {
-                    detail.setScore(sub.getScore());
+                // Cập nhật điểm cao nhất (partial score), giới hạn bởi maxScore
+                if (sub.getScore() != null) {
+                    int cappedSubScore = Math.min(sub.getScore(), maxScore);
+                    if (cappedSubScore > detail.getScore()) {
+                        detail.setScore(cappedSubScore);
+                    }
                 }
             }
         }
