@@ -40,8 +40,11 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
     }, [problemId, contestId, token]);
 
     // Socket listener for real-time updates
-    useSocket((data) => {
-        // data = { submissionId, status, executionTime, memoryUsed, score }
+    useSocket((payload) => {
+        // useSocket returns { event: 'submission_update', data: actualData }
+        if (payload.event !== 'submission_update') return;
+
+        const data = payload.data;
         console.log('Submission update received in History:', data);
 
         // Cập nhật âm thanh nếu AC
@@ -60,16 +63,16 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
             }
 
             // Check if submission already exists in list (update it)
-            const existsIndex = prev.findIndex(s => s.id === data.submissionId || s.submissionId === data.submissionId);
+            const existsIndex = prev.findIndex(s => s.id === (data.id || data.submissionId) || s.submissionId === (data.id || data.submissionId));
             if (existsIndex >= 0) {
                 const newSubmissions = [...prev];
-                newSubmissions[existsIndex] = { ...newSubmissions[existsIndex], ...data, id: data.submissionId };
+                newSubmissions[existsIndex] = { ...newSubmissions[existsIndex], ...data, id: data.id || data.submissionId };
                 return newSubmissions;
             }
             // Add new to top
             // Gán isTestRun từ data.isRunOnly nếu có
             const isTestRun = data.isRunOnly === true;
-            return [{ ...data, id: data.submissionId, isTestRun, createdAt: new Date().toISOString() }, ...prev];
+            return [{ ...data, id: data.id || data.submissionId, isTestRun, createdAt: new Date().toISOString() }, ...prev];
         });
     });
 

@@ -4,8 +4,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import {
-    HardDrives, SquaresFour, Users, Tag, SignOut, FileText, Trophy, Flask
+    HardDrives, SquaresFour, Users, Tag, SignOut, FileText, Trophy, Flask, Cpu
 } from '@phosphor-icons/react';
+import { Avatar } from '../../../shared/components/Avatar';
 
 // ─── Sidebar Nav Item ─────────────────────────────────────────────────────────
 const SidebarLink = ({
@@ -100,10 +101,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                                 <div className="text-sm font-semibold text-white leading-tight">{user?.fullName || 'System Admin'}</div>
                                 <div className="text-xs text-slate-400 font-mono">ID: {user?.id || 1}</div>
                             </div>
-                            <img
-                                src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
-                                alt="Admin Avatar"
-                                className="w-10 h-10 rounded-full border border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                            <Avatar
+                                src={user?.avatarUrl}
+                                userId={user?.id}
+                                size="md"
+                                borderColor="border-red-500"
                             />
                         </div>
                     </div>

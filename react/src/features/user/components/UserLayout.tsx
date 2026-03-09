@@ -13,6 +13,7 @@ import {
     TwitterLogo,
     GithubLogo
 } from '@phosphor-icons/react';
+import { Avatar } from '../../../shared/components/Avatar';
 
 interface UserLayoutProps {
     children: React.ReactNode;
@@ -122,10 +123,10 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                         Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
                                     </div>
                                 </div>
-                                <img
-                                    src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
-                                    alt="Avatar"
-                                    className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover"
+                                <Avatar
+                                    src={user?.avatarUrl}
+                                    userId={user?.id}
+                                    size="md"
                                 />
                             </Link>
 

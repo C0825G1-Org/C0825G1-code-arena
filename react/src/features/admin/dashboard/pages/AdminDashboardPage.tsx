@@ -3,6 +3,7 @@ import {
     Users, FileText, Desktop, ChartLine, ChartDonut,
     Trophy
 } from '@phosphor-icons/react';
+import { Avatar } from '../../../../shared/components/Avatar';
 import {
     ResponsiveContainer,
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -38,10 +39,10 @@ interface ActiveContest {
 }
 
 const ACTIVE_CONTESTS: ActiveContest[] = [
-    { id: 1, name: 'Weekly Contest #42',         status: 'running',       startTime: '08:00', endTime: '10:00', participants: 128, problems: 4 },
-    { id: 2, name: 'C0825G1 Midterm Exam',       status: 'running',       startTime: '08:30', endTime: '11:30', participants: 64,  problems: 6 },
-    { id: 3, name: 'Spring Boot Challenge',       status: 'starting_soon', startTime: '09:30', endTime: '11:00', participants: 32,  problems: 3 },
-    { id: 4, name: 'Algorithm Warmup #7',         status: 'starting_soon', startTime: '10:00', endTime: '11:30', participants: 56,  problems: 5 },
+    { id: 1, name: 'Weekly Contest #42', status: 'running', startTime: '08:00', endTime: '10:00', participants: 128, problems: 4 },
+    { id: 2, name: 'C0825G1 Midterm Exam', status: 'running', startTime: '08:30', endTime: '11:30', participants: 64, problems: 6 },
+    { id: 3, name: 'Spring Boot Challenge', status: 'starting_soon', startTime: '09:30', endTime: '11:00', participants: 32, problems: 3 },
+    { id: 4, name: 'Algorithm Warmup #7', status: 'starting_soon', startTime: '10:00', endTime: '11:30', participants: 56, problems: 5 },
 ];
 
 type ErrLevel = 'CRITICAL' | 'ERROR' | 'WARN';
@@ -54,17 +55,17 @@ interface ErrorLog {
 }
 
 const ERROR_LOGS: ErrorLog[] = [
-    { id: 1, time: '08:12:05', level: 'CRITICAL', source: 'JudgeWorker',   message: "Container 'jv-run-304' OOMKilled. Auto-restarted." },
-    { id: 2, time: '08:15:33', level: 'ERROR',    source: 'Redis',         message: 'Connection timeout after 30s. Retry 1/3.' },
-    { id: 3, time: '08:22:10', level: 'WARN',     source: 'API Gateway',   message: 'Rate limit reached for IP 103.72.x.x (200 req/min).' },
-    { id: 4, time: '08:31:47', level: 'ERROR',    source: 'Submission SVC', message: 'Failed to persist result for submission #15489.' },
-    { id: 5, time: '08:40:02', level: 'WARN',     source: 'CPU Monitor',   message: 'Node 2 CPU > 85% for 3 consecutive minutes.' },
+    { id: 1, time: '08:12:05', level: 'CRITICAL', source: 'JudgeWorker', message: "Container 'jv-run-304' OOMKilled. Auto-restarted." },
+    { id: 2, time: '08:15:33', level: 'ERROR', source: 'Redis', message: 'Connection timeout after 30s. Retry 1/3.' },
+    { id: 3, time: '08:22:10', level: 'WARN', source: 'API Gateway', message: 'Rate limit reached for IP 103.72.x.x (200 req/min).' },
+    { id: 4, time: '08:31:47', level: 'ERROR', source: 'Submission SVC', message: 'Failed to persist result for submission #15489.' },
+    { id: 5, time: '08:40:02', level: 'WARN', source: 'CPU Monitor', message: 'Node 2 CPU > 85% for 3 consecutive minutes.' },
 ];
 
 const ERR_LEVEL_STYLE: Record<ErrLevel, { badge: string; dot: string }> = {
-    CRITICAL: { badge: 'bg-red-500/20 text-red-400 border border-red-500/30',    dot: 'bg-red-500' },
-    ERROR:    { badge: 'bg-orange-500/20 text-orange-400 border border-orange-500/30', dot: 'bg-orange-500' },
-    WARN:     { badge: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30', dot: 'bg-yellow-500' },
+    CRITICAL: { badge: 'bg-red-500/20 text-red-400 border border-red-500/30', dot: 'bg-red-500' },
+    ERROR: { badge: 'bg-orange-500/20 text-orange-400 border border-orange-500/30', dot: 'bg-orange-500' },
+    WARN: { badge: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30', dot: 'bg-yellow-500' },
 };
 
 // ─── Static mock data ────────────────────────────────────────────────────────
@@ -255,7 +256,7 @@ export const AdminDashboardPage: React.FC = () => {
                                             <span className="text-sm font-sans text-slate-500 ml-1">
                                                 / {totalLanguages ?? 0} ngôn ngữ
                                             </span>
-                                          </>}
+                                        </>}
                                 </div>
                             </div>
                         </div>
@@ -305,22 +306,20 @@ export const AdminDashboardPage: React.FC = () => {
                                         <button
                                             key={r}
                                             onClick={() => setTrendRange(r)}
-                                            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                                                trendRange === r
+                                            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${trendRange === r
                                                     ? 'bg-blue-500 text-white shadow'
                                                     : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                            }`}
+                                                }`}
                                         >
                                             {r === '7d' ? '7 ngày' : 'Hôm nay'}
                                         </button>
                                     ))}
                                     <button
                                         onClick={() => setTrendRange('custom')}
-                                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                                            trendRange === 'custom'
+                                        className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${trendRange === 'custom'
                                                 ? 'bg-purple-500 text-white shadow'
                                                 : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                                        }`}
+                                            }`}
                                     >
                                         Tùy chọn
                                     </button>
@@ -360,7 +359,7 @@ export const AdminDashboardPage: React.FC = () => {
                                 <AreaChart data={submissionTrend} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="submGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.35} />
+                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
                                             <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
                                         </linearGradient>
                                     </defs>
@@ -462,9 +461,8 @@ export const AdminDashboardPage: React.FC = () => {
                                     return (
                                         <div key={c.id} className="px-6 py-3.5 flex items-center gap-4 hover:bg-slate-700/30 transition">
                                             {/* Status dot */}
-                                            <span className={`w-2 h-2 rounded-full shrink-0 ${
-                                                c.status === 'active' ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.4)]' : 'bg-yellow-400'
-                                            }`} />
+                                            <span className={`w-2 h-2 rounded-full shrink-0 ${c.status === 'active' ? 'bg-green-400 shadow-[0_0_6px_2px_rgba(74,222,128,0.4)]' : 'bg-yellow-400'
+                                                }`} />
                                             {/* Name + time */}
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-semibold text-white truncate">{c.title}</p>
@@ -478,11 +476,10 @@ export const AdminDashboardPage: React.FC = () => {
                                                 <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-mono">
                                                     📄 {c.problems} bài
                                                 </span>
-                                                <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
-                                                    c.status === 'active'
+                                                <span className={`text-xs px-2 py-0.5 rounded font-semibold ${c.status === 'active'
                                                         ? 'bg-green-500/15 text-green-400 border border-green-500/25'
                                                         : 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/25'
-                                                }`}>
+                                                    }`}>
                                                     {c.status === 'active' ? '● Live' : '⏳ Soon'}
                                                 </span>
                                             </div>

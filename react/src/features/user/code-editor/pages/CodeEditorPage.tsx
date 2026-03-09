@@ -546,7 +546,13 @@ export default function Home() {
                                         submitCount={problemStatus[problemId]?.submitCount ?? 0}
                                         isAC={problemStatus[problemId]?.isAC ?? false}
                                         onRunCode={() => submitLogic(true, isAuthenticated)}
-                                        onSubmit={() => setIsConfirmSubmitOpen(true)}
+                                        onSubmit={() => {
+                                            if (isExamMode) {
+                                                setIsConfirmSubmitOpen(true);
+                                            } else {
+                                                submitLogic(false, isAuthenticated);
+                                            }
+                                        }}
                                         onResetCode={resetCode}
                                         isSettingsOpen={isSettingsOpen}
                                         onToggleSettings={setIsSettingsOpen}

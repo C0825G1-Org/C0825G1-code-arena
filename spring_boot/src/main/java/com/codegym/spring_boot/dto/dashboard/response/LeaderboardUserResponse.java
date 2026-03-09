@@ -18,4 +18,5 @@ public class LeaderboardUserResponse {
     private Integer globalRating;
     private Long solvedCount;
     private Double acRate;
+    private String avatarUrl;
 }

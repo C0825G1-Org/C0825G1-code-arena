@@ -70,6 +70,7 @@ public class UserDashboardService implements IUserDashboardService {
                                 .username(user.getUsername())
                                 .fullName(user.getFullName())
                                 .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
+                                .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                                 .build()).collect(Collectors.toList());
         }
 

@@ -5,6 +5,7 @@ import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import { userDashboardService, UserStats } from "../../user/home/services/userDashboardService";
 import { Bell, ShieldStar } from "@phosphor-icons/react";
+import { Avatar } from '../../../shared/components/Avatar';
 
 interface ModeratorLayoutProps {
     children?: React.ReactNode;
@@ -153,19 +154,10 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                             to="/profile"
                             className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
                         >
-                            <div className="text-right hidden sm:block">
-                                <div
-                                    className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
-                                    {user?.fullName || 'User'}
-                                </div>
-                                <div className="text-xs text-slate-400 font-mono">Rating: <span
-                                    className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
-                                </div>
-                            </div>
-                            <img
-                                src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
-                                alt="Avatar"
-                                className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover"
+                            <Avatar
+                                src={user?.avatarUrl}
+                                userId={user?.id}
+                                size="md"
                             />
                         </Link>
                         <button

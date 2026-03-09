@@ -5,6 +5,7 @@ import { PaperPlaneRight, ChatCircleDots, X, Minus, CornersOut, User } from '@ph
 import dayjs from 'dayjs';
 import { ConfirmModal } from '../../../shared/components/ConfirmModal';
 import { toast } from 'react-toastify';
+import { Avatar } from '../../../shared/components/Avatar';
 
 interface GroupChatProps {
     contestId: number;
@@ -231,16 +232,14 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                                         <span className="text-xs text-slate-400 mb-1 ml-1">{msg.senderName}</span>
                                     )}
                                     <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        <div
-                                            className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-700 bg-slate-800 ${isMe ? 'hidden' : 'flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all'}`}
+                                        <Avatar
+                                            src={msg.senderAvatar}
+                                            userId={msg.senderId}
+                                            size="sm"
+                                            alt={msg.senderName}
                                             onClick={(e) => handleUserClick(e, msg)}
-                                        >
-                                            <img
-                                                src={msg.senderAvatar || `https://i.pravatar.cc/150?u=${msg.senderId}`}
-                                                alt={msg.senderName}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
+                                            className={isMe ? 'hidden' : ''}
+                                        />
                                         <div className="flex flex-col gap-0.5">
                                             <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'}`}>
                                                 {msg.content}

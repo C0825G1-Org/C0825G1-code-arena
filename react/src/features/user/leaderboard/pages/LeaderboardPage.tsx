@@ -8,6 +8,7 @@ import { RootState } from '../../../../app/store';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
 import toast from 'react-hot-toast';
 import { UserLayout } from '../../components/UserLayout';
+import { Avatar } from '../../../../shared/components/Avatar';
 
 export const LeaderboardPage: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
@@ -75,10 +76,13 @@ export const LeaderboardPage: React.FC = () => {
                         <div className="absolute -top-10 text-2xl text-slate-400 font-bold opacity-50 group-hover:opacity-100 transition">
                             <Medal weight="fill" className="text-slate-400" />
                         </div>
-                        <img
-                            src={`https://i.pravatar.cc/150?u=${secondPlace.userId}`}
-                            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-slate-400 mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(148,163,184,0.4)] relative object-cover"
+                        <Avatar
+                            src={secondPlace.avatarUrl}
+                            userId={secondPlace.userId}
+                            size="xl"
                             alt={secondPlace.username}
+                            borderColor="border-slate-400"
+                            className="mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(148,163,184,0.4)]"
                         />
                         <span className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center">{secondPlace.fullName}</span>
                         <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
@@ -94,10 +98,13 @@ export const LeaderboardPage: React.FC = () => {
                         <div className="absolute -top-12 left-1/2 -translate-x-1/2 text-3xl text-yellow-500 font-bold animate-bounce shadow-yellow-500/50">
                             <Crown weight="fill" />
                         </div>
-                        <img
-                            src={`https://i.pravatar.cc/150?u=${firstPlace.userId}`}
-                            className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-yellow-500 mb-3 z-10 bg-slate-800 shadow-[0_0_20px_rgba(234,179,8,0.5)] relative object-cover"
+                        <Avatar
+                            src={firstPlace.avatarUrl}
+                            userId={firstPlace.userId}
+                            size={80} // md:w-24 would be 96, handling responsive with custom size if needed, but keeping it simple
                             alt={firstPlace.username}
+                            borderColor="border-yellow-500"
+                            className="mb-3 z-10 bg-slate-800 shadow-[0_0_20px_rgba(234,179,8,0.5)]"
                         />
                         <span className="font-bold text-white text-base md:text-lg truncate w-full px-2">{firstPlace.fullName}</span>
                         <div className="flex justify-center mb-2">
@@ -118,10 +125,13 @@ export const LeaderboardPage: React.FC = () => {
                         <div className="absolute -top-10 text-2xl text-orange-600 font-bold opacity-50 group-hover:opacity-100 transition">
                             <Medal weight="fill" className="text-orange-600" />
                         </div>
-                        <img
-                            src={`https://i.pravatar.cc/150?u=${thirdPlace.userId}`}
-                            className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-orange-600 mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(194,65,12,0.4)] relative object-cover"
+                        <Avatar
+                            src={thirdPlace.avatarUrl}
+                            userId={thirdPlace.userId}
+                            size="xl"
                             alt={thirdPlace.username}
+                            borderColor="border-orange-600"
+                            className="mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(194,65,12,0.4)]"
                         />
                         <span className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center" >{thirdPlace.fullName}</span>
                         <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
@@ -195,7 +205,14 @@ export const LeaderboardPage: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 font-medium text-white flex items-center gap-4">
                                             <div className="relative">
-                                                <img src={`https://i.pravatar.cc/150?u=${u.userId}`} className="w-10 h-10 rounded-full border border-slate-600 bg-slate-900 object-cover group-hover:scale-110 transition-transform" alt={u.username} />
+                                                <Avatar
+                                                    src={u.avatarUrl}
+                                                    userId={u.userId}
+                                                    size="md"
+                                                    alt={u.username}
+                                                    borderColor="border-slate-600"
+                                                    className="group-hover:scale-110 transition-transform bg-slate-900"
+                                                />
                                                 {u.rank === 1 && <Crown weight="fill" className="absolute -top-2 -right-2 text-yellow-500 text-lg drop-shadow-md" />}
                                             </div>
                                             <div className="flex flex-col">

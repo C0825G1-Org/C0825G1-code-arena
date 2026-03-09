@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import axiosClient from '../../../shared/services/axiosClient';
 import { Link, useSearchParams } from 'react-router-dom';
 import { UserLayout } from '../components/UserLayout';
+import { Avatar } from '../../../shared/components/Avatar';
 
 interface TagDTO {
     id: number;

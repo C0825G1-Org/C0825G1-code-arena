@@ -1,6 +1,7 @@
 import React from 'react';
 import { UserProfileResponse } from '../services/profileService';
 import { Link } from 'react-router-dom';
+import { Avatar } from '../../../../shared/components/Avatar';
 
 interface Props {
     profile?: UserProfileResponse;
@@ -16,11 +17,15 @@ const ProfileSidebar: React.FC<Props> = ({ profile }) => {
             <div className="glass p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
                 <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-br from-blue-600/20 to-purple-600/20"></div>
 
-                <div className="relative w-28 h-28 mt-4 mb-4">
-                    <img src={profile?.avatarUrl || `https://i.pravatar.cc/150?u=${profile?.id || 1}`} alt="Avatar"
-                        className="w-full h-full rounded-full object-cover border-4 border-slate-900 shadow-xl" />
-                    <span className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-slate-900 rounded-full"
-                        title="Online"></span>
+                <div className="mt-4 mb-4">
+                    <Avatar
+                        src={profile?.avatarUrl}
+                        userId={profile?.id}
+                        size="2xl"
+                        borderColor="border-slate-900"
+                        showOnlineStatus={true}
+                        className="shadow-xl"
+                    />
                 </div>
 
                 <h2 className="text-xl font-bold text-white">{profile?.fullName || profile?.username || "Người dùng ẩn danh"}</h2>

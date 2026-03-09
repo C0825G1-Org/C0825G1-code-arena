@@ -23,7 +23,8 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
 
     @Override
     public Page<LeaderboardUserResponse> getGlobalLeaderboard(String search, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("globalRating").descending().and(Sort.by("id").ascending()));
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("globalRating").descending().and(Sort.by("id").ascending()));
         Page<User> userPage;
 
         if (search != null && !search.trim().isEmpty()) {
@@ -38,7 +39,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
             Integer userId = user.getId();
             int rating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
             long trueRank = userRepository.countGlobalRank(UserRole.user, rating, userId) + 1;
-            
+
             long solvedCount = submissionRepository.countDistinctAcceptedProblemsByUserId(userId, SubmissionStatus.AC);
             long totalSubs = submissionRepository.countTotalSubmissionsByUserId(userId);
             long acSubs = submissionRepository.countAcceptedSubmissionsByUserId(userId, SubmissionStatus.AC);
@@ -53,6 +54,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
+                    .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                     .build();
         });
     }

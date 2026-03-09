@@ -9,6 +9,7 @@ export interface LeaderboardUserResponse {
     globalRating: number;
     solvedCount: number;
     acRate: number;
+    avatarUrl?: string;
 }
 
 export interface PageResponse<T> {
