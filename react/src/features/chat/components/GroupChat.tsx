@@ -3,6 +3,8 @@ import { useChatSocket } from '../hooks/useChatSocket';
 import { chatService, ChatMessage } from '../services/chatService';
 import { PaperPlaneRight, ChatCircleDots, X, Minus, CornersOut, User } from '@phosphor-icons/react';
 import dayjs from 'dayjs';
+import { ConfirmModal } from '../../../shared/components/ConfirmModal';
+import { toast } from 'react-toastify';
 
 interface GroupChatProps {
     contestId: number;
@@ -10,6 +12,8 @@ interface GroupChatProps {
         id: number;
         fullName?: string;
         username: string;
+        role?: string;
+        isContestChatLocked?: boolean;
     };
     contestTitle?: string;
     contestStatus?: string;
@@ -21,6 +25,27 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
     const [inputValue, setInputValue] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [menuPosition, setMenuPosition] = useState<{ x: number, y: number } | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        type: 'danger' | 'warning' | 'info';
+        title: string;
+        description: string;
+        onConfirm: () => void;
+        icon: 'trash' | 'lock' | 'unlock';
+        isLoading: boolean;
+    }>({
+        isOpen: false,
+        type: 'warning',
+        title: '',
+        description: '',
+        onConfirm: () => { },
+        icon: 'warning' as any,
+        isLoading: false
+    });
 
     // Post-contest Countdown Logic
     const [postContestTimeLeft, setPostContestTimeLeft] = useState<number | null>(null);
@@ -74,6 +99,8 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
         if (msg) {
             setMessages((prev) => [...(Array.isArray(prev) ? prev : []), msg]);
         }
+    }, (errorMsg) => {
+        toast.error(errorMsg);
     });
 
     // Auto scroll
@@ -84,9 +111,62 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
     }, [messages, isOpen, isMinimized]);
 
     const handleSend = () => {
-        if (!inputValue.trim() || !connected) return;
+        if (!inputValue.trim() || !connected || currentUser.isContestChatLocked) return;
         sendMessage(inputValue);
         setInputValue('');
+    };
+
+    const handleUserClick = (e: React.MouseEvent, msg: ChatMessage) => {
+        const isModOrAdmin = currentUser.role?.toLowerCase() === 'moderator' || currentUser.role?.toLowerCase() === 'admin';
+        if (!isModOrAdmin || msg.senderId === currentUser.id) return;
+
+        e.preventDefault();
+        setMenuPosition({ x: e.clientX, y: e.clientY });
+        setSelectedUser({
+            id: msg.senderId,
+            username: msg.senderName,
+            isLocked: msg.userIsChatLocked
+        });
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setSelectedUser(null);
+                setMenuPosition(null);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const toggleLock = async () => {
+        if (!selectedUser) return;
+        const isLocking = !selectedUser.isLocked;
+        const action = isLocking ? 'khóa' : 'mở khóa';
+
+        setConfirmModal({
+            isOpen: true,
+            type: isLocking ? 'danger' : 'info',
+            title: `${isLocking ? 'Khóa' : 'Mở khóa'} Chat`,
+            description: `Bạn có chắc muốn ${action} quyền gửi tin nhắn của người dùng ${selectedUser.username}?`,
+            icon: isLocking ? 'lock' : 'unlock',
+            isLoading: false,
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isLoading: true }));
+                try {
+                    await chatService.toggleUserLock(selectedUser.id, 'chat', isLocking);
+                    setMessages(prev => prev.map(m => m.senderId === selectedUser.id ? { ...m, userIsChatLocked: isLocking } : m));
+                    setSelectedUser(null);
+                    setMenuPosition(null);
+                    toast.success(`Đã ${action} chat thành công.`);
+                } catch (error) {
+                    toast.error("Thao tác thất bại.");
+                } finally {
+                    setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+                }
+            }
+        });
     };
 
     if (!showChat) return null;
@@ -151,15 +231,25 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                                         <span className="text-xs text-slate-400 mb-1 ml-1">{msg.senderName}</span>
                                     )}
                                     <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        <div className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-700 bg-slate-800 ${isMe ? 'hidden' : 'flex items-center justify-center'}`}>
+                                        <div
+                                            className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-700 bg-slate-800 ${isMe ? 'hidden' : 'flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all'}`}
+                                            onClick={(e) => handleUserClick(e, msg)}
+                                        >
                                             <img
                                                 src={msg.senderAvatar || `https://i.pravatar.cc/150?u=${msg.senderId}`}
                                                 alt={msg.senderName}
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
-                                        <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'}`}>
-                                            {msg.content}
+                                        <div className="flex flex-col gap-0.5">
+                                            <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'}`}>
+                                                {msg.content}
+                                            </div>
+                                            {msg.userIsChatLocked && !isMe && (
+                                                <span className="text-[9px] text-red-400 flex items-center gap-0.5 mt-0.5">
+                                                    <i className="ph ph-lock-key text-[10px]" /> Đã bị khóa
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <span className="text-[10px] text-slate-500 mt-1 mx-1">
@@ -175,11 +265,11 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder={connected ? "Nhập tin nhắn..." : "Đang kết nối..."}
+                                placeholder={currentUser.isContestChatLocked ? "Bạn đã bị khóa tính năng chat" : (connected ? "Nhập tin nhắn..." : "Đang kết nối...")}
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                disabled={!connected}
+                                disabled={!connected || currentUser.isContestChatLocked}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-xl py-2.5 pl-4 pr-12 text-sm text-slate-100 focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50"
                             />
                             <button
@@ -193,6 +283,44 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                     </div>
                 </>
             )}
+
+            {/* Moderator Action Menu */}
+            {selectedUser && menuPosition && (
+                <div
+                    ref={menuRef}
+                    className="fixed bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-1 z-[200] min-w-[150px]"
+                    style={{ left: menuPosition.x, top: menuPosition.y }}
+                >
+                    <div className="px-3 py-2 border-b border-slate-700 bg-slate-900/50">
+                        <span className="text-xs font-bold text-slate-400 block truncate">{selectedUser.username}</span>
+                    </div>
+                    <button
+                        onClick={toggleLock}
+                        className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 flex items-center gap-2"
+                    >
+                        <i className={`ph ${selectedUser.isLocked ? 'ph-lock-key-open' : 'ph-lock-key'} text-blue-400`} />
+                        {selectedUser.isLocked ? 'Mở khóa Chat' : 'Khóa Chat'}
+                    </button>
+                    <button
+                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                        onClick={() => { alert('Tính năng Xóa tin nhắn sẽ được bổ sung sau'); setSelectedUser(null); }}
+                    >
+                        <i className="ph ph-trash" />
+                        Xóa tin nhắn
+                    </button>
+                </div>
+            )}
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={confirmModal.onConfirm}
+                title={confirmModal.title}
+                description={confirmModal.description}
+                type={confirmModal.type as any}
+                icon={confirmModal.icon}
+                isLoading={confirmModal.isLoading}
+            />
         </div>
     );
 };
