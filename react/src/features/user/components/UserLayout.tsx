@@ -55,7 +55,6 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
         { path: '/problems', label: 'Bài tập' },
         { path: '/contests', label: 'Cuộc thi' },
         { path: '/leaderboard', label: 'Bảng xếp hạng' },
-        { path: '/discussions', label: 'Thảo luận' },
     ];
 
     const isPathActive = (path: string) => {
