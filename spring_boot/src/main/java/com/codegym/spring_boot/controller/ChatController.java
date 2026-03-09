@@ -19,6 +19,7 @@ public class ChatController {
 
     @GetMapping("/{contestId}/history")
     public ResponseEntity<List<ChatMessage>> getChatHistory(@PathVariable Integer contestId) {
+        System.out.println("[API] Fetching chat history for contest: " + contestId);
         return ResponseEntity.ok(chatService.getChatHistory(contestId));
     }
 
