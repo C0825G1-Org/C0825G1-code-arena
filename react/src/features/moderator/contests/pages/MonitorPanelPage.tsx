@@ -5,10 +5,14 @@ import { toast } from 'react-hot-toast';
 import { useSocket } from '../../../../shared/hooks/useSocket';
 import { getIceServers } from '../../../../shared/config/webrtcConfig';
 import { SnapshotViewerModal } from '../components/SnapshotViewerModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../app/store';
+import { GroupChat } from '../../../chat/components/GroupChat';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useSelector((state: RootState) => state.auth);
     const socket: any = useSocket();
     const [connected, setConnected] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -16,7 +20,9 @@ export const MonitorPanelPage = () => {
     const [stats, setStats] = useState({
         activeParticipantsCount: 0,
         totalSubmissionsCount: 0,
-        remainingTimeSeconds: 0
+        remainingTimeSeconds: 0,
+        remainingStartTimeSeconds: 0,
+        status: 'UNKNOWN'
     });
 
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -179,9 +185,18 @@ export const MonitorPanelPage = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setStats(s => {
-                if (s.remainingTimeSeconds > 0) {
+                if (s.status === 'upcoming' && s.remainingStartTimeSeconds > 0) {
+                    if (s.remainingStartTimeSeconds === 1) {
+                        toast.success('Cuộc thi đã bắt đầu!', { icon: '🔥' });
+                        // Chờ một chút rồi reload data để chuyển trạng thái sang ACTIVE
+                        setTimeout(() => fetchInitialData(), 2000);
+                    }
+                    return { ...s, remainingStartTimeSeconds: s.remainingStartTimeSeconds - 1 };
+                }
+
+                if (s.status === 'active' && s.remainingTimeSeconds > 0) {
                     if (s.remainingTimeSeconds === 1) {
-                        toast.success('Cuộc thi đã kết thúc! Tự động quay về danh sách.', { icon: '🏁' });
+                        toast.success('Cuộc thi đã kết thúc!', { icon: '🏁' });
                         setTimeout(() => navigate('/moderator/contests'), 3000);
                     }
                     return { ...s, remainingTimeSeconds: s.remainingTimeSeconds - 1 };
@@ -196,10 +211,19 @@ export const MonitorPanelPage = () => {
         try {
             setLoading(true);
             const res: any = await axiosClient.get(`/moderator/dashboard/contests/${id}/monitor`);
+
+            let startCountdown = 0;
+            if (res.status?.toLowerCase() === 'upcoming' && res.startTime) {
+                const diff = (new Date(res.startTime).getTime() - new Date().getTime()) / 1000;
+                startCountdown = diff > 0 ? Math.floor(diff) : 0;
+            }
+
             setStats({
-                activeParticipantsCount: res.activeParticipantsCount,
-                totalSubmissionsCount: res.totalSubmissionsCount,
-                remainingTimeSeconds: res.remainingTimeSeconds
+                activeParticipantsCount: res.activeParticipantsCount || 0,
+                totalSubmissionsCount: res.totalSubmissionsCount || 0,
+                remainingTimeSeconds: res.remainingTimeSeconds || 0,
+                remainingStartTimeSeconds: startCountdown,
+                status: res.status?.toLowerCase() || 'unknown'
             });
             setFeed(res.recentSubmissions || []);
         } catch (error) {
@@ -386,14 +410,26 @@ export const MonitorPanelPage = () => {
                     </div>
                 </div>
 
-                <div className={`bg-gradient-to-br border rounded-2xl p-6 flex flex-col justify-between ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'from-amber-500/10 to-rose-500/5 border-amber-500/30' : 'from-emerald-500/10 to-teal-500/5 border-emerald-500/20'}`}>
+                <div className={`bg-gradient-to-br border rounded-2xl p-6 flex flex-col justify-between ${stats.status === 'upcoming' ? 'from-purple-500/10 to-indigo-500/5 border-purple-500/30' :
+                        (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'from-amber-500/10 to-rose-500/5 border-amber-500/30' : 'from-emerald-500/10 to-teal-500/5 border-emerald-500/20')
+                    }`}>
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className={`font-medium text-sm mb-1 uppercase tracking-wider ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400' : 'text-emerald-400/80'}`}>Thời gian còn lại</p>
-                            <h3 className="text-4xl font-bold text-white font-mono">{formatTime(stats.remainingTimeSeconds)}</h3>
+                            <p className={`font-medium text-sm mb-1 uppercase tracking-wider ${stats.status === 'upcoming' ? 'text-purple-400' :
+                                    (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400' : 'text-emerald-400/80')
+                                }`}>
+                                {stats.status === 'upcoming' ? 'Bắt đầu sau' : 'Thời gian còn lại'}
+                            </p>
+                            <h3 className="text-4xl font-bold text-white font-mono">
+                                {stats.status === 'upcoming' ? formatTime(stats.remainingStartTimeSeconds) : formatTime(stats.remainingTimeSeconds)}
+                            </h3>
                         </div>
-                        <div className={`p-3 rounded-xl ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'bg-amber-500/20' : 'bg-emerald-500/20'}`}>
-                            <i className={`ph-fill ph-clock text-2xl ${stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400'}`}></i>
+                        <div className={`p-3 rounded-xl ${stats.status === 'upcoming' ? 'bg-purple-500/20' :
+                                (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'bg-amber-500/20' : 'bg-emerald-500/20')
+                            }`}>
+                            <i className={`ph-fill ${stats.status === 'upcoming' ? 'ph-hourglass-high text-purple-400' : 'ph-clock'} text-2xl ${stats.status === 'upcoming' ? 'animate-pulse' :
+                                    (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400')
+                                }`}></i>
                         </div>
                     </div>
                 </div>
@@ -589,6 +625,15 @@ export const MonitorPanelPage = () => {
                 contestId={Number(id)}
                 user={snapshotViewUser}
             />
+
+            {/* CHAT DÀNH CHO GIÁM THỊ */}
+            {user && id && (
+                <GroupChat
+                    contestId={Number(id)}
+                    currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }}
+                    contestTitle={`Phòng thi ${id}`}
+                />
+            )}
         </div>
     );
 };

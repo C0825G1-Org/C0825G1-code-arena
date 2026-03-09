@@ -10,10 +10,12 @@ public class MonitorDashboardResponse {
     private Integer activeParticipantsCount;
     private Integer totalSubmissionsCount;
     private Long remainingTimeSeconds;
-    
+    private String status;
+    private String startTime;
+
     // Paginated Leaderboard (Top 5 for initial page)
     private List<MonitorLeaderboardEntry> leaderboard;
-    
+
     // Latest 50 submissions feed
     private List<MonitorSubmissionLog> recentSubmissions;
 
