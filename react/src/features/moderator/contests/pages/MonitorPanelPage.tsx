@@ -555,9 +555,13 @@ export const MonitorPanelPage = () => {
                             <div key={log.submissionId + "-" + i} className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 p-4 rounded-xl transition-all animate-slide-up group">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs">
-                                            {log.username?.substring(0, 2).toUpperCase()}
-                                        </span>
+                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-blue-500/30">
+                                            <img
+                                                src={log.userAvatar || `https://i.pravatar.cc/150?u=${log.userId || 1}`}
+                                                alt={log.username}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
                                         <div>
                                             <p className="text-sm font-medium text-white leading-tight">{log.username}</p>
                                             <span className="text-xs text-slate-500">{new Date(log.submittedAt).toLocaleTimeString()}</span>
@@ -632,7 +636,13 @@ export const MonitorPanelPage = () => {
             {user && id && (
                 <GroupChat
                     contestId={Number(id)}
-                    currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }}
+                    currentUser={{
+                        id: user.id,
+                        username: user.username,
+                        fullName: user.fullName || '',
+                        role: user.role,
+                        isContestChatLocked: user.isContestChatLocked
+                    }}
                     contestTitle={`Phòng thi ${id}`}
                     contestStatus={stats.status}
                     endTime={stats.endTime}
