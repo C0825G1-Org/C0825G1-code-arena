@@ -90,24 +90,30 @@ public class SocketIOConfig {
                 (client, data, ackSender) -> {
                     Integer userId = extractUserIdFromClient(client);
                     String role = extractRoleFromClient(client);
+                    log.info("[SOCKET.IO] request-camera from User: {}, Role: {}, ToUser: {}", userId, role,
+                            data.getToUserId());
                     if (userId != null && ("moderator".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(role))) {
                         if (data.getToUserId() != null) {
-                            log.info("Moderator {} requesting camera from User {}", userId, data.getToUserId());
-                            server.getRoomOperations("user_" + data.getToUserId())
+                            String targetRoom = "user_" + data.getToUserId();
+                            log.info("[SOCKET.IO] Forwarding moderator-request-cam from Mod {} to Room {}", userId,
+                                    targetRoom);
+                            server.getRoomOperations(targetRoom)
                                     .sendEvent("moderator-request-cam", userId); // sending the mod's ID
                         }
                     } else {
-                        log.warn("Unauthorized request-camera from user {} with role {}", userId, role);
+                        log.warn("[SOCKET.IO] Unauthorized request-camera from user {} with role {}", userId, role);
                     }
                 });
 
         server.addEventListener("webrtc-signal", com.codegym.spring_boot.dto.WebRTCSignalDTO.class,
                 (client, data, ackSender) -> {
                     Integer userId = extractUserIdFromClient(client);
+                    log.info("[SOCKET.IO] webrtc-signal from User: {}, ToUser: {}", userId, data.getToUserId());
                     if (userId != null && data.getToUserId() != null) {
-                        // Attach the sender's ID before forwarding
                         data.setFromUserId(userId);
-                        server.getRoomOperations("user_" + data.getToUserId())
+                        String targetRoom = "user_" + data.getToUserId();
+                        log.info("[SOCKET.IO] Forwarding webrtc-signal from {} to Room {}", userId, targetRoom);
+                        server.getRoomOperations(targetRoom)
                                 .sendEvent("webrtc-signal", data);
                     }
                 });
@@ -115,47 +121,75 @@ public class SocketIOConfig {
         server.addEventListener("stop-proctoring", com.codegym.spring_boot.dto.WebRTCSignalDTO.class,
                 (client, data, ackSender) -> {
                     Integer userId = extractUserIdFromClient(client);
+                    log.info("[SOCKET.IO] stop-proctoring from User: {}, ToUser: {}", userId, data.getToUserId());
                     if (userId != null && data.getToUserId() != null) {
-                        log.info("Sending stop-proctoring from User {} to User {}", userId, data.getToUserId());
-                        server.getRoomOperations("user_" + data.getToUserId())
+                        String targetRoom = "user_" + data.getToUserId();
+                        server.getRoomOperations(targetRoom)
                                 .sendEvent("stop-proctoring", userId);
                     }
                 });
 
         // --- CONTEST GROUP CHAT ---
-        server.addEventListener("join_contest_chat", Integer.class, (client, contestId, ackSender) -> {
-            String room = "contest_chat_" + contestId;
-            client.joinRoom(room);
-            log.info("Client {} joined contest chat room: {}", client.getSessionId(), room);
+        server.addEventListener("join_contest_chat", Object.class, (client, data, ackSender) -> {
+            try {
+                Integer contestId = Integer.parseInt(data.toString());
+                String room = "contest_chat_" + contestId;
+                client.joinRoom(room);
+                log.info("Client {} joined contest chat room: {}", client.getSessionId(), room);
+            } catch (Exception e) {
+                log.error("Invalid contestId in join_contest_chat: {}", data);
+            }
         });
 
-        server.addEventListener("leave_contest_chat", Integer.class, (client, contestId, ackSender) -> {
-            String room = "contest_chat_" + contestId;
-            client.leaveRoom(room);
-            log.info("Client {} left contest chat room: {}", client.getSessionId(), room);
+        server.addEventListener("leave_contest_chat", Object.class, (client, data, ackSender) -> {
+            try {
+                Integer contestId = Integer.parseInt(data.toString());
+                String room = "contest_chat_" + contestId;
+                client.leaveRoom(room);
+                log.info("Client {} left contest chat room: {}", client.getSessionId(), room);
+            } catch (Exception e) {
+                log.error("Invalid contestId in leave_contest_chat: {}", data);
+            }
         });
 
         server.addEventListener("send_chat_message",
-                com.codegym.spring_boot.dto.chat.request.SocketChatMessageRequest.class, (client, data, ackSender) -> {
+                Object.class, (client, data, ackSender) -> {
                     Integer userId = extractUserIdFromClient(client);
-                    log.info("Received send_chat_message from User {}, Data: {}", userId, data);
-                    if (userId != null && data.getContestId() != null) {
+                    log.info("Received send_chat_message raw from User {}, Data: {}", userId, data);
+
+                    if (userId != null && data instanceof java.util.Map) {
                         try {
+                            java.util.Map<?, ?> map = (java.util.Map<?, ?>) data;
+                            Integer contestId = Integer.parseInt(map.get("contestId").toString());
+                            String content = (String) map.get("content");
+
                             com.codegym.spring_boot.entity.mongo.ChatMessage savedMsg = chatService
-                                    .saveMessage(data.getContestId(), userId, data.getContent());
-                            String room = "contest_chat_" + data.getContestId();
+                                    .saveMessage(contestId, userId, content);
+                            String room = "contest_chat_" + contestId;
+
+                            // Tránh lỗi Jackson không thể serialize LocalDateTime của netty-socketio
+                            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                            payload.put("id", savedMsg.getId());
+                            payload.put("contestId", savedMsg.getContestId());
+                            payload.put("senderId", savedMsg.getSenderId());
+                            payload.put("senderName", savedMsg.getSenderName());
+                            payload.put("senderAvatar", savedMsg.getSenderAvatar());
+                            payload.put("content", savedMsg.getContent());
+                            payload.put("timestamp",
+                                    savedMsg.getTimestamp() != null ? savedMsg.getTimestamp().toString() : null);
+                            payload.put("isSystem", savedMsg.isSystem());
 
                             // Gửi lại cho tất cả mọi người trong room "contest_chat_{id}"
-                            server.getRoomOperations(room).sendEvent("new_chat_message", savedMsg);
+                            server.getRoomOperations(room).sendEvent("new_chat_message", payload);
 
                             log.info("Chat message from User {} SAVED and BROADCASTED to room {}", userId, room);
                         } catch (Exception e) {
-                            log.error("Failed to process chat message from user {}: {}", userId, e.getMessage());
+                            log.error("Failed to process chat message from user {}: {}", userId, e.getMessage(), e);
                             client.sendEvent("chat_error", e.getMessage());
                         }
                     } else {
-                        log.warn("Invalid message payload or undefined user. UserId: {}, ContestId: {}", userId,
-                                data != null ? data.getContestId() : "null");
+                        log.warn("Invalid message payload or undefined user. UserId: {}, Data class: {}", userId,
+                                data != null ? data.getClass().getName() : "null");
                     }
                 });
 
