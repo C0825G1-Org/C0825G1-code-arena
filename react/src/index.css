@@ -39,3 +39,67 @@
 .gutter:active {
   background-color: rgba(59, 130, 246, 0.4);
 }
+
+/* Markdown Styling for Problem Description */
+.prose-markdown {
+  @apply text-slate-300 leading-relaxed;
+}
+
+.prose-markdown h1, .prose-markdown h2, .prose-markdown h3 {
+  @apply text-white font-bold mt-6 mb-3;
+}
+
+.prose-markdown h1 { @apply text-2xl; }
+.prose-markdown h2 { @apply text-xl; }
+.prose-markdown h3 { @apply text-lg; }
+
+.prose-markdown p {
+  @apply mb-4;
+}
+
+.prose-markdown ul, .prose-markdown ol {
+  @apply my-4 pl-6;
+}
+
+.prose-markdown ul { @apply list-disc; }
+.prose-markdown ol { @apply list-decimal; }
+
+.prose-markdown li {
+  @apply mb-1;
+}
+
+.prose-markdown code {
+  @apply bg-slate-800 text-blue-400 px-1.5 py-0.5 rounded font-mono text-sm;
+}
+
+.prose-markdown pre {
+  @apply bg-slate-950 border border-slate-800 rounded-xl p-4 my-4 overflow-x-auto;
+}
+
+.prose-markdown pre code {
+  @apply bg-transparent p-0 text-slate-300;
+}
+
+.prose-markdown table {
+  @apply w-full my-6 border-collapse;
+}
+
+.prose-markdown th, .prose-markdown td {
+  @apply border border-slate-700 px-4 py-2 text-sm;
+}
+
+.prose-markdown th {
+  @apply bg-slate-800 text-white font-bold;
+}
+
+.prose-markdown blockquote {
+  @apply border-l-4 border-blue-500/50 bg-blue-500/5 px-4 py-2 my-4 italic text-slate-400;
+}
+
+.prose-markdown strong {
+  @apply text-white font-bold;
+}
+
+.prose-markdown em {
+  @apply text-slate-400;
+}
