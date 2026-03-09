@@ -28,8 +28,9 @@ export interface ProblemRequestDTO {
 }
 
 export const problemApi = {
-    getProblems: async (): Promise<ProblemResponseDTO[]> => {
-        return await axiosClient.get('/problems');
+    getProblems: async (manage?: boolean): Promise<ProblemResponseDTO[]> => {
+        const url = manage ? '/problems?manage=true' : '/problems';
+        return await axiosClient.get(url);
     },
 
     getDifficulties: async (): Promise<string[]> => {

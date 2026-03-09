@@ -40,7 +40,7 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
     const fetchProblems = async () => {
         try {
             setLoadingProblems(true);
-            const data = await problemApi.getProblems();
+            const data = await problemApi.getProblems(true);
             // User requested that only problems with testcases ('ready') are selectable.
             const selectableProblems = data.filter(p => p.testcaseStatus === 'ready');
             setProblems(selectableProblems);
