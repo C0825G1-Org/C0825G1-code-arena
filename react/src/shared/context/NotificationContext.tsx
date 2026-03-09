@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useContestWebSocket } from '../../features/user/contests/hooks/useContestWebSocket';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../app/store';
+import { updateLockStatus } from '../../features/auth/store/authSlice';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,29 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     }, [notifications]);
 
     // ── Handlers ─────────────────────────────────────────────────────────────
+
+    const dispatch = useDispatch();
+
+    const handleUserLockUpdate = useCallback((data: { type: 'chat' | 'discussion', locked: boolean }) => {
+        const { type, locked } = data;
+        dispatch(updateLockStatus({ type, locked }));
+
+        const message = locked
+            ? `Bạn đã bị khóa quyền ${type === 'chat' ? 'trò chuyện' : 'thảo luận'}.`
+            : `Quyền ${type === 'chat' ? 'tr trò chuyện' : 'thảo luận'} của bạn đã được mở.`;
+
+        toast(message, {
+            icon: locked ? '🔒' : '🔓',
+            duration: 5000,
+            style: {
+                borderRadius: '10px',
+                background: '#1e293b',
+                color: '#fff',
+                border: locked ? '1px solid #ef4444' : '1px solid #22c55e',
+                zIndex: 9999
+            },
+        });
+    }, [dispatch]);
 
     const handleContestStatusUpdate = useCallback((_contestId: number, _status: string) => {
         // Không cần xử lý gì ở đây — các trang tự refetch qua hook riêng của họ
@@ -100,8 +124,9 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
     // Chỉ kết nối socket khi đã đăng nhập
     useContestWebSocket(
-        isAuthenticated ? handleContestStatusUpdate : () => {},
-        isAuthenticated ? handleContestReminder : undefined
+        isAuthenticated ? handleContestStatusUpdate : () => { },
+        isAuthenticated ? handleContestReminder : undefined,
+        isAuthenticated ? handleUserLockUpdate : undefined
     );
 
     // ── Actions ──────────────────────────────────────────────────────────────

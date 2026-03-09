@@ -9,19 +9,25 @@ interface ContestReminderData {
 
 export const useContestWebSocket = (
     onContestUpdate: (contestId: number, status: string) => void,
-    onContestReminder?: (data: ContestReminderData) => void
+    onContestReminder?: (data: ContestReminderData) => void,
+    onUserLockUpdate?: (data: { type: 'chat' | 'discussion', locked: boolean }) => void
 ) => {
     const callbackRef = useRef(onContestUpdate);
     const reminderCallbackRef = useRef(onContestReminder);
+    const userLockCallbackRef = useRef(onUserLockUpdate);
+
     // Update ref when callback changes
     useEffect(() => {
         callbackRef.current = onContestUpdate;
     }, [onContestUpdate]);
 
-    // Sync reminder callback ref
     useEffect(() => {
         reminderCallbackRef.current = onContestReminder;
     }, [onContestReminder]);
+
+    useEffect(() => {
+        userLockCallbackRef.current = onUserLockUpdate;
+    }, [onUserLockUpdate]);
 
     useEffect(() => {
         let isActive = true;
@@ -38,13 +44,24 @@ export const useContestWebSocket = (
         }
 
         // Init Socket.IO Client
-        // Note: The port 9092 is handled by Dev Nguyen's SocketIOServer
         const socket: Socket = io('/', {
             query: { token },
             transports: ['websocket'],
             reconnection: true,
             reconnectionAttempts: 10,
             reconnectionDelay: 2000,
+        });
+
+        socket.on('connect', () => {
+            console.log('Socket.IO (Contest updates) Connected to server!');
+            // Join user room for private notifications
+            try {
+                if (token) {
+                    // Extracting userId from token client-side is optional since server does it,
+                    // but we can just emit an event to be sure if server needs it.
+                    // Actually SocketIOConfig.java already joins the room on connect.
+                }
+            } catch (e) { }
         });
 
         socket.on('contest_reminder', (data: any) => {
@@ -54,8 +71,10 @@ export const useContestWebSocket = (
             }
         });
 
-        socket.on('connect', () => {
-            console.log('Socket.IO (Contest updates) Connected to server!');
+        socket.on('user_lock_update', (data: any) => {
+            if (!isActive) return;
+            console.log('Received Socket.IO user_lock_update:', data);
+            userLockCallbackRef.current?.(data);
         });
 
         socket.on('connect_error', (err) => {
@@ -67,17 +86,17 @@ export const useContestWebSocket = (
             console.log('Received Socket.IO contest_update:', data);
             if (!isActive) return;
             if (data.contestId && data.status) {
-                // Always call the latest callback via ref
                 callbackRef.current(data.contestId, data.status);
             }
         });
 
         return () => {
-            isActive = false; // Luôn reset flag dù socket có connected hay không
+            isActive = false;
             socket.off('contest_update');
             socket.off('contest_reminder');
+            socket.off('user_lock_update');
             socket.disconnect();
             console.log('Socket.IO (Contest updates) Disconnected');
         };
-    }, []); // Establish connection only once per component mount
+    }, []);
 };
