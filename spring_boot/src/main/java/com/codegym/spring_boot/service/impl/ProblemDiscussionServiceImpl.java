@@ -40,12 +40,39 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                 User user = userRepository.findById(userId)
                                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+                if (Boolean.TRUE.equals(user.getIsDiscussionLocked())) {
+                        throw new RuntimeException("Tài khoản của bạn đã bị khóa tính năng thảo luận bài tập.");
+                }
+
                 ProblemDiscussion discussion = ProblemDiscussion.builder()
                                 .problem(problem)
                                 .user(user)
                                 .content(request.getContent())
                                 .build();
 
+                discussion = discussionRepository.save(discussion);
+                return mapToResponse(discussion);
+        }
+
+        @Override
+        @Transactional
+        public ProblemDiscussionResponse updateDiscussion(Integer discussionId, CreateDiscussionRequest request,
+                        Integer userId) {
+                ProblemDiscussion discussion = discussionRepository.findById(discussionId)
+                                .orElseThrow(() -> new RuntimeException("Discussion not found"));
+
+                if (!discussion.getUser().getId().equals(userId)) {
+                        throw new RuntimeException("You don't have permission to update this discussion");
+                }
+
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                if (Boolean.TRUE.equals(user.getIsDiscussionLocked())) {
+                        throw new RuntimeException("Tài khoản của bạn đã bị khóa tính năng thảo luận bài tập.");
+                }
+
+                discussion.setContent(request.getContent());
                 discussion = discussionRepository.save(discussion);
                 return mapToResponse(discussion);
         }
@@ -60,7 +87,8 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                 if (!discussion.getUser().getId().equals(userId)) {
                         // Check nếu không phải Mod/Admin
                         User user = userRepository.findById(userId).orElseThrow();
-                        if (!user.getRole().name().equals("ADMIN") && !user.getRole().name().equals("MODERATOR")) {
+                        if (!user.getRole().name().equalsIgnoreCase("ADMIN")
+                                        && !user.getRole().name().equalsIgnoreCase("MODERATOR")) {
                                 throw new RuntimeException("You don't have permission to delete this discussion");
                         }
                 }
@@ -68,10 +96,22 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                 discussionRepository.delete(discussion);
         }
 
+        @Override
+        public Page<ProblemDiscussionResponse> getAllDiscussions(Integer problemId, int page, int size) {
+                PageRequest pageRequest = PageRequest.of(page, size);
+                if (problemId != null && problemId > 0) {
+                        return discussionRepository.findByProblemIdOrderByCreatedAtDesc(problemId, pageRequest)
+                                        .map(this::mapToResponse);
+                }
+                return discussionRepository.findAllByOrderByCreatedAtDesc(pageRequest)
+                                .map(this::mapToResponse);
+        }
+
         private ProblemDiscussionResponse mapToResponse(ProblemDiscussion discussion) {
                 return ProblemDiscussionResponse.builder()
                                 .id(discussion.getId())
                                 .problemId(discussion.getProblem().getId())
+                                .problemTitle(discussion.getProblem().getTitle())
                                 .userId(discussion.getUser().getId())
                                 .userFullName(discussion.getUser().getFullName())
                                 .userUsername(discussion.getUser().getUsername())
@@ -79,7 +119,9 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                                                 ? discussion.getUser().getProfile().getAvatarUrl()
                                                 : null)
                                 .content(discussion.getContent())
+                                .userIsDiscussionLocked(discussion.getUser().getIsDiscussionLocked())
                                 .createdAt(discussion.getCreatedAt())
+                                .updatedAt(discussion.getUpdatedAt())
                                 .build();
         }
 }

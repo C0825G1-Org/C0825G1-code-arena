@@ -39,6 +39,7 @@ public class ChatService implements IChatService {
                 .content(content)
                 .timestamp(LocalDateTime.now())
                 .isSystem(false)
+                .userIsChatLocked(user.getIsContestChatLocked())
                 .build();
 
         return chatMessageRepository.save(message);
@@ -60,6 +61,10 @@ public class ChatService implements IChatService {
         if (user.getRole() == com.codegym.spring_boot.entity.enums.UserRole.admin
                 || user.getRole() == com.codegym.spring_boot.entity.enums.UserRole.moderator) {
             return true;
+        }
+
+        if (Boolean.TRUE.equals(user.getIsContestChatLocked())) {
+            return false;
         }
 
         // Người tạo cuộc thi luôn có quyền chat

@@ -44,4 +44,14 @@ public class ProblemDiscussionController {
         discussionService.deleteDiscussion(discussionId, user.getId());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{discussionId}")
+    public ResponseEntity<ProblemDiscussionResponse> updateDiscussion(
+            @PathVariable Integer problemId,
+            @PathVariable Integer discussionId,
+            @Valid @RequestBody CreateDiscussionRequest request,
+            @AuthenticationPrincipal User user) {
+        ProblemDiscussionResponse response = discussionService.updateDiscussion(discussionId, request, user.getId());
+        return ResponseEntity.ok(response);
+    }
 }

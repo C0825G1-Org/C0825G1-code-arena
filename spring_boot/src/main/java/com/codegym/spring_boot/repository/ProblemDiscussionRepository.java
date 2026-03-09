@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProblemDiscussionRepository extends JpaRepository<ProblemDiscussion, Integer> {
     Page<ProblemDiscussion> findByProblemIdOrderByCreatedAtDesc(Integer problemId, Pageable pageable);
+
+    Page<ProblemDiscussion> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

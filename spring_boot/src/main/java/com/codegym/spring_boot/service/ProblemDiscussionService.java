@@ -9,5 +9,9 @@ public interface ProblemDiscussionService {
 
     ProblemDiscussionResponse createDiscussion(Integer problemId, CreateDiscussionRequest request, Integer userId);
 
+    ProblemDiscussionResponse updateDiscussion(Integer discussionId, CreateDiscussionRequest request, Integer userId);
+
+    Page<ProblemDiscussionResponse> getAllDiscussions(Integer problemId, int page, int size);
+
     void deleteDiscussion(Integer discussionId, Integer userId);
 }
