@@ -101,8 +101,8 @@ public class LeaderboardService implements ILeaderboardService {
         List<ContestParticipant> participants = participantRepository
                 .findByIdContestIdOrderByTotalScoreDescTotalPenaltyAsc(contestId);
 
-        // Lấy tất cả submission của contest để tính chi tiết từng bài
-        List<Submission> allSubmissions = submissionRepository.findByContestIdOrderByIdAsc(contestId);
+        // Lấy tất cả submission thực sự của contest để tính chi tiết từng bài
+        List<Submission> allSubmissions = submissionRepository.findByContestIdAndIsTestRunFalseOrderByIdAsc(contestId);
 
         // Map: userId → (problemId → ProblemDetail)
         Map<Integer, Map<Integer, LeaderboardDTO.ProblemDetail>> userProblemDetails = new java.util.HashMap<>();
@@ -177,6 +177,7 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setUserId(uid);
             dto.setUsername(p.getUser().getUsername());
             dto.setFullName(p.getUser().getFullName());
+            dto.setStatus(p.getStatus().name());
             if (p.getUser().getProfile() != null) {
                 dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
             }

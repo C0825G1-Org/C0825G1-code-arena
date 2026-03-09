@@ -6,7 +6,8 @@ interface UseCameraSnapshotProps {
     contestId: number;
     enabled: boolean;
     interval?: number; // Interval between snapshots in ms
-    onCameraRefused?: () => void; // Bug #5: callback khi camera bị từ chối
+    onCameraRefused?: () => void; // Callback when camera is initially refused
+    onStatusChange?: (isViolating: boolean) => void; // Callback for mid-contest track status changes
 }
 
 export const useCameraSnapshot = ({
@@ -14,6 +15,7 @@ export const useCameraSnapshot = ({
     enabled,
     interval = 60000, // 1 minute
     onCameraRefused,
+    onStatusChange,
 }: UseCameraSnapshotProps) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -21,14 +23,33 @@ export const useCameraSnapshot = ({
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const timerRef = useRef<any>(null);
     const onCameraRefusedRef = useRef(onCameraRefused);
+    const onStatusChangeRef = useRef(onStatusChange);
 
     // Luôn giữ callback mới nhất mà không kích hoạt re-render của useEffect
     useEffect(() => {
         onCameraRefusedRef.current = onCameraRefused;
     }, [onCameraRefused]);
 
-    const takeSnapshot = useCallback(async () => {
+    useEffect(() => {
+        onStatusChangeRef.current = onStatusChange;
+    }, [onStatusChange]);
+
+    const checkTrackHealth = useCallback(() => {
         if (!streamRef.current) return;
+        
+        const videoTrack = streamRef.current.getVideoTracks()[0];
+        const isViolating = !streamRef.current.active || !videoTrack || videoTrack.readyState === 'ended' || !videoTrack.enabled;
+        
+        if (isViolating && onStatusChangeRef.current) {
+            onStatusChangeRef.current(true);
+        }
+    }, []);
+
+    const takeSnapshot = useCallback(async () => {
+        // Kiểm tra sức khỏe track trước khi chụp
+        checkTrackHealth();
+
+        if (!streamRef.current || !streamRef.current.active) return;
 
         try {
             setIsCapturing(true);
@@ -105,6 +126,11 @@ export const useCameraSnapshot = ({
                     takeSnapshot();
                 }, interval);
 
+                // Báo cáo trạng thái OK ban đầu
+                if (onStatusChangeRef.current) {
+                    onStatusChangeRef.current(false);
+                }
+
             } catch (err) {
                 // Bug #5 fix: Camera bị từ chối → ghi vi phạm qua callback
                 console.error("Camera permission denied:", err);
@@ -117,6 +143,9 @@ export const useCameraSnapshot = ({
                 if (onCameraRefusedRef.current) {
                     onCameraRefusedRef.current();
                 }
+                if (onStatusChangeRef.current) {
+                    onStatusChangeRef.current(true);
+                }
             }
         };
 
@@ -125,10 +154,13 @@ export const useCameraSnapshot = ({
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
             if (streamRef.current) {
-                streamRef.current.getTracks().forEach(track => track.stop());
+                streamRef.current.getTracks().forEach(track => {
+                    track.onended = null;
+                    track.stop();
+                });
             }
         };
-    }, [enabled, interval, takeSnapshot]); // Loại bỏ onCameraRefused khỏi dependency để chặn loop vô tận
+    }, [enabled, interval, takeSnapshot, checkTrackHealth]);
 
     return { isCapturing, hasPermission };
 };

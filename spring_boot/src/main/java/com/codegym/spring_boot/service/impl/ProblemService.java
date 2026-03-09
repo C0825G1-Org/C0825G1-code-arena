@@ -236,6 +236,8 @@ public class ProblemService implements IProblemService {
 
         if (problem.getCreatedBy() != null) {
             response.setAuthorId(problem.getCreatedBy().getId());
+            response.setAuthorUsername(problem.getCreatedBy().getUsername());
+            response.setAuthorName(problem.getCreatedBy().getFullName());
         }
 
         if (problem.getTags() != null) {

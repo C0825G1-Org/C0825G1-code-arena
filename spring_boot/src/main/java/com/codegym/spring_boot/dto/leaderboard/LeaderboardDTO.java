@@ -21,6 +21,7 @@ public class LeaderboardDTO {
     private Integer totalPenalty; // Total time penalty
     private Integer totalSolved; // Added
     private Boolean hasScorePenalty; // Added
+    private String status; // Added
     private List<ProblemDetail> problemDetails;
 
     @Data

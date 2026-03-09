@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
 import { LoginPage } from '../features/auth/pages/LoginPage';
@@ -13,6 +13,13 @@ import { CreatePage as ModeratorProblemCreatePage } from '../features/moderator/
 import { EditPage as ModeratorProblemEditPage } from '../features/moderator/problem/EditPage';
 import { CreatePage as ModeratorTestcaseCreatePage } from '../features/moderator/testcase/CreatePage';
 import { AdminDashboardPage } from '../features/admin/dashboard/pages/AdminDashboardPage';
+import { AdminUserListPage } from '../features/admin/user/pages/AdminUserListPage';
+import { AdminTagListPage } from '../features/admin/tag/pages/AdminTagListPage';
+import { AdminContestManagementPage } from '../features/admin/contests/pages/AdminContestManagementPage';
+import { AdminProblemPage } from '../features/admin/problem/page/AdminProblemPage';
+import { AdminProblemCreatePage } from '../features/admin/problem/page/AdminProblemCreatePage';
+import { AdminProblemEditPage } from '../features/admin/problem/page/AdminProblemEditPage';
+import { AdminTestcaseCreatePage } from '../features/admin/testcase/page/AdminTestcaseCreatePage';
 import { MonitorPanelPage } from '../features/moderator/contests/pages/MonitorPanelPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -36,9 +43,10 @@ import { Error500Page } from '../features/errors/pages/Error500Page';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+    const location = useLocation();
 
     if (!isAuthenticated || !user) {
-        return <Navigate to="/err/403" replace />;
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
@@ -51,8 +59,14 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+    const location = useLocation();
 
     if (isAuthenticated && user) {
+        const from = (location.state as any)?.from;
+        if (from) {
+            return <Navigate to={from} replace />;
+        }
+
         const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
         if (userRole === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
         if (userRole === 'MODERATOR') return <Navigate to="/moderator/dashboard" replace />;
@@ -125,7 +139,11 @@ export const router = createBrowserRouter([
     },
     {
         path: '/problems',
-        element: <UserProblemListPage />
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserProblemListPage />
+            </ProtectedRoute>
+        )
     },
     {
         path: '/contests/:id',
@@ -241,8 +259,68 @@ export const router = createBrowserRouter([
         )
     },
     {
+        path: '/admin/users',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminUserListPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/tags',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminTagListPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/contests',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminContestManagementPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/problems',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminProblemPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/problems/create',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminProblemCreatePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/problems/edit/:id',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminProblemEditPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/testcases',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminTestcaseCreatePage />
+            </ProtectedRoute>
+        )
+    },
+    {
         path: '/code-editor/:problemId',
-        element: <CodeEditorPage /> // Mở tạm để dev, hoặc sẽ cho vào ProtectedRoute sau
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <CodeEditorPage />
+            </ProtectedRoute>
+        )
     },
     {
         path: '/tutorial',

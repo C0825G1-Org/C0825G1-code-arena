@@ -91,12 +91,11 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     }
 
     @Override
-    public com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse getMonitorStats(Integer contestId,
-            Integer moderatorId) {
+    public com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse getMonitorStats(Integer contestId, Integer moderatorId, boolean isAdmin) {
         // Validate ownership
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc thi ID: " + contestId));
-        if (!contest.getCreatedBy().getId().equals(moderatorId)) {
+        if (!isAdmin && !contest.getCreatedBy().getId().equals(moderatorId)) {
             throw new SecurityException("Bạn không có quyền giám sát cuộc thi này.");
         }
 
@@ -104,8 +103,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
         int activeParticipantsCount = (int) contestParticipantRepository
                 .countByContestIdAndHasJoinedActiveTrue(contestId);
 
-        // 2. Lấy tổng số lượt nộp bài
-        int totalSubmissionsCount = submissionRepository.countByContestId(contestId);
+        // 2. Lấy tổng số lượt nộp bài thật (bỏ qua test run)
+        int totalSubmissionsCount = submissionRepository.countByContestIdAndIsTestRunFalse(contestId);
 
         // 3. Tính thời gian còn lại (seconds)
         long remainingTimeSeconds = 0L;
@@ -136,30 +135,30 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                 acRate = (double) acUserSubs / totalUserSubs * 100.0;
             }
 
-            leaderboard
-                    .add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry
-                            .builder()
-                            .rank(rank++)
-                            .userId(p.getUser().getId().longValue())
-                            .username(p.getUser().getUsername())
-                            .fullname(fullname)
-                            .totalScore(p.getTotalScore())
-                            .totalPenalty(p.getTotalPenalty())
-                            .acRate(Math.round(acRate * 100.0) / 100.0)
-                            .build());
+leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
+                    .rank(rank++)
+                    .userId(p.getUser().getId().longValue())
+                    .username(p.getUser().getUsername())
+                    .fullname(fullname)
+                    .totalScore(p.getTotalScore())
+                    .totalPenalty(p.getTotalPenalty())
+                    .acRate(Math.round(acRate * 100.0) / 100.0)
+                    .status(p.getStatus().name())
+                    .isCameraViolating(p.getIsCameraViolating())
+                    .build());
+
         }
 
-        // 5. Lấy 50 lượt nộp bài gần nhất để làm Feed (Live Log)
+        // 5. Lấy 50 lượt nộp bài gần nhất để làm Feed (Live Log), bỏ qua test run
         Pageable top50 = PageRequest.of(0, 50, Sort.by("createdAt").descending());
-        List<com.codegym.spring_boot.entity.Submission> recentSubs = submissionRepository
-                .findByContestIdOrderByCreatedAtDesc(contestId, top50).getContent();
+        List<com.codegym.spring_boot.entity.Submission> recentSubs = submissionRepository.findByContestIdAndIsTestRunFalseOrderByCreatedAtDesc(contestId, top50).getContent();
 
         List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog> recentSubmissions = recentSubs
                 .stream()
                 .map(sub -> com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog
                         .builder()
                         .submissionId(sub.getId())
-                        .username(sub.getUser().getUsername())
+                        .fullname(sub.getUser().getFullName() != null ? sub.getUser().getFullName() : sub.getUser().getUsername())
                         .problemId(sub.getProblem().getId())
                         .problemTitle(sub.getProblem().getTitle())
                         .status(sub.getStatus().name())
@@ -181,10 +180,10 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     }
 
     @Override
-    public void validateContestOwnership(Integer contestId, Integer moderatorId) {
+    public void validateContestOwnership(Integer contestId, Integer moderatorId, boolean isAdmin) {
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cuộc thi ID: " + contestId));
-        if (!contest.getCreatedBy().getId().equals(moderatorId)) {
+        if (!isAdmin && !contest.getCreatedBy().getId().equals(moderatorId)) {
             throw new SecurityException("Bạn không có quyền giám sát cuộc thi này.");
         }
     }
@@ -212,17 +211,18 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                 acRate = (double) acUserSubs / totalUserSubs * 100.0;
             }
 
-            leaderboard
-                    .add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry
-                            .builder()
-                            .rank(rank++)
-                            .userId(p.getUser().getId().longValue())
-                            .username(p.getUser().getUsername())
-                            .fullname(fullname)
-                            .totalScore(p.getTotalScore())
-                            .totalPenalty(p.getTotalPenalty())
-                            .acRate(Math.round(acRate * 100.0) / 100.0)
-                            .build());
+leaderboard.add(com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry.builder()
+                    .rank(rank++)
+                    .userId(p.getUser().getId().longValue())
+                    .username(p.getUser().getUsername())
+                    .fullname(fullname)
+                    .totalScore(p.getTotalScore())
+                    .totalPenalty(p.getTotalPenalty())
+                    .acRate(Math.round(acRate * 100.0) / 100.0)
+                    .status(p.getStatus().name())
+                    .isCameraViolating(p.getIsCameraViolating())
+                    .build());
+
         }
 
         return new PageImpl<>(leaderboard, pageable, participantPage.getTotalElements());

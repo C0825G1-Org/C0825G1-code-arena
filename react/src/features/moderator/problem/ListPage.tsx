@@ -53,10 +53,9 @@ export const ListPage = () => {
             setLoading(true);
             try {
                 const [problemsData, difficultiesData] = await Promise.all([
-                    problemApi.getProblems(),
+                    problemApi.getProblems(true),
                     problemApi.getDifficulties()
                 ]);
-
                 // Filter problems: Admins see all, Moderators see only their own
                 const filteredProblems = problemsData.filter(prob =>
                     currentUser?.role === 'admin' || prob.authorId === currentUser?.id

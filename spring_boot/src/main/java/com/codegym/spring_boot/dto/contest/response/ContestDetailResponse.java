@@ -49,6 +49,7 @@ public class ContestDetailResponse {
         private Integer submitCount; // Số lần đã nộp bài thật (0–50)
         @com.fasterxml.jackson.annotation.JsonProperty("isAC")
         private Boolean isAC; // Đã AC (100đ) bài này hay chưa
+        private Integer maxScore; // Tổng điểm tối đa của bài (theo testcase weights)
     }
 
     @Data

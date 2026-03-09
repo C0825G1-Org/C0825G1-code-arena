@@ -107,7 +107,7 @@ public class ContestEventScheduler {
     public void cancelAllSchedules(Integer contestId) {
         cancelStartSchedule(contestId);
         cancelEndSchedule(contestId);
-        cancelAllSchedules(contestId);
+        cancelReminderSchedules(contestId);
     }
 
     private void cancelStartSchedule(Integer contestId) {

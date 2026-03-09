@@ -43,4 +43,7 @@ public class ContestParticipant extends BaseEntity {
 
     @Column(name = "has_joined_active")
     private Boolean hasJoinedActive = false;
+
+    @Column(name = "is_camera_violating")
+    private Boolean isCameraViolating = false;
 }

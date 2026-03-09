@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { X, CalendarPlus } from '@phosphor-icons/react';
+import { X, CalendarPlus, MagnifyingGlass, Eye } from '@phosphor-icons/react';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { toast } from 'react-hot-toast';
 import { problemApi, ProblemResponseDTO } from '../../services/problemApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
+import { ProblemDetailSubModal } from './ProblemDetailSubModal';
 
 interface CreateContestModalProps {
     isOpen: boolean;
@@ -16,6 +17,9 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
     const [loading, setLoading] = useState(false);
     const [problems, setProblems] = useState<ProblemResponseDTO[]>([]);
     const [loadingProblems, setLoadingProblems] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedProblem, setSelectedProblem] = useState<ProblemResponseDTO | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
     const user = useSelector((state: RootState) => state.auth.user);
 
     const [formData, setFormData] = useState({
@@ -36,7 +40,7 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
     const fetchProblems = async () => {
         try {
             setLoadingProblems(true);
-            const data = await problemApi.getProblems();
+            const data = await problemApi.getProblems(true);
             // User requested that only problems with testcases ('ready') are selectable.
             const selectableProblems = data.filter(p => p.testcaseStatus === 'ready');
             setProblems(selectableProblems);
@@ -48,18 +52,22 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        if (e.target.name === 'problemIds') {
-            const options = (e.target as HTMLSelectElement).options;
-            const values: number[] = [];
-            for (let i = 0; i < options.length; i++) {
-                if (options[i].selected) {
-                    values.push(parseInt(options[i].value));
-                }
-            }
-            setFormData({ ...formData, problemIds: values });
-        } else {
-            setFormData({ ...formData, [e.target.name]: e.target.value });
-        }
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const toggleProblem = (id: number) => {
+        setFormData(prev => {
+            const isSelected = prev.problemIds.includes(id);
+            const newIds = isSelected
+                ? prev.problemIds.filter(pid => pid !== id)
+                : [...prev.problemIds, id];
+            return { ...prev, problemIds: newIds };
+        });
+    };
+
+    const openDetail = (p: ProblemResponseDTO) => {
+        setSelectedProblem(p);
+        setIsDetailOpen(true);
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -112,6 +120,7 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                 endTime: '',
                 problemIds: [],
             });
+            setSearchQuery('');
 
             onSuccess();
             onClose();
@@ -121,6 +130,11 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
             setLoading(false);
         }
     };
+
+    const filteredProblems = problems.filter(p =>
+        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.id.toString() === searchQuery
+    );
 
     if (!isOpen) return null;
 
@@ -138,7 +152,7 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                 </div>
 
                 <form onSubmit={handleSave}>
-                    <div className="p-6 space-y-5">
+                    <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
                         <div>
                             <label className="block text-sm font-medium text-slate-300 mb-1.5">Tên cuộc thi *</label>
                             <input
@@ -158,39 +172,84 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                                 value={formData.description}
                                 onChange={handleChange}
                                 placeholder="Nhập mô tả hoặc thể lệ cuộc thi..."
-                                rows={4}
+                                rows={3}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors placeholder:text-slate-500"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5 flex items-center justify-between">
-                                <span>Bài tập trong cuộc thi *</span>
-                                <span className="text-xs text-slate-500 font-normal">Giữ phím {navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'} để chọn nhiều</span>
+
+                        {/* Problem Selection Section */}
+                        <div className="space-y-3">
+                            <label className="block text-sm font-medium text-slate-300 flex items-center justify-between">
+                                <span>Chọn bài tập ({formData.problemIds.length} đã chọn) *</span>
+                                <span className="text-xs text-slate-500 font-normal">Tất cả bài tập đã có testcase</span>
                             </label>
-                            {loadingProblems ? (
-                                <div className="text-slate-500 text-sm py-2">Đang tải danh sách bài tập...</div>
-                            ) : (
-                                <select
-                                    multiple
-                                    name="problemIds"
-                                    value={formData.problemIds.map(String)}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors min-h-[120px]"
-                                >
-                                    {problems.length === 0 ? (
-                                        <option disabled value="">Chưa có bài tập nào khả dụng</option>
-                                    ) : (
-                                        problems.map(p => (
-                                            <option key={p.id} value={p.id} className="py-1 px-2 border-b border-slate-800/50 hover:bg-slate-800 break-words max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                                                {p.testcaseStatus === 'not_uploaded' ? '⚠️ ' : ''} [{p.difficulty.toUpperCase()}] {p.title}
-                                            </option>
-                                        ))
-                                    )}
-                                </select>
-                            )}
+
+                            {/* Search Input */}
+                            <div className="relative">
+                                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Tìm kiếm bài tập..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                                />
+                            </div>
+
+                            {/* Problem List */}
+                            <div className="bg-slate-900/50 border border-slate-700 rounded-lg overflow-hidden flex flex-col min-h-[160px] max-h-[240px]">
+                                {loadingProblems ? (
+                                    <div className="flex items-center justify-center flex-1 text-slate-500 text-sm">
+                                        <div className="w-4 h-4 border-2 border-slate-500 border-t-white rounded-full animate-spin mr-2"></div>
+                                        Đang tải bài tập...
+                                    </div>
+                                ) : filteredProblems.length === 0 ? (
+                                    <div className="flex items-center justify-center flex-1 text-slate-500 text-sm italic py-8">
+                                        Không tìm thấy bài tập phù hợp
+                                    </div>
+                                ) : (
+                                    <div className="overflow-y-auto flex-1 custom-scrollbar">
+                                        {filteredProblems.map(p => {
+                                            const isSelected = formData.problemIds.includes(p.id);
+                                            return (
+                                                <div
+                                                    key={p.id}
+                                                    className={`flex items-center gap-3 p-3 border-b border-slate-800/50 last:border-none transition-colors group ${isSelected ? 'bg-emerald-500/5' : 'hover:bg-slate-800/50'}`}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`prob-${p.id}`}
+                                                        checked={isSelected}
+                                                        onChange={() => toggleProblem(p.id)}
+                                                        className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500 transition-all cursor-pointer"
+                                                    />
+                                                    <label
+                                                        htmlFor={`prob-${p.id}`}
+                                                        className="flex-1 text-sm text-slate-200 cursor-pointer font-medium truncate"
+                                                    >
+                                                        <span className="text-slate-500 font-mono text-xs mr-2">#{p.id}</span>
+                                                        {p.title}
+                                                        <span className={`ml-3 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${p.difficulty === 'easy' ? 'text-emerald-400 bg-emerald-500/10' : p.difficulty === 'medium' ? 'text-amber-400 bg-amber-500/10' : 'text-rose-400 bg-rose-500/10'}`}>
+                                                            {p.difficulty}
+                                                        </span>
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openDetail(p)}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 rounded transition-all opacity-0 group-hover:opacity-100"
+                                                        title="Xem chi tiết"
+                                                    >
+                                                        <Eye weight="bold" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-5">
+
+                        <div className="grid grid-cols-2 gap-5 pt-2">
                             <div>
                                 <label className="block text-sm font-medium text-slate-300 mb-1.5">Bắt đầu *</label>
                                 <input
@@ -236,6 +295,12 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                     </div>
                 </form>
             </div>
+
+            <ProblemDetailSubModal
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                problem={selectedProblem}
+            />
         </div>
     );
 };

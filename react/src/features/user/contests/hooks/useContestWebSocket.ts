@@ -81,6 +81,12 @@ export const useContestWebSocket = (
             console.error('Socket.IO Connection Error:', err.message);
         });
 
+        // Listen for direct user lock
+        socket.on('user_locked', () => {
+            console.log('Socket.IO (Auth) Account locked by admin');
+            window.dispatchEvent(new Event('auth:locked'));
+        });
+
         // Listen for the custom event broadcasted by ContestEventScheduler
         socket.on('contest_update', (data: any) => {
             console.log('Received Socket.IO contest_update:', data);
@@ -94,6 +100,7 @@ export const useContestWebSocket = (
             isActive = false;
             socket.off('contest_update');
             socket.off('contest_reminder');
+            socket.off('user_locked');
             socket.off('user_lock_update');
             socket.disconnect();
             console.log('Socket.IO (Contest updates) Disconnected');

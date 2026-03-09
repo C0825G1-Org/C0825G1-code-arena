@@ -169,7 +169,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                         <tbody className="divide-y divide-slate-700/40">
                             {sorted.map((user) => {
                                 const style = getRankStyle(user.computedRank);
-                                const hasViolation = user.totalPenalty >= 1000;
+                                const hasViolation = (user.totalPenalty >= 1000) || (user.status === 'DISQUALIFIED');
 
                                 return (
                                     <tr key={user.userId} className={style.row}>

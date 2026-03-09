@@ -30,13 +30,15 @@ public class MonitorDashboardResponse {
         private Integer totalScore;
         private Integer totalPenalty;
         private Double acRate;
+        private String status;
+        private Boolean isCameraViolating;
     }
 
     @Data
     @Builder
     public static class MonitorSubmissionLog {
         private Integer submissionId;
-        private String username;
+        private String fullname;
         private Integer problemId;
         private String problemTitle;
         private String status;

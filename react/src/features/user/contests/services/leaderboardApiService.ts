@@ -21,6 +21,7 @@ export interface LeaderboardDTO {
     totalPenalty: number; // = tổng penalty phút (ranking key tie-breaker)
     totalSolved: number;  // = số bài AC
     hasScorePenalty?: boolean; // Added
+    status?: 'JOINED' | 'FINISHED' | 'DISQUALIFIED'; // Added
     problemDetails: LeaderboardProblemDetail[];
 }
 

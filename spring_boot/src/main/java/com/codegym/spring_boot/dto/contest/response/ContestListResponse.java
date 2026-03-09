@@ -24,4 +24,6 @@ public class ContestListResponse {
     @com.fasterxml.jackson.annotation.JsonProperty("isRegistered")
     private boolean isRegistered;
     private Integer firstProblemId;
+    private String creatorName;
+    private String creatorUsername;
 }

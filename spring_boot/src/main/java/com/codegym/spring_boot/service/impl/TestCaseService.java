@@ -279,9 +279,9 @@ public class TestCaseService implements ITestCaseService {
         List<ContestProblem> contests = contestProblemRepository.findByIdProblemId(problemId);
         for (ContestProblem cp : contests) {
             ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
-            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
+            if (realStatus == ContestStatus.active) {
                 throw new IllegalStateException(
-                        "Bài tập đang nằm trong cuộc thi đang diễn ra hoặc đã kết thúc. Không thể thêm/sửa/xóa testcase.");
+                        "Bài tập đang nằm trong cuộc thi đang diễn ra. Không thể thêm/sửa/xóa testcase.");
             }
         }
     }

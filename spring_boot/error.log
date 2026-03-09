@@ -1,0 +1,43 @@
+
+> Task :compileJava FAILED
+D:\code_arena\spring_boot\src\main\java\com\codegym\spring_boot\service\impl\LeaderboardService.java:125: error: cannot find symbol
+                    id -> testCaseRepository.sumScoreWeightByProblemId(id));
+                                            ^
+  symbol:   method sumScoreWeightByProblemId(Integer)
+  location: variable testCaseRepository of type ITestCaseRepository
+D:\code_arena\spring_boot\src\main\java\com\codegym\spring_boot\service\impl\SubmissionService.java:175: error: cannot find symbol
+                        alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
+                                                        ^
+  symbol:   method existsByUserIdAndProblemIdAndContestIdAndStatus(Integer,Integer,Integer,SubmissionStatus)
+  location: variable submissionRepository of type SubmissionRepository
+Note: D:\code_arena\spring_boot\src\main\java\com\codegym\spring_boot\scheduler\ContestEventScheduler.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+2 errors
+
+[Incubating] Problems report is available at: file:///D:/code_arena/spring_boot/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  Note: D:\code_arena\spring_boot\src\main\java\com\codegym\spring_boot\scheduler\ContestEventScheduler.java uses or overrides a deprecated API.
+  Note: Recompile with -Xlint:deprecation for details.
+  D:\code_arena\spring_boot\src\main\java\com\codegym\spring_boot\service\impl\LeaderboardService.java:125: error: cannot find symbol
+                      id -> testCaseRepository.sumScoreWeightByProblemId(id));
+                                              ^
+    symbol:   method sumScoreWeightByProblemId(Integer)
+    location: variable testCaseRepository of type ITestCaseRepository
+  D:\code_arena\spring_boot\src\main\java\com\codegym\spring_boot\service\impl\SubmissionService.java:175: error: cannot find symbol
+                          alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
+                                                          ^
+    symbol:   method existsByUserIdAndProblemIdAndContestIdAndStatus(Integer,Integer,Integer,SubmissionStatus)
+    location: variable submissionRepository of type SubmissionRepository
+  2 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 3s
+1 actionable task: 1 executed

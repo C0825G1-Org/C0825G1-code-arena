@@ -1,19 +1,17 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
-import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../../home/services/contestService';
 import { useContestWebSocket } from '../hooks/useContestWebSocket';
 import { toast } from 'react-hot-toast';
 import {
-    Code, Bell, SignOut, ShieldStar,
     CalendarStar, Users, Clock, ArrowRight,
-    CircleNotch, Trophy, XCircle,
-    FacebookLogo, TwitterLogo, GithubLogo
+    CircleNotch, Trophy, XCircle
 } from '@phosphor-icons/react';
+import { UserLayout } from '../../components/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
-import { userDashboardService, UserStats } from "../../home/services/userDashboardService";
+import { userDashboardService } from "../../home/services/userDashboardService";
 
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
     active: { label: 'Đang diễn ra', bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30' },
@@ -39,16 +37,12 @@ const getTimeLeft = (targetTime: string, serverTime?: string): string => {
 
 export const UserContestsPage = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
-    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
     const [contests, setContests] = useState<ContestListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [registeringId, setRegisteringId] = useState<number | null>(null);
-    const [userStats, setUserStats] = useState<UserStats | null>(null);
+
     // Filter & Pagination States
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('');
@@ -57,32 +51,6 @@ export const UserContestsPage = () => {
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
-
-    // Notifications state
-    const [notifications, setNotifications] = useState<{
-        id: number;
-        message: string;
-        contestId: number;
-        time: Date;
-        read: boolean;
-    }[]>(() => {
-        try {
-            const saved = localStorage.getItem('contest_notifications');
-            if (!saved) return [];
-            // Parse lại time thành Date object (JSON không lưu Date natively)
-            return JSON.parse(saved).map((n: any) => ({ ...n, time: new Date(n.time) }));
-        } catch {
-            return [];
-        }
-    });
-
-    const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-    const unreadCount = notifications.filter(n => !n.read).length;
-
-    //Tự động lưu vào localStorage khi notifications thay đổi
-    useEffect(() => {
-        localStorage.setItem('contest_notifications', JSON.stringify(notifications));
-    }, [notifications]);
 
     const fetchContests = useCallback(async () => {
         try {
@@ -111,7 +79,6 @@ export const UserContestsPage = () => {
         }
     }, [page, filterStatus, searchTerm, startTime, endTime]);
 
-    // Keep latest fetchContests for websocket callbacks (avoid stale closure).
     const fetchContestsRef = useRef(fetchContests);
     useEffect(() => {
         fetchContestsRef.current = fetchContests;
@@ -121,72 +88,12 @@ export const UserContestsPage = () => {
         fetchContests();
     }, [filterStatus, page]);
 
-    useEffect(() => {
-        const fetchUserStats = async () => {
-            if (user) {
-                try {
-                    const stats = await userDashboardService.getUserStats();
-                    setUserStats(stats);
-                } catch (error) {
-                    console.error('Failed to fetch user stats', error);
-                }
-            }
-        };
-        fetchUserStats();
-    }, [user]);
-
     // WebSocket real-time updates for contest status
     const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
-        // Refetch to ensure status badges/buttons update without full page reload.
         fetchContestsRef.current();
     }, []);
 
-    const handleContestReminder = useCallback((data: {
-        contestId: number;
-        contestTitle: string;
-        minutesLeft: number;
-    }) => {
-        const message =
-            data.minutesLeft >= 60
-                ? `Cuộc thi "${data.contestTitle}" sẽ bắt đầu sau ${Math.floor(
-                    data.minutesLeft / 60
-                )} giờ nữa!`
-                : `Cuộc thi "${data.contestTitle}" sẽ bắt đầu sau ${data.minutesLeft} phút nữa!`;
-
-        setNotifications(prev => {
-            const updated = [{
-                id: Date.now(),
-                message,
-                contestId: data.contestId,
-                time: new Date(),
-                read: false,
-            }, ...prev];
-            return updated.slice(0, 20);
-        });
-
-        toast.custom((t) => (
-            <div
-                className={`flex items-start gap-3 px-4 py-3 rounded-xl shadow-2xl border transition-all
-            ${data.minutesLeft <= 5
-                        ? 'bg-purple-900 border-purple-500 text-white'
-                        : 'bg-slate-800 border-slate-600 text-white'}
-            ${t.visible ? 'animate-enter' : 'animate-leave'}`}
-                style={{ minWidth: 280, maxWidth: 360 }}
-            >
-                <span className="text-xl mt-0.5">{data.minutesLeft <= 5 ? '🚨' : '⏰'}</span>
-                <p className="flex-1 text-sm font-medium">{message}</p>
-                <button
-                    onClick={() => toast.dismiss(t.id)}
-                    className="text-slate-400 hover:text-white transition-colors ml-1 mt-0.5 shrink-0 text-lg leading-none"
-                >
-                    ✕
-                </button>
-            </div>
-        ), { duration: 8000 });
-    }, []);
-
-
-    useContestWebSocket(handleContestStatusUpdate, handleContestReminder);
+    useContestWebSocket(handleContestStatusUpdate);
 
     // Fallback realtime: when local time passes contest start/end, refetch once.
     useEffect(() => {
@@ -239,7 +146,6 @@ export const UserContestsPage = () => {
             setTotalElements(data.totalElements || 0);
         } catch (err) {
             console.error('Failed to reset contests:', err);
-            // toast is already imported and used elsewhere
         } finally {
             setLoading(false);
         }
@@ -288,13 +194,6 @@ export const UserContestsPage = () => {
         );
     };
 
-    const handleLogout = () => {
-        navigate('/');
-        setTimeout(() => {
-            dispatch(logout());
-        }, 10);
-    };
-
     const handleRegister = async (contestId: number) => {
         try {
             setRegisteringId(contestId);
@@ -308,14 +207,10 @@ export const UserContestsPage = () => {
         }
     };
 
-    // --- Dynamic Button Logic based on Requirements ---
     const renderActionButton = (contest: ContestListItem) => {
         const isReging = registeringId === contest.id;
-
-        // Handle backend serialization discrepancy (isRegistered vs registered)
         const userIsRegistered = contest.isRegistered || (contest as any).registered;
 
-        // Condition 4: Finished -> Xem kết quả
         if (contest.status === 'finished') {
             return (
                 <button
@@ -327,7 +222,6 @@ export const UserContestsPage = () => {
             );
         }
 
-        // Condition 1: Not Registered -> Đăng ký
         if (!userIsRegistered) {
             const isFull = contest.participantCount >= contest.maxParticipants;
             if (isFull) {
@@ -351,9 +245,6 @@ export const UserContestsPage = () => {
             );
         }
 
-        // --- Now they are Registered ---
-
-        // Condition 2: Registered + UPCOMING -> Chưa diễn ra
         if (contest.status === 'upcoming') {
             return (
                 <button
@@ -365,7 +256,6 @@ export const UserContestsPage = () => {
             );
         }
 
-        // Condition 3: Registered + ACTIVE -> Vào thi (Vào thi sáng bực, gradient)
         if (contest.status === 'active') {
             const destUrl = contest.firstProblemId
                 ? `/code-editor/${contest.firstProblemId}?contestId=${contest.id}`
@@ -381,110 +271,12 @@ export const UserContestsPage = () => {
             );
         }
 
-        return null; // Fallback
+        return null;
     };
 
     return (
-        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
-            {/* Background Glows */}
-            <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-[20%] right-[-10%] w-[30%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
-
-            {/* Navbar */}
-            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                <div className="flex items-center gap-8">
-                    <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </Link>
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-                        <Link to="/home" className="hover:text-blue-400 transition-colors">Trang chủ</Link>
-                        <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
-                        <Link to="/contests" className="text-white hover:text-blue-400 transition-colors">Cuộc thi</Link>
-                        <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    {isModerator && (
-                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20">
-                            <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
-                        </Link>
-                    )}
-                    <div className="relative">
-                        {/* Bell Button */}
-                        <button
-                            onClick={() => setShowNotifDropdown(v => !v)}
-                            className="relative p-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300"
-                        >
-                            <Bell className="text-xl" />
-                            {/* Badge hiển thị số thông báo chưa đọc */}
-                            {unreadCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                </span>
-                            )}
-                        </button>
-                        {/* Dropdown thông báo */}
-                        {showNotifDropdown && (
-                            <div className="absolute right-0 top-12 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                                {/* Header */}
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
-                                    <span className="font-bold text-white">Thông báo</span>
-                                    {unreadCount > 0 && (
-                                        <button
-                                            onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
-                                            className="text-xs text-blue-400 hover:text-blue-300"
-                                        >
-                                            Đánh dấu tất cả đã đọc
-                                        </button>
-                                    )}
-                                </div>
-                                {/* Danh sách thông báo */}
-                                <div className="max-h-72 overflow-y-auto">
-                                    {notifications.length === 0 ? (
-                                        <div className="py-8 text-center text-slate-500 text-sm">
-                                            Không có thông báo nào
-                                        </div>
-                                    ) : (
-                                        notifications.map(notif => (
-                                            <div
-                                                key={notif.id}
-                                                onClick={() => {
-                                                    setNotifications(prev => prev.map(n =>
-                                                        n.id === notif.id ? { ...n, read: true } : n
-                                                    ));
-                                                    navigate(`/contests/${notif.contestId}`);
-                                                    setShowNotifDropdown(false);
-                                                }}
-                                                className={`px-4 py-3 border-b border-slate-800 cursor-pointer hover:bg-slate-800 transition-colors ${!notif.read ? 'bg-purple-500/10' : ''}`}
-                                            >
-                                                <p className={`text-sm ${!notif.read ? 'text-white font-medium' : 'text-slate-400'}`}>
-                                                    {notif.message}
-                                                </p>
-                                                <p className="text-xs text-slate-500 mt-1">
-                                                    {notif.time.toLocaleTimeString('vi-VN')}
-                                                </p>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
-                        <Avatar
-                            src={user?.avatarUrl}
-                            userId={user?.id}
-                            size="md"
-                        />
-                    </Link>
-                    <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
-                </div>
-            </nav>
-
-            {/* Main Content */}
+        <UserLayout>
             <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 sm:py-12 z-10 max-w-7xl">
-
                 {/* Header Section */}
                 <div className="flex flex-col mb-10">
                     <div className="mb-8 text-center sm:text-left">
@@ -497,13 +289,10 @@ export const UserContestsPage = () => {
                         </p>
                     </div>
 
-                    {/* Filters & Search - Vibrant and Youthful */}
+                    {/* Filters & Search */}
                     <div className="w-full relative bg-slate-800/40 p-5 md:p-6 rounded-3xl border border-white/5 backdrop-blur-xl shadow-[0_20px_40px_-15px_rgba(79,70,229,0.15)] flex flex-col gap-6">
-
-                        {/* Shimmer Overlay */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none rounded-3xl overflow-hidden"></div>
 
-                        {/* Top Row: Search & Dates */}
                         <div className="flex flex-col lg:flex-row gap-5 z-10 w-full">
                             {/* Search Bar */}
                             <div className="flex-1 relative group bg-slate-900/60 rounded-2xl border border-slate-700/50 flex items-center h-[56px] shadow-inner overflow-hidden">
@@ -549,7 +338,6 @@ export const UserContestsPage = () => {
                             </div>
                         </div>
 
-                        {/* Bottom Row: Status & Actions */}
                         <div className="flex flex-col lg:flex-row items-center justify-between gap-5 z-10 w-full mt-2">
                             {/* Status Pills */}
                             <div className="flex items-center gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide w-full lg:w-auto">
@@ -619,20 +407,18 @@ export const UserContestsPage = () => {
                                                     border ${contest.status === 'active' ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.1)]' : 'border-slate-700/50 hover:border-purple-500/30 hover:bg-slate-800/60'}
                                         `}
                                     >
-                                        {/* Subtle active glow */}
                                         {contest.status === 'active' && (
                                             <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 shadow-[0_0_20px_#3b82f6]"></div>
                                         )}
 
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pl-2">
-
                                             {/* Info Section */}
                                             <div className="flex-1 space-y-3 p-1">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`px-2.5 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider border ${badge.bg} ${badge.text} ${badge.border}`}>
                                                         {badge.label}
                                                     </span>
-                                                    {contest.isRegistered && (
+                                                    {(contest.isRegistered || (contest as any).registered) && (
                                                         <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
                                                             🌟 Đã đăng ký
                                                         </span>
@@ -680,30 +466,6 @@ export const UserContestsPage = () => {
                     </div>
                 )}
             </main>
-
-            {/* Footer */}
-            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
-                <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </div>
-                    <div className="text-slate-500 text-sm">
-                        &copy; 2026 Code Arena Platform. All rights reserved.
-                    </div>
-                    <div className="flex gap-4">
-                        <a href="https://www.facebook.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-colors">
-                            <FacebookLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://x.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-400 transition-colors">
-                            <TwitterLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://github.com/C0825G1-Org/C0825G1-code-arena" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
-                            <GithubLogo weight="fill" className="text-xl" />
-                        </a>
-                    </div>
-                </div>
-            </footer>
-        </div>
+        </UserLayout>
     );
 };

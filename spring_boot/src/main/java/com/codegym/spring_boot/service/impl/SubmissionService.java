@@ -163,6 +163,17 @@ public class SubmissionService implements ISubmissionService {
                 }
 
                 SubmissionStatus finalStatus = mapDockerStatusToSubmissionStatus(msg.getStatus());
+
+                // CRITICAL: Kiểm tra alreadyAC TRƯỚC KHI setStatus() để tránh JPA auto-flush.
+                // Nếu setStatus(AC) trước → entity bị dirty → Hibernate auto-flush trước query
+                // → query luôn tìm thấy bản thân submission vừa flush → alreadyAC = true sai.
+                boolean alreadyAC = false;
+                if (submission.getContest() != null) {
+                        alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatus(
+                                        submission.getUser().getId(), submission.getProblem().getId(),
+                                        submission.getContest().getId(), SubmissionStatus.AC);
+                }
+
                 submission.setStatus(finalStatus);
 
                 // Nếu là trạng thái đang chấm, chỉ cập nhật status và notify UI rồi thoát
@@ -177,13 +188,6 @@ public class SubmissionService implements ISubmissionService {
                         return;
                 }
 
-                // Kiểm tra trước khi lưu để xác định Penalty
-                boolean alreadyAC = false;
-                if (submission.getContest() != null) {
-                        alreadyAC = submissionRepository.existsByUserIdAndProblemIdAndContestIdAndStatusAndIdLessThan(
-                                        submission.getUser().getId(), submission.getProblem().getId(),
-                                        submission.getContest().getId(), SubmissionStatus.AC, submission.getId());
-                }
 
                 // 1. Lưu TestResult chi tiết
                 if (msg.getTestCaseResults() != null) {
@@ -305,10 +309,11 @@ public class SubmissionService implements ISubmissionService {
 
                 // --- Gửi Socket cho Live Monitor của Moderator ---
                 if (submission.getContest() != null && !Boolean.TRUE.equals(submission.getIsTestRun())) {
+                        // 3. Chuẩn bị payload thông báo qua Socket.IO cho luồng submissions của monitor
                         com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry = com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog
                                         .builder()
                                         .submissionId(submission.getId())
-                                        .username(submission.getUser().getUsername())
+                                        .fullname(submission.getUser().getFullName() != null ? submission.getUser().getFullName() : submission.getUser().getUsername())
                                         .problemId(submission.getProblem().getId())
                                         .problemTitle(submission.getProblem().getTitle())
                                         .status(finalStatus.name())

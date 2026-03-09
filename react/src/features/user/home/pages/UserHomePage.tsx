@@ -2,16 +2,11 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
-import { logout } from '../../../auth/store/authSlice';
 import { contestService, ContestListItem } from '../services/contestService';
 import { userDashboardService, UserStats, TopCoder } from '../services/userDashboardService';
 import { useContestWebSocket } from '../../contests/hooks/useContestWebSocket';
-import { NotificationBell } from '../../../../shared/components/NotificationBell';
 import { Avatar } from '../../../../shared/components/Avatar';
 import {
-    Code,
-    Bell,
-    SignOut,
     ArrowRight,
     CalendarStar,
     Fire,
@@ -20,14 +15,11 @@ import {
     Target,
     Clock,
     Calendar,
-    ShieldStar,
-    FacebookLogo,
-    TwitterLogo,
-    GithubLogo,
     HourglassLow,
     Trophy,
     CircleNotch
 } from '@phosphor-icons/react';
+import { UserLayout } from '../../components/UserLayout';
 
 // Tính thời gian còn lại
 const getTimeLeft = (targetTime: string, serverTime?: string): string => {
@@ -55,11 +47,7 @@ const statusConfig: Record<string, { label: string; bg: string; text: string; bo
 
 export const UserHomePage: React.FC = () => {
     const { user } = useSelector((state: RootState) => state.auth);
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
-    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
     // Fetch real contests
     const [contests, setContests] = useState<ContestListItem[]>([]);
@@ -108,7 +96,7 @@ export const UserHomePage: React.FC = () => {
         if (user) {
             fetchDashboardData();
         }
-    }, [user]);
+    }, [user, fetchContests, fetchDashboardData]);
 
     // WebSocket real-time updates for contest status
     const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
@@ -149,39 +137,27 @@ export const UserHomePage: React.FC = () => {
         return () => clearInterval(timer);
     }, [contests]);
 
-    const handleLogout = () => {
-        navigate('/');
-        setTimeout(() => {
-            dispatch(logout());
-        }, 10);
-    };
-
     // Phân loại contests để hiển thị trên Home
-    // Theo yêu cầu: hiển thị các cuộc thi sắp tới (upcoming)
-    // VÀ chỉ hiển thị cuộc thi đang diễn ra (active) NẾU user đã đăng ký
     const displayContests = contests.filter(c => {
         if (c.status === 'upcoming') return true;
         if (c.status === 'active' && c.isRegistered) return true;
         return false;
     }).slice(0, 3);
 
-    // Badge status dùng để hiển thị trên hero (chỉ lấy cuộc thi đang diễn ra, nếu là admin thì kệ, nhưng logic chung cứ lấy active đầu tiên)
     const activeContests = contests.filter(c => c.status === 'active');
     const upcomingContests = contests.filter(c => c.status === 'upcoming');
 
     const handleRegister = async (contestId: number) => {
-        import('react-hot-toast').then(({ toast }) => {
-            setRegisteringId(contestId);
-            contestService.registerForContest(contestId)
-                .then(() => {
-                    toast.success('Đăng ký tham gia thành công!');
-                    fetchContests(); // Refresh
-                })
-                .catch((error: any) => {
-                    toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
-                    setRegisteringId(null);
-                });
-        });
+        const { toast } = await import('react-hot-toast');
+        setRegisteringId(contestId);
+        try {
+            await contestService.registerForContest(contestId);
+            toast.success('Đăng ký tham gia thành công!');
+            fetchContests();
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
+            setRegisteringId(null);
+        }
     };
 
     const renderActionButton = (contest: ContestListItem) => {
@@ -227,7 +203,6 @@ export const UserHomePage: React.FC = () => {
             );
         }
 
-        // Active State
         if (contest.status === 'active') {
             const destUrl = contest.firstProblemId
                 ? `/code-editor/${contest.firstProblemId}?contestId=${contest.id}`
@@ -246,75 +221,11 @@ export const UserHomePage: React.FC = () => {
     };
 
     return (
-        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
-            {/* Background Glows */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none" />
-
-            {/* Navbar */}
-            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                <div className="flex items-center gap-8">
-                    <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </Link>
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-                        <Link to="/home" className="text-white hover:text-blue-400 transition-colors">Trang chủ</Link>
-                        <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
-                        <Link to="/contests" className="hover:text-blue-400 transition-colors">Cuộc thi</Link>
-                        <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    {isModerator && (
-                        <Link
-                            to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'}
-                            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20"
-                        >
-                            <ShieldStar weight="duotone" className="text-lg" />
-                            <span>Quản trị</span>
-                        </Link>
-                    )}
-
-                    <NotificationBell />
-
-                    <Link
-                        to="/profile"
-                        className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
-                    >
-                        <div className="text-right hidden sm:block">
-                            <div
-                                className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">
-                                {user?.fullName || 'User'}
-                            </div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span
-                                className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
-                            </div>
-                        </div>
-                        <Avatar
-                            src={user?.avatarUrl}
-                            userId={user?.id}
-                            size="md"
-                        />
-                    </Link>
-
-                    <button
-                        onClick={handleLogout}
-                        title="Đăng xuất"
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"
-                    >
-                        <SignOut weight="bold" className="text-xl" />
-                    </button>
-                </div>
-            </nav>
-
-            {/* Main Content */}
-            <main className="flex-1 container mx-auto px-6 py-10 z-10 max-w-7xl">
-
+        <UserLayout>
+            <main className="container mx-auto px-6 py-10 z-10 max-w-7xl">
                 {/* Hero Section */}
                 <div className="mb-16 mt-8 flex flex-col md:flex-row items-center justify-between gap-12">
                     <div className="flex-1 space-y-6">
-                        {/* Live Contest Badge — từ API thực */}
                         {activeContests.length > 0 ? (
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-sm text-blue-400 font-medium">
                                 <span className="relative flex h-2 w-2">
@@ -402,7 +313,6 @@ export const UserHomePage: React.FC = () => {
 
                 {/* Contests + Top Coders Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Contests — DỮ LIỆU THỰC TỪ API */}
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex justify-between items-end">
                             <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -460,7 +370,6 @@ export const UserHomePage: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Top Coders */}
                     <div className="space-y-6">
                         <h2 className="text-2xl font-bold flex items-center gap-2">
                             <Trophy weight="duotone" className="text-orange-500" /> Top Coders
@@ -479,10 +388,10 @@ export const UserHomePage: React.FC = () => {
                             ) : (
                                 <div className="flex flex-col divide-y divide-slate-700/50">
                                     {topCoders.map((coder, index) => {
-                                        let rankColors = "bg-slate-700 text-slate-300"; // default
-                                        if (index === 0) rankColors = "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.3)]"; // Gold
-                                        else if (index === 1) rankColors = "bg-slate-400/20 text-slate-300 border border-slate-400/50"; // Silver
-                                        else if (index === 2) rankColors = "bg-orange-500/20 text-orange-400 border border-orange-500/50"; // Bronze
+                                        let rankColors = "bg-slate-700 text-slate-300";
+                                        if (index === 0) rankColors = "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.3)]";
+                                        else if (index === 1) rankColors = "bg-slate-400/20 text-slate-300 border border-slate-400/50";
+                                        else if (index === 2) rankColors = "bg-orange-500/20 text-orange-400 border border-orange-500/50";
 
                                         return (
                                             <div key={coder.userId} className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors">
@@ -515,30 +424,6 @@ export const UserHomePage: React.FC = () => {
                     </div>
                 </div>
             </main>
-
-            {/* Footer */}
-            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
-                <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </div>
-                    <div className="text-slate-500 text-sm">
-                        &copy; 2026 Code Arena Platform. All rights reserved.
-                    </div>
-                    <div className="flex gap-4">
-                        <a href="https://www.facebook.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 transition-colors">
-                            <FacebookLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://x.com/" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-400 transition-colors">
-                            <TwitterLogo weight="fill" className="text-xl" />
-                        </a>
-                        <a href="https://github.com/C0825G1-Org/C0825G1-code-arena" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
-                            <GithubLogo weight="fill" className="text-xl" />
-                        </a>
-                    </div>
-                </div>
-            </footer>
-        </div>
+        </UserLayout>
     );
 };

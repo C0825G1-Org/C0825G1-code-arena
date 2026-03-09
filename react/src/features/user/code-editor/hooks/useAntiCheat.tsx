@@ -53,20 +53,32 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         }
     };
 
-    const violationHandlerRef = useRef<((bypassHiddenCheck?: boolean) => Promise<void>) | undefined>(undefined);
-    violationHandlerRef.current = async (bypassHiddenCheck = false) => {
-        // Chỉ chấp nhận nếu: tab đang ẩn (chuyển tab) HOAC bypass (vi phạm Fullscreen)
-        if (!bypassHiddenCheck && !document.hidden) return;
+    const violationHandlerRef = useRef<((bypassHiddenCheck?: boolean, force?: boolean) => Promise<void>) | undefined>(undefined);
+    violationHandlerRef.current = async (bypassHiddenCheck = false, force = false) => {
+        // Chỉ chấp nhận nếu: tab đang ẩn (chuyển tab) HOAC bypass (vi phạm Fullscreen / Camera)
+        if (!force && !bypassHiddenCheck && !document.hidden) return;
         if (!contestId) return;
         if (isReportingRef.current) return;
 
         try {
             isReportingRef.current = true;
-            const result = await contestService.reportViolation(parseInt(contestId));
+            const result = await contestService.reportViolation(parseInt(contestId), force);
             const count = result.violationCount;
 
             violationRef.current = count;
             setViolationCount(count);
+
+            if (force) {
+                toast.dismiss('violation-toast');
+                toast.error(
+                    <ViolationToastContent count={3} message="Bạn đã bị loại do từ chối cung cấp quyền Camera!" />,
+                    { autoClose: false, closeButton: true, position: 'top-center', style: { fontWeight: 'bold', border: '3px solid #dc2626' } }
+                );
+                if (onDisqualifiedRef.current) {
+                    onDisqualifiedRef.current();
+                }
+                return;
+            }
 
             if (count === 1) {
                 toast.error(
@@ -246,6 +258,7 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         scorePenalty,
         initViolations,
         // bypass=true dành cho vi phạm Fullscreen (tab đang hiện nhưng không FullScreen)
-        triggerViolation: (bypass = false) => violationHandlerRef.current?.(bypass)
+        // force=true dành cho vi phạm nghiêm trọng (từ chối Camera)
+        triggerViolation: (bypass = false, force = false) => violationHandlerRef.current?.(bypass, force)
     };
 };
