@@ -108,7 +108,12 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
 
     // Anti-cheat: Fullscreen và Context menu
     useEffect(() => {
-        if (!isExamMode) return;
+        console.log("[AntiCheat] Status changed:", { isExamMode, contestId });
+        if (!isExamMode) {
+            console.log("[AntiCheat] Disabled for this session.");
+            return;
+        }
+        console.log("[AntiCheat] Enabled. Monitoring Fullscreen and Tab switching...");
 
         const toastId = "fullscreen-prompt";
         let countdownTimer: ReturnType<typeof setInterval> | null = null;
@@ -116,6 +121,30 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
 
         const handleContextMenu = (e: MouseEvent) => {
             e.preventDefault();
+            toast.warning("Chuột phải bị vô hiệu hóa trong chế độ thi!", { toastId: 'block-contextmenu', autoClose: 2000 });
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Chặn F12
+            if (e.key === 'F12') {
+                e.preventDefault();
+                toast.warning("F12 bị vô hiệu hóa trong chế độ thi!", { toastId: 'block-f12', autoClose: 2000 });
+            }
+            // Chặn Alt + Tab 
+            if (e.altKey && (e.key === 'Tab' || e.keyCode === 9)) {
+                e.preventDefault();
+                toast.warning("Alt + Tab bị vô hiệu hóa trong chế độ thi!", { toastId: 'block-alttab', autoClose: 2000 });
+            }
+            // Chặn DevTools shortcuts (Ctrl+Shift+I/J/C)
+            if (e.ctrlKey && e.shiftKey && ['I', 'i', 'J', 'j', 'C', 'c'].includes(e.key)) {
+                e.preventDefault();
+                toast.warning("DevTools bị vô hiệu hóa!", { toastId: 'block-devtools', autoClose: 2000 });
+            }
+            // Chặn Ctrl+U (Xem mã nguồn)
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+                e.preventDefault();
+                toast.warning("Xem mã nguồn bị vô hiệu hóa!", { toastId: 'block-source', autoClose: 2000 });
+            }
         };
 
         const enterFullscreen = () => {
@@ -128,6 +157,10 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         const checkFullscreen = () => {
             if (!document.fullscreenElement && !(document as any).webkitFullscreenElement && !(document as any).msFullscreenElement) {
                 // Đang ở chế độ cửa sổ
+                if ('keyboard' in navigator && (navigator as any).keyboard && (navigator as any).keyboard.unlock) {
+                    (navigator as any).keyboard.unlock();
+                }
+
                 if (!countdownTimer) {
                     timeLeft = 10;
                     toast(
@@ -176,6 +209,10 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
                 }
             } else {
                 // Đã quay lại F11
+                if ('keyboard' in navigator && (navigator as any).keyboard && (navigator as any).keyboard.lock) {
+                    (navigator as any).keyboard.lock().catch((e: any) => console.log('Keyboard lock failed:', e));
+                }
+
                 if (countdownTimer) {
                     clearInterval(countdownTimer);
                     countdownTimer = null;
@@ -187,6 +224,7 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
         const initialCheck = setTimeout(checkFullscreen, 1000);
 
         document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('keydown', handleKeyDown);
         ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
             document.addEventListener(event, checkFullscreen);
         });
@@ -195,6 +233,7 @@ export const useAntiCheat = ({ isExamMode, contestId, onDisqualified }: UseAntiC
             clearTimeout(initialCheck);
             if (countdownTimer) clearInterval(countdownTimer);
             document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('keydown', handleKeyDown);
             ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(event => {
                 document.removeEventListener(event, checkFullscreen);
             });
