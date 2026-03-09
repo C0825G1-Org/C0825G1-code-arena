@@ -153,6 +153,17 @@ export default function Home() {
                 });
                 toast.warning("Hệ thống ghi nhận bạn chưa bật camera. Moderator đã được thông báo.", { toastId: 'camera-refused' });
             }
+        },
+        onStatusChange: (isViolating: boolean) => {
+            if (webRTCSocket && contestId) {
+                webRTCSocket.emit('report-camera-violation', { 
+                    contestId: parseInt(contestId), 
+                    isViolating: isViolating 
+                });
+                if (isViolating) {
+                    toast.warning("Phát hiện camera bị ngắt. Moderator đã được thông báo.", { toastId: 'camera-lost' });
+                }
+            }
         }
     });
 
