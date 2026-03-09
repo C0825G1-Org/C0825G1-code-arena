@@ -6,11 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/admin/dashboard/pages/AdminDashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/dashboard/pages/AdminDashboardPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/admin/tag/pages/AdminTagListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/tag/pages/AdminTagListPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/admin/user/pages/AdminUserListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/user/pages/AdminUserListPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/user/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/problem/ListPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ITagRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ITagRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,6 +16,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -46,6 +46,11 @@
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;ts.external.directory.path&quot;: &quot;D:\\reg1\\IntelliJ IDEA 2025.2.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
+    ]
   }
 }</component>
   <component name="RunManager">
@@ -139,6 +144,8 @@
       <workItem from="1772631556669" duration="3000000" />
       <workItem from="1772677350067" duration="6330000" />
       <workItem from="1772769154729" duration="2050000" />
+      <workItem from="1773024797574" duration="395000" />
+      <workItem from="1773025835727" duration="1326000" />
     </task>
     <servers />
   </component>
