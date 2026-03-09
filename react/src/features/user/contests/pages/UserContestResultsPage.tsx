@@ -14,6 +14,7 @@ import {
 } from '@phosphor-icons/react';
 import { ContestDetailData } from './UserContestDetailPage';
 import { computeAndSort } from '../components/LeaderboardTab';
+import { GroupChat } from '../../../chat/components/GroupChat';
 
 export const UserContestResultsPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -92,7 +93,6 @@ export const UserContestResultsPage = () => {
                         <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
                         <Link to="/contests" className="text-white hover:text-blue-400 transition-colors">Cuộc thi</Link>
                         <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -272,6 +272,11 @@ export const UserContestResultsPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Group Chat for Post-Contest */}
+                {user && (contest.status === 'upcoming' || contest.status === 'finished' || isModerator) && (
+                    <GroupChat contestId={Number(id)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName }} />
+                )}
             </main>
 
             {/* Footer */}

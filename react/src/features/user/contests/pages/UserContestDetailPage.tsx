@@ -16,6 +16,7 @@ import {
 import { LeaderboardTab } from '../components/LeaderboardTab';
 import { RulesModal } from '../components/RulesModal';
 import { TutorialModal } from '../components/TutorialModal';
+import { GroupChat } from '../../../chat/components/GroupChat';
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
@@ -322,7 +323,6 @@ export const UserContestDetailPage = () => {
                         <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
                         <Link to="/contests" className="text-white hover:text-blue-400 transition-colors">Cuộc thi</Link>
                         <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -502,6 +502,11 @@ export const UserContestDetailPage = () => {
                     </div>
 
                 </div>
+
+                {/* Integration of Group Chat */}
+                {(userIsRegistered || isModerator) && user && (contest.status === 'upcoming' || contest.status === 'finished' || isModerator) && (
+                    <GroupChat contestId={Number(id)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName }} />
+                )}
             </main>
 
             {/* Footer */}

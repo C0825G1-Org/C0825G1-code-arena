@@ -177,7 +177,6 @@ export const LeaderboardPage: React.FC = () => {
                         <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
                         <Link to="/contests" className="hover:text-blue-400 transition-colors">Cuộc thi</Link>
                         <Link to="/leaderboard" className="text-white hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                        <Link to="/discussions" className="hover:text-blue-400 transition-colors">Thảo luận</Link>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
