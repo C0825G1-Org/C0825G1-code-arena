@@ -46,19 +46,24 @@ public class UserSettingsService implements IUserSettingsService {
     @Override
     @Transactional
     public UserProfileResponse updateProfile(User user, UpdateProfileRequest request) {
-        user.setFullName(request.getFullName());
-        userRepository.save(user);
+        // Fetch fresh user from DB to ensure profile is linked
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Profile profile = user.getProfile();
+        currentUser.setFullName(request.getFullName());
+        userRepository.save(currentUser);
+
+        Profile profile = currentUser.getProfile();
         if (profile == null) {
             profile = new Profile();
-            profile.setUser(user);
+            profile.setUser(currentUser);
+            currentUser.setProfile(profile); // Ensure bidirectional consistency
         }
         profile.setBio(request.getBio());
         profile.setGithubLink(request.getGithubLink());
         profileRepository.save(profile);
 
-        return getUserProfile(user);
+        return getUserProfile(currentUser);
     }
 
     @Override
