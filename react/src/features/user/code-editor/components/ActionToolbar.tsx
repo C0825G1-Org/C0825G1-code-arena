@@ -87,9 +87,9 @@ export const ActionToolbar: React.FC<ActionToolbarProps> = ({
                         <PaperPlaneRight size={18} weight="fill" />
                     )}
                     {isSubmitting ? 'Đang gửi...' :
-                        isAC ? `Đã AC (${submitCount}/50)` :
-                            limitReached ? 'Hết lượt (50/50)' :
-                                `Nộp bài (${submitCount}/50)`}
+                        isAC ? (isExamMode ? `Đã AC (${submitCount}/50)` : 'Đã AC') :
+                            limitReached ? (isExamMode ? 'Hết lượt (50/50)' : 'Hết lượt') :
+                                isExamMode ? `Nộp bài (${submitCount}/50)` : 'Nộp bài'}
                 </button>
 
                 <button

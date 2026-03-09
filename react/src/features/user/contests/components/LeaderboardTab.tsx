@@ -3,6 +3,7 @@ import { LeaderboardDTO, leaderboardApiService } from '../services/leaderboardAp
 import { useLeaderboardSocket } from '../hooks/useLeaderboardSocket';
 import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info } from '@phosphor-icons/react';
 import { toast } from 'react-hot-toast';
+import { Avatar } from '../../../../shared/components/Avatar';
 
 interface LeaderboardTabProps {
     contestId: number;
@@ -186,17 +187,12 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                         {/* Thí sinh */}
                                         <td className="py-4 px-5">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full shrink-0 overflow-hidden border-2 border-blue-500/40">
-                                                    <img
-                                                        src={user.avatarUrl || `https://i.pravatar.cc/150?u=${user.userId}`}
-                                                        alt={user.username}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            e.currentTarget.onerror = null;
-                                                            e.currentTarget.style.display = 'none';
-                                                        }}
-                                                    />
-                                                </div>
+                                                <Avatar
+                                                    src={user.avatarUrl}
+                                                    userId={user.userId}
+                                                    size="md"
+                                                    borderColor="border-blue-500/40"
+                                                />
                                                 <div>
                                                     <div className="font-semibold text-slate-100">{user.username}</div>
                                                     {user.fullName && (
