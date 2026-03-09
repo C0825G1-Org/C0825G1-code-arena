@@ -76,7 +76,7 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
                                     {data.status}
                                     {data.isTestRun && <span className="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded font-normal">CHẠY THỬ</span>}
                                 </div>
-                                <div className="text-slate-300 mt-1">Điểm số: <span className="font-bold text-white">{data.score} / 100</span></div>
+                                <div className="text-slate-300 mt-1">Điểm số: <span className="font-bold text-white">{data.score} / {data.maxScore || 100}</span></div>
                             </div>
                             <div className="text-right text-sm text-slate-400 space-y-1">
                                 <div>⏳ Time: <span className="text-slate-200">{data.executionTime}ms</span></div>
@@ -108,6 +108,8 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
                                 input={tc.input}
                                 expectedOutput={tc.expectedOutput}
                                 actualOutput={tc.actualOutput}
+                                score={tc.score}
+                                scoreWeight={tc.scoreWeight}
                             />
                         ))}
                     </div>

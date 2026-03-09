@@ -25,4 +25,6 @@ public class TestCaseResultDetailDTO {
     private String expectedOutput;
     private String actualOutput;
     private String errorMessage;
+    private Integer score;
+    private Integer scoreWeight;
 }
