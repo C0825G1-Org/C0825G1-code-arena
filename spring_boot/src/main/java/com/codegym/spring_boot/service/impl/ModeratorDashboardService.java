@@ -9,6 +9,8 @@ import com.codegym.spring_boot.repository.ContestProblemRepository;
 import com.codegym.spring_boot.repository.ContestRepository;
 import com.codegym.spring_boot.repository.IProblemRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
+import com.codegym.spring_boot.repository.UserRepository;
+import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.service.IModeratorDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -39,6 +41,8 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
     private final SubmissionRepository submissionRepository;
     private final IProblemRepository problemRepository;
     private final ContestProblemRepository contestProblemRepository;
+    private final UserRepository userRepository;
+    private final com.codegym.spring_boot.service.NotificationService notificationService;
 
     @Override
     public ModeratorDashboardResponse getDashboardStats(Integer moderatorId) {
@@ -320,5 +324,18 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
             result.add(new VerdictStatsDTO(meta[0], count, meta[1]));
         }
         return result;
+    }
+
+    @Override
+    public void toggleUserLock(Integer userId, String type, boolean locked) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if ("chat".equalsIgnoreCase(type)) {
+            user.setIsContestChatLocked(locked);
+        } else if ("discussion".equalsIgnoreCase(type)) {
+            user.setIsDiscussionLocked(locked);
+        }
+        userRepository.save(user);
+        notificationService.sendUserLockUpdate(userId, type, locked);
     }
 }

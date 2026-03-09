@@ -21,6 +21,7 @@ import java.util.Map;
 public class SocketIOConfig {
 
     private final JwtService jwtService;
+    private final com.codegym.spring_boot.repository.UserRepository userRepository;
 
     @Bean
     public SocketIOServer socketIOServer() {
@@ -162,6 +163,15 @@ public class SocketIOConfig {
                             java.util.Map<?, ?> map = (java.util.Map<?, ?>) data;
                             Integer contestId = Integer.parseInt(map.get("contestId").toString());
                             String content = (String) map.get("content");
+
+                            // KIỂM TRA KHÓA CHAT
+                            com.codegym.spring_boot.entity.User user = userRepository.findById(userId).orElse(null);
+                            if (user != null && Boolean.TRUE.equals(user.getIsContestChatLocked())) {
+                                log.warn("User {} is LOCKED from contest chat. Message rejected.", userId);
+                                client.sendEvent("chat_error",
+                                        "Tài khoản của bạn đã bị khóa tính năng chat trong cuộc thi.");
+                                return;
+                            }
 
                             com.codegym.spring_boot.entity.mongo.ChatMessage savedMsg = chatService
                                     .saveMessage(contestId, userId, content);

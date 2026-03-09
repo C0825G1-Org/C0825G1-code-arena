@@ -20,7 +20,8 @@ public class NotificationService {
                 .sendEvent("submission_update", dto);
     }
 
-    public void sendToMonitor(Integer contestId, com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry) {
+    public void sendToMonitor(Integer contestId,
+            com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry) {
         if (contestId != null) {
             String monitorRoom = "contest_monitor_" + contestId;
             log.info("Sending live submission log to room: {}", monitorRoom);
@@ -29,7 +30,8 @@ public class NotificationService {
         }
     }
 
-    public void sendLeaderboardUpdateToMonitor(Integer contestId, java.util.List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboardRows) {
+    public void sendLeaderboardUpdateToMonitor(Integer contestId,
+            java.util.List<com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorLeaderboardEntry> leaderboardRows) {
         if (contestId != null) {
             String monitorRoom = "contest_monitor_" + contestId;
             log.info("Sending live leaderboard update to room: {}", monitorRoom);
@@ -45,5 +47,15 @@ public class NotificationService {
             socketIOServer.getRoomOperations(monitorRoom)
                     .sendEvent("monitor_new_participant");
         }
+    }
+
+    public void sendUserLockUpdate(Integer userId, String type, boolean locked) {
+        String roomName = "user_" + userId;
+        log.info("Sending user lock update to room: {} | type: {} | locked: {}", roomName, type, locked);
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("type", type);
+        data.put("locked", locked);
+        socketIOServer.getRoomOperations(roomName)
+                .sendEvent("user_lock_update", data);
     }
 }
