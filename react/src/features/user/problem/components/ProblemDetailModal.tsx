@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Code, Tag, Hash, FileText } from '@phosphor-icons/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 import rehypeRaw from 'rehype-raw';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Link } from 'react-router-dom';
@@ -36,9 +40,16 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({ isOpen, 
     useEffect(() => {
         if (isOpen && problemId) {
             fetchProblemDetail();
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
         } else {
             setProblem(null);
+            document.body.style.overflow = 'unset';
         }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
     }, [isOpen, problemId]);
 
     const fetchProblemDetail = async () => {
@@ -70,10 +81,13 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({ isOpen, 
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[100] flex justify-center bg-slate-950/80 backdrop-blur-sm px-4 py-8 overflow-y-auto animate-fade-in custom-scrollbar">
+    return createPortal(
+        <div 
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm px-4 py-8 animate-fade-in"
+            onClick={onClose}
+        >
             <div 
-                className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col my-auto h-fit max-h-none overflow-hidden transform transition-all"
+                className="bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col h-fit max-h-[90vh] overflow-hidden transform transition-all relative"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -112,16 +126,16 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({ isOpen, 
                 </div>
 
                 {/* Content Body */}
-                <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent custom-scrollbar">
                     {loading ? (
                         <div className="flex items-center justify-center h-40">
                             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                         </div>
                     ) : problem ? (
-                        <div className="prose prose-invert prose-slate max-w-none">
+                        <div className="prose-markdown max-w-none">
                             <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                rehypePlugins={[rehypeRaw]}
+                                remarkPlugins={[remarkGfm, remarkMath]}
+                                rehypePlugins={[rehypeRaw, rehypeKatex]}
                                 components={{
                                     code({ node, inline, className, children, ...props }: any) {
                                         const match = /language-(\w+)/.exec(className || '');
@@ -140,16 +154,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({ isOpen, 
                                                 {children}
                                             </code>
                                         );
-                                    },
-                                    h1: ({node, ...props}) => <h1 className="text-2xl font-bold mt-6 mb-4 text-white pb-2 border-b border-slate-800" {...props} />,
-                                    h2: ({node, ...props}) => <h2 className="text-xl font-bold mt-6 mb-3 text-slate-100" {...props} />,
-                                    h3: ({node, ...props}) => <h3 className="text-lg font-semibold mt-4 mb-2 text-slate-200" {...props} />,
-                                    p: ({node, ...props}) => <p className="mb-4 text-slate-300 leading-relaxed" {...props} />,
-                                    ul: ({node, ...props}) => <ul className="list-disc list-inside mb-4 text-slate-300 space-y-1" {...props} />,
-                                    ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-4 text-slate-300 space-y-1" {...props} />,
-                                    li: ({node, ...props}) => <li className="text-slate-300" {...props} />,
-                                    a: ({node, ...props}) => <a className="text-blue-400 hover:text-blue-300 underline" {...props} />,
-                                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 py-1 my-4 bg-blue-500/5 rounded-r" {...props} />,
+                                    }
                                 }}
                             >
                                 {problem.description || '*Không có mô tả*'}
@@ -185,6 +190,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({ isOpen, 
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };

@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@import "tailwindcss";
-
 @layer base {
   body {
     @apply bg-slate-900 text-slate-300 antialiased overflow-x-hidden;
@@ -132,4 +130,21 @@
 
 .prose-markdown .katex-html {
   @apply select-all;
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-slate-700 / 50%);
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--color-slate-600);
+  }
 }
