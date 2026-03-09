@@ -8,6 +8,7 @@ import { SnapshotViewerModal } from '../components/SnapshotViewerModal';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
 import { GroupChat } from '../../../chat/components/GroupChat';
+import { Avatar } from '../../../../shared/components/Avatar';
 
 export const MonitorPanelPage = () => {
     const { id } = useParams();
@@ -555,13 +556,12 @@ export const MonitorPanelPage = () => {
                             <div key={log.submissionId + "-" + i} className="bg-slate-800/40 hover:bg-slate-800/80 border border-slate-700/50 p-4 rounded-xl transition-all animate-slide-up group">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full overflow-hidden border border-blue-500/30">
-                                            <img
-                                                src={log.userAvatar || `https://i.pravatar.cc/150?u=${log.userId || 1}`}
-                                                alt={log.username}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
+                                        <Avatar
+                                            src={log.userAvatar}
+                                            userId={log.userId}
+                                            size="sm"
+                                            borderColor="border-blue-500/30"
+                                        />
                                         <div>
                                             <p className="text-sm font-medium text-white leading-tight">{log.username}</p>
                                             <span className="text-xs text-slate-500">{new Date(log.submittedAt).toLocaleTimeString()}</span>

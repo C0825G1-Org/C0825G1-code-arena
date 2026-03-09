@@ -7,6 +7,7 @@ import { contestService } from '../../home/services/contestService';
 import { leaderboardApiService, LeaderboardDTO } from '../services/leaderboardApiService';
 import { toast } from 'react-hot-toast';
 import { NotificationBell } from '../../../../shared/components/NotificationBell';
+import { Avatar } from '../../../../shared/components/Avatar';
 import {
     Code, Bell, ShieldStar, ArrowLeft,
     Trophy, CircleNotch, Medal, CheckCircle, Clock, ChartLineUp, SignOut,
@@ -113,7 +114,11 @@ export const UserContestResultsPage = () => {
                             <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
                             <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">0</span></div>
                         </div>
-                        <img src={`https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
+                        <Avatar
+                            src={user?.avatarUrl}
+                            userId={user?.id}
+                            size="md"
+                        />
                     </Link>
                     <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
                 </div>
@@ -277,7 +282,13 @@ export const UserContestResultsPage = () => {
                 {user && (contest.status === 'upcoming' || contest.status === 'finished' || isModerator) && (
                     <GroupChat
                         contestId={Number(id)}
-                        currentUser={{ id: user.id, username: user.username, fullName: user.fullName }}
+                        currentUser={{
+                            id: user.id,
+                            username: user.username,
+                            fullName: user.fullName || '',
+                            role: user.role,
+                            isContestChatLocked: user.isContestChatLocked
+                        }}
                         contestTitle={contest?.title}
                         contestStatus={contest.status}
                         endTime={contest.endTime}

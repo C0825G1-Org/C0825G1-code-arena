@@ -8,6 +8,7 @@ import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import { Code, Bell, ShieldStar, SignOut } from '@phosphor-icons/react';
 import { NotificationBell } from '../../../shared/components/NotificationBell';
+import { Avatar } from '../../../shared/components/Avatar';
 
 interface TagDTO {
     id: number;
@@ -194,17 +195,17 @@ export const ListPage = () => {
                                         className="text-yellow-400">1550</span>
                                     </div>
                                 </div>
-                                <img
-                                    src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
-                                    alt="Avatar"
-                                    className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover"
+                                <Avatar
+                                    src={user?.avatarUrl}
+                                    userId={user?.id}
+                                    size="md"
                                 />
                             </Link>
 
                             <button
                                 onClick={handleLogout}
                                 title="Đăng xuất"
-                                className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"
+                                className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-500/50"
                             >
                                 <SignOut weight="bold" className="text-xl" />
                             </button>
@@ -362,8 +363,8 @@ export const ListPage = () => {
                                         onClick={() => handlePageChange(pageNum)}
                                         disabled={loading}
                                         className={`px-3 py-1 rounded transition-colors ${pageNum === data.problems.number
-                                                ? 'bg-blue-600 text-white font-medium'
-                                                : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                                            ? 'bg-blue-600 text-white font-medium'
+                                            : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
                                             }`}
                                     >
                                         {pageNum + 1}

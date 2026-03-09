@@ -68,6 +68,7 @@ import { chatService, ChatMessage } from '../../../../chat/services/chatService'
 import dayjs from 'dayjs';
 
 const BAND_COLORS = ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'];
+import { Avatar } from '../../../../../shared/components/Avatar';
 
 /* ────── Components ────── */
 const ChatSection = ({ contestId, contestStatus, endTime, user, contestTitle }: any) => {
@@ -113,7 +114,13 @@ const ChatSection = ({ contestId, contestStatus, endTime, user, contestTitle }: 
         return (
             <GroupChat
                 contestId={contestId}
-                currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }}
+                currentUser={{
+                    id: user.id,
+                    username: user.username,
+                    fullName: user.fullName || '',
+                    role: user.role,
+                    isContestChatLocked: user.isContestChatLocked
+                }}
                 contestTitle={contestTitle}
                 contestStatus={contestStatus}
                 endTime={endTime}
@@ -143,8 +150,12 @@ const ChatSection = ({ contestId, contestStatus, endTime, user, contestTitle }: 
                                     <span className="text-xs text-slate-400 mb-1 ml-1">{msg.senderName}</span>
                                 )}
                                 <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                                    <div className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-700 bg-slate-800 flex items-center justify-center`}>
-                                        <img src={msg.senderAvatar || `https://i.pravatar.cc/150?u=${msg.senderId}`} alt={msg.senderName} className="w-full h-full object-cover" />
+                                    <div className="flex-shrink-0">
+                                        <Avatar
+                                            src={msg.senderAvatar}
+                                            userId={msg.senderId}
+                                            size="sm"
+                                        />
                                     </div>
                                     <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-blue-600/90 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700'}`}>
                                         {msg.content}

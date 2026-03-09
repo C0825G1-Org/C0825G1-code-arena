@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import { chatService } from '../../../chat/services/chatService';
 import { useRef } from 'react';
 import { ConfirmModal } from '../../../../shared/components/ConfirmModal';
+import { Avatar } from '../../../../shared/components/Avatar';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -215,16 +216,14 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                     <>
                         {messages.map((msg) => (
                             <div key={msg.id} className="flex gap-3 items-start group relative">
-                                <div
-                                    className="w-10 h-10 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border-2 border-blue-500/40 cursor-pointer hover:border-blue-400 transition-all shadow-md"
+                                <Avatar
+                                    src={msg.userAvatar}
+                                    userId={msg.userId}
+                                    size="md"
+                                    alt={msg.userFullName}
+                                    className="border-2 border-blue-500/40 shadow-md"
                                     onClick={(e) => handleUserClick(e, msg)}
-                                >
-                                    <img
-                                        src={msg.userAvatar || `https://i.pravatar.cc/150?u=${msg.userId}`}
-                                        alt={msg.userFullName}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
+                                />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
                                         <span
@@ -321,13 +320,13 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
             <div className="p-4 border-t border-white/5 bg-[#0f172a]/50">
                 {isAuthenticated ? (
                     <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border-2 border-blue-500/40">
-                            <img
-                                src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id || 1}`}
-                                alt="Me"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+                        <Avatar
+                            src={user?.avatarUrl}
+                            userId={user?.id}
+                            size="md"
+                            alt="Me"
+                            className="border-2 border-blue-500/40"
+                        />
                         <div className="flex-1 relative">
                             <textarea
                                 value={inputValue}

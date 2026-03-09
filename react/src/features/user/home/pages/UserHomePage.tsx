@@ -7,6 +7,7 @@ import { contestService, ContestListItem } from '../services/contestService';
 import { userDashboardService, UserStats, TopCoder } from '../services/userDashboardService';
 import { useContestWebSocket } from '../../contests/hooks/useContestWebSocket';
 import { NotificationBell } from '../../../../shared/components/NotificationBell';
+import { Avatar } from '../../../../shared/components/Avatar';
 import {
     Code,
     Bell,
@@ -290,10 +291,10 @@ export const UserHomePage: React.FC = () => {
                                 className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
                             </div>
                         </div>
-                        <img
-                            src={`https://i.pravatar.cc/150?u=${user?.id || 1}`}
-                            alt="Avatar"
-                            className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover"
+                        <Avatar
+                            src={user?.avatarUrl}
+                            userId={user?.id}
+                            size="md"
                         />
                     </Link>
 
@@ -488,10 +489,11 @@ export const UserHomePage: React.FC = () => {
                                                 <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${rankColors}`}>
                                                     #{index + 1}
                                                 </div>
-                                                <img
-                                                    src={`https://i.pravatar.cc/150?u=${coder.userId}`}
-                                                    alt="Avatar"
-                                                    className="w-10 h-10 rounded-full border border-slate-600"
+                                                <Avatar
+                                                    src={coder.avatarUrl}
+                                                    userId={coder.userId}
+                                                    size="sm"
+                                                    borderColor="border-slate-700"
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <div className={`font-semibold truncate ${index === 0 ? 'text-yellow-400' : 'text-white'}`}>

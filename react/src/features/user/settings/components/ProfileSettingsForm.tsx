@@ -4,6 +4,7 @@ import { RootState } from '../../../../app/store';
 import { settingsService, UpdateProfileRequest, UserProfileResponse } from '../services/settingsService';
 import { toast } from 'react-hot-toast';
 import { loginSuccess } from '../../../../features/auth/store/authSlice';
+import { Avatar } from '../../../../shared/components/Avatar';
 
 export const ProfileSettingsForm: React.FC = () => {
     const dispatch = useDispatch();
@@ -107,10 +108,12 @@ export const ProfileSettingsForm: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-8 mb-8 items-start">
                 <div className="flex flex-col items-center gap-3">
                     <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                        <img
-                            src={avatarSource}
-                            alt="Avatar"
-                            className="w-32 h-32 rounded-full border-4 border-slate-700 object-cover group-hover:opacity-50 transition-opacity"
+                        <Avatar
+                            src={profile.avatarUrl}
+                            userId={profile.id}
+                            size={128}
+                            borderColor="border-slate-700"
+                            className="group-hover:opacity-50 transition-opacity"
                         />
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <i className="ph-bold ph-camera text-3xl text-white"></i>

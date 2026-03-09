@@ -13,6 +13,7 @@ import {
     CircleNotch, Trophy, WarningCircle, CheckCircle, Info, ChartBar, PlayCircle,
     FacebookLogo, TwitterLogo, GithubLogo
 } from '@phosphor-icons/react';
+import { Avatar } from '../../../../shared/components/Avatar';
 import { LeaderboardTab } from '../components/LeaderboardTab';
 import { RulesModal } from '../components/RulesModal';
 import { TutorialModal } from '../components/TutorialModal';
@@ -333,11 +334,11 @@ export const UserContestDetailPage = () => {
                     )}
                     <NotificationBell />
                     <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
-                        <div className="text-right hidden sm:block">
-                            <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{user?.fullName || 'User'}</div>
-                            <div className="text-xs text-slate-400 font-mono">Rating: <span className="text-yellow-400">0</span></div>
-                        </div>
-                        <img src={user?.avatarUrl || `https://i.pravatar.cc/150?u=${user?.id || 1}`} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-blue-500/50 object-cover" />
+                        <Avatar
+                            src={user?.avatarUrl}
+                            userId={user?.id}
+                            size="md"
+                        />
                     </Link>
                     <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
                 </div>
