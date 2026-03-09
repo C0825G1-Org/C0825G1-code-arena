@@ -5,8 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/react/src/features/user/problem/pages/DetailPage.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/app/router.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/app/router.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/clone_admin_pages.cjs" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/clone_admin_pages.cjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/user/services/adminUserApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/user/services/adminUserApi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/components/ModeratorLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/components/ModeratorLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/contests/pages/ContestManagementPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/contests/pages/ContestManagementPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/contests/pages/MonitorPanelPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/contests/pages/MonitorPanelPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/services/problemApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/services/problemApi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/user/components/UserLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/components/UserLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/user/home/pages/UserHomePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/home/pages/UserHomePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/user/leaderboard/pages/LeaderboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/leaderboard/pages/LeaderboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/user/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/user/problem/pages/ListPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/layouts/UserLayout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/layouts/UserLayout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/controller/ProblemUserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/controller/ProblemUserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/IProblemUserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/IProblemUserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemUserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemUserService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,7 +164,7 @@
       <workItem from="1772677350067" duration="6330000" />
       <workItem from="1772769154729" duration="2050000" />
       <workItem from="1773024797574" duration="395000" />
-      <workItem from="1773025835727" duration="1326000" />
+      <workItem from="1773025835727" duration="3153000" />
     </task>
     <servers />
   </component>

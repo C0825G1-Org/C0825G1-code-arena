@@ -17,6 +17,9 @@ export interface ProblemResponseDTO {
     tags: TagDTO[];
     authorId?: number;
 }
+export interface ProblemUserDTO extends ProblemResponseDTO {
+    userStatus?: string;
+}
 export interface ProblemRequestDTO {
     title: string;
     slug: string;

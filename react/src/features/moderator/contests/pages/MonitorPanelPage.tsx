@@ -91,7 +91,7 @@ export const MonitorPanelPage = () => {
         socket.on('monitor_submission_update', (newSub: any) => {
             setFeed(prev => [newSub, ...prev].slice(0, 50));
 
-            // Re-fetch current page to reflect new scores and potentially new participants
+            // Re-fetch current pages to reflect new scores and potentially new participants
             fetchLeaderboard(page);
 
             setStats(s => {

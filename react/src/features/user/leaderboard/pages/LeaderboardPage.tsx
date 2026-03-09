@@ -29,7 +29,7 @@ export const LeaderboardPage: React.FC = () => {
             setTotalPages(data.totalPages);
             setTotalElements(data.totalElements);
 
-            // Fetch Top 3 unconditionally for the podium if we are on page 0 and no search
+            // Fetch Top 3 unconditionally for the podium if we are on pages 0 and no search
             if (page === 0 && search.trim() === '') {
                 setTop3(data.content.slice(0, 3));
             }
@@ -51,7 +51,7 @@ export const LeaderboardPage: React.FC = () => {
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
-        setPage(0); // Reset page on search
+        setPage(0); // Reset pages on search
     };
 
     const renderPodium = () => {
@@ -136,7 +136,7 @@ export const LeaderboardPage: React.FC = () => {
                     <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
                 </div>
 
-                {/* Show podium only if no search filter and on page 0 */}
+                {/* Show podium only if no search filter and on pages 0 */}
                 {page === 0 && search.trim() === '' && renderPodium()}
 
                 {/* Table Container */}

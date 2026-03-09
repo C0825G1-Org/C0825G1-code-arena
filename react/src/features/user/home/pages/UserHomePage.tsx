@@ -99,7 +99,7 @@ export const UserHomePage: React.FC = () => {
 
     // WebSocket real-time updates for contest status
     const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
-        // Refetch to ensure status badges/buttons update without full page reload.
+        // Refetch to ensure status badges/buttons update without full pages reload.
         fetchContestsRef.current();
     }, []);
 

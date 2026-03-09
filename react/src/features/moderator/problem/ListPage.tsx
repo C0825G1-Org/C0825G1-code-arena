@@ -69,7 +69,7 @@ export const ListPage = () => {
         fetchData();
     }, [currentUser]);
 
-    // Reset page on filter change
+    // Reset pages on filter change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, difficulty]);
@@ -87,7 +87,7 @@ export const ListPage = () => {
     const currentProblems = filteredProblemsList.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredProblemsList.length / itemsPerPage);
 
-    // Change page
+    // Change pages
     const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
     const getDifficultyClass = (level: string) => {

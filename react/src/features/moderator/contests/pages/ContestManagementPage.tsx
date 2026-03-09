@@ -85,11 +85,11 @@ export const ContestManagementPage = () => {
 
     useEffect(() => {
         fetchContests();
-    }, [fetchContests]); // Re-fetch when params (incl. page) change
+    }, [fetchContests]); // Re-fetch when params (incl. pages) change
 
     // WebSocket real-time updates for contest status
     const handleContestStatusUpdate = useCallback((_wsContestId: number, _newStatus: string) => {
-        // Refetch to ensure status badges update without full page reload.
+        // Refetch to ensure status badges update without full pages reload.
         fetchContestsRef.current();
     }, []);
 

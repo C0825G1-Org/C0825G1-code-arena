@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MagnifyingGlass, CheckCircle, Minus } from '@phosphor-icons/react';
+import { MagnifyingGlass, CheckCircle, Minus, Star } from '@phosphor-icons/react';
 import { toast } from 'react-hot-toast';
-import axiosClient from '../../../shared/services/axiosClient';
+import axiosClient from '../../../../shared/services/axiosClient';
 import { Link, useSearchParams } from 'react-router-dom';
-import { UserLayout } from '../components/UserLayout';
+import { UserLayout } from '../../components/UserLayout';
+import { favoriteApi } from '../services/favoriteApi';
+import { ProblemDetailModal } from '../components/ProblemDetailModal';
 
 interface TagDTO {
     id: number;
@@ -34,7 +36,13 @@ export const ListPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [data, setData] = useState<ProblemUserPageWrapperDTO | null>(null);
     const [tags, setTags] = useState<TagDTO[]>([]);
+    const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
+    
+    // Modal state
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedProblemId, setSelectedProblemId] = useState<number | null>(null);
+    const [selectedProblemStatus, setSelectedProblemStatus] = useState<'SOLVED' | 'ATTEMPTED' | 'UNATTEMPTED' | null>(null);
 
     // Filters
     const page = parseInt(searchParams.get('page') || '0');
@@ -42,10 +50,12 @@ export const ListPage = () => {
     const difficulty = searchParams.get('difficulty') || '';
     const status = searchParams.get('status') || '';
     const tagId = searchParams.get('tagIds') || '';
+    const isFavorite = searchParams.get('isFavorite') === 'true';
 
     useEffect(() => {
         fetchProblems();
-    }, [page, title, difficulty, status, tagId]);
+        fetchFavorites();
+    }, [page, title, difficulty, status, tagId, isFavorite]);
 
     useEffect(() => {
         fetchTags();
@@ -60,16 +70,26 @@ export const ListPage = () => {
         }
     };
 
+    const fetchFavorites = async () => {
+        try {
+            const ids = await favoriteApi.getMyFavoriteProblemIds();
+            setFavoriteIds(ids);
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách bài tập yêu thích:', error);
+        }
+    };
+
     const fetchProblems = async () => {
         try {
             setLoading(true);
             const params = new URLSearchParams();
             params.append('page', page.toString());
-            params.append('size', '5'); // Adjust page size as needed
+            params.append('size', '5'); // Adjust pages size as needed
             if (title) params.append('title', title);
             if (difficulty) params.append('difficulty', difficulty);
             if (status) params.append('status', status);
             if (tagId) params.append('tagIds', tagId);
+            if (isFavorite) params.append('isFavorite', 'true');
 
             const response = await axiosClient.get(`/public/problems?${params.toString()}`);
             setData(response as any); // axiosClient in this project already returns response.data
@@ -88,7 +108,7 @@ export const ListPage = () => {
         } else {
             newParams.delete(key);
         }
-        newParams.set('page', '0'); // Reset page when filter changes
+        newParams.set('page', '0'); // Reset pages when filter changes
         setSearchParams(newParams);
     };
 
@@ -108,6 +128,34 @@ export const ListPage = () => {
                 return <span className="text-red-400 font-medium capitalize">{diff}</span>;
             default:
                 return <span className="text-slate-400 font-medium capitalize">{diff}</span>;
+        }
+    };
+
+    const toggleFavorite = async (e: React.MouseEvent, problemId: number) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isFavorited = favoriteIds.includes(problemId);
+        // Optimistic UI update
+        if (isFavorited) {
+            setFavoriteIds(favoriteIds.filter(id => id !== problemId));
+            toast.success('Đã xóa khỏi danh sách yêu thích');
+        } else {
+            setFavoriteIds([...favoriteIds, problemId]);
+            toast.success('Đã thêm vào danh sách yêu thích');
+        }
+
+        try {
+            await favoriteApi.toggleFavorite(problemId);
+        } catch (error) {
+            console.error('Failed to toggle favorite:', error);
+            // Revert on failure
+            if (isFavorited) {
+                setFavoriteIds([...favoriteIds, problemId]);
+            } else {
+                setFavoriteIds(favoriteIds.filter(id => id !== problemId));
+            }
+            toast.error('Có lỗi xảy ra, vui lòng thử lại.');
         }
     };
 
@@ -135,6 +183,18 @@ export const ListPage = () => {
                 Giải bài
             </Link>
         );
+    };
+
+    const openModal = (id: number, status: 'SOLVED' | 'ATTEMPTED' | 'UNATTEMPTED') => {
+        setSelectedProblemId(id);
+        setSelectedProblemStatus(status);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedProblemId(null);
+        setSelectedProblemStatus(null);
     };
 
     return (
@@ -187,6 +247,14 @@ export const ListPage = () => {
                             <option value="ATTEMPTED">Đang làm</option>
                         </select>
                         <select
+                            value={isFavorite ? 'true' : ''}
+                            onChange={(e) => handleFilterChange('isFavorite', e.target.value)}
+                            className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-32 hidden sm:block"
+                        >
+                            <option value="">Tất cả bài tập</option>
+                            <option value="true">Yêu thích</option>
+                        </select>
+                        <select
                             value={tagId}
                             onChange={(e) => handleFilterChange('tagIds', e.target.value)}
                             className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-32 hidden sm:block"
@@ -213,6 +281,7 @@ export const ListPage = () => {
                                 <th scope="col" className="px-6 py-4">Tên bài</th>
                                 <th scope="col" className="px-6 py-4 w-32">Độ khó</th>
                                 <th scope="col" className="px-6 py-4 hidden md:table-cell">Tags</th>
+                                <th scope="col" className="px-4 py-4 w-12 text-center">Yêu thích</th>
                                 <th scope="col" className="px-6 py-4 text-center w-32">Hành động</th>
                             </tr>
                         </thead>
@@ -223,9 +292,12 @@ export const ListPage = () => {
                                         {renderStatusIcon(problem.userStatus)}
                                     </td>
                                     <td className="px-6 py-4 font-medium text-white">
-                                        <Link to={`/code-editor/${problem.id}`} className="hover:text-blue-400 hover:underline">
+                                        <button 
+                                            onClick={() => openModal(problem.id, problem.userStatus)} 
+                                            className="hover:text-blue-400 hover:underline text-left"
+                                        >
                                             {problem.title}
-                                        </Link>
+                                        </button>
                                     </td>
                                     <td className="px-6 py-4">
                                         {renderDifficulty(problem.difficulty)}
@@ -239,6 +311,12 @@ export const ListPage = () => {
                                             ))}
                                         </div>
                                     </td>
+                                    <td className="px-4 py-4 text-center cursor-pointer" onClick={(e) => toggleFavorite(e, problem.id)}>
+                                        <Star 
+                                            weight={favoriteIds.includes(problem.id) ? "fill" : "regular"} 
+                                            className={`mx-auto text-xl transition-colors ${favoriteIds.includes(problem.id) ? "text-yellow-400" : "text-slate-500 hover:text-yellow-400"}`} 
+                                        />
+                                    </td>
                                     <td className="px-6 py-4 text-center">
                                         {renderActionBtn(problem)}
                                     </td>
@@ -246,7 +324,7 @@ export const ListPage = () => {
                             ))}
                             {data?.problems.content.length === 0 && !loading && (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-10 text-center text-slate-500">
+                                    <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
                                         Không tìm thấy bài tập nào phù hợp.
                                     </td>
                                 </tr>
@@ -310,6 +388,14 @@ export const ListPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Sub-modal Component */}
+            <ProblemDetailModal 
+                isOpen={isModalOpen} 
+                onClose={closeModal} 
+                problemId={selectedProblemId} 
+                userStatus={selectedProblemStatus} 
+            />
         </UserLayout>
     );
 };

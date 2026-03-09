@@ -11,8 +11,8 @@
 //     .replace(/\/moderator\/problems/g, '/admin/problems')
 //     .replace(/from '\.\.\/services\/problemApi';/, "from '../../../moderator/problem/services/problemApi';");
 
-//   fs.mkdirSync('features/admin/problem/page', { recursive: true });
-//   fs.writeFileSync('features/admin/problem/page/AdminProblemCreatePage.tsx', createContent, 'utf8');
+//   fs.mkdirSync('features/admin/problem/pages', { recursive: true });
+//   fs.writeFileSync('features/admin/problem/pages/AdminProblemCreatePage.tsx', createContent, 'utf8');
 
 //   // 2. AdminProblemEditPage
 //   let editContent = fs.readFileSync('features/moderator/problem/EditPage.tsx', 'utf8');
@@ -26,7 +26,7 @@
 //     .replace(/onClick=\{handleDeleteTestCase\}/, "onClick={() => handleDeleteTestCase(prob)}") // Note: irrelevant replacement just copied over? 
 //     // Wait EditPage uses problemApi
     
-//   fs.writeFileSync('features/admin/problem/page/AdminProblemEditPage.tsx', editContent, 'utf8');
+//   fs.writeFileSync('features/admin/problem/pages/AdminProblemEditPage.tsx', editContent, 'utf8');
 
 //   // 3. AdminTestcaseCreatePage
 //   let tcContent = fs.readFileSync('features/moderator/testcase/CreatePage.tsx', 'utf8');
@@ -41,8 +41,8 @@
 //     .replace(/from '\.\.\/\.\.\/\.\.\/app\/store';/, "from '../../../../app/store';")
 //     .replace(/from '\.\/DeleteModal';/, "from './DeleteModal';");
 
-//   fs.mkdirSync('features/admin/testcase/page', { recursive: true });
-//   fs.writeFileSync('features/admin/testcase/page/AdminTestcaseCreatePage.tsx', tcContent, 'utf8');
+//   fs.mkdirSync('features/admin/testcase/pages', { recursive: true });
+//   fs.writeFileSync('features/admin/testcase/pages/AdminTestcaseCreatePage.tsx', tcContent, 'utf8');
 
 //   console.log("Pages regenerated successfully in UTF-8!");
 // } catch (e) {
