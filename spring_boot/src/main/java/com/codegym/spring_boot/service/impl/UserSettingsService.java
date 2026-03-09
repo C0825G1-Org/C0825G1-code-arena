@@ -30,16 +30,20 @@ public class UserSettingsService implements IUserSettingsService {
 
     @Override
     public UserProfileResponse getUserProfile(User user) {
-        Profile profile = user.getProfile();
+        // Fetch fresh user to ensure Profile is loaded (principal might be
+        // detached/shallow)
+        User freshUser = userRepository.findById(user.getId())
+                .orElse(user);
+        Profile profile = freshUser.getProfile();
         return UserProfileResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
+                .id(freshUser.getId())
+                .username(freshUser.getUsername())
+                .fullName(freshUser.getFullName())
+                .email(freshUser.getEmail())
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
                 .githubLink(profile != null ? profile.getGithubLink() : null)
-                .createdAt(user.getCreatedAt())
+                .createdAt(freshUser.getCreatedAt())
                 .build();
     }
 
