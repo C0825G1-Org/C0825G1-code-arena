@@ -3,7 +3,7 @@ import { MagnifyingGlass, CheckCircle, Minus, Star } from '@phosphor-icons/react
 import { toast } from 'react-hot-toast';
 import axiosClient from '../../../../shared/services/axiosClient';
 import { Link, useSearchParams } from 'react-router-dom';
-import { UserLayout } from '../../components/UserLayout';
+import { UserLayout } from '../../../../layouts/UserLayout';
 import { favoriteApi } from '../services/favoriteApi';
 import { ProblemDetailModal } from '../components/ProblemDetailModal';
 

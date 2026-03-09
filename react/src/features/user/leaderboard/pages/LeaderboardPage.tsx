@@ -7,7 +7,7 @@ import {
 import { RootState } from '../../../../app/store';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
 import toast from 'react-hot-toast';
-import { UserLayout } from '../../components/UserLayout';
+import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
 
 export const LeaderboardPage: React.FC = () => {

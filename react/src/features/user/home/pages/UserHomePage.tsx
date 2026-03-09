@@ -19,7 +19,7 @@ import {
     Trophy,
     CircleNotch
 } from '@phosphor-icons/react';
-import { UserLayout } from '../../components/UserLayout';
+import { UserLayout } from '../../../../layouts/UserLayout';
 
 // Tính thời gian còn lại
 const getTimeLeft = (targetTime: string, serverTime?: string): string => {

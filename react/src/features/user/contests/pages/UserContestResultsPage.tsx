@@ -11,7 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { ContestDetailData } from './UserContestDetailPage';
 import { computeAndSort } from '../components/LeaderboardTab';
-import { UserLayout } from '../../components/UserLayout';
+import { UserLayout } from '../../../../layouts/UserLayout';
 import { GroupChat } from '../../../chat/components/GroupChat';
 
 export const UserContestResultsPage = () => {

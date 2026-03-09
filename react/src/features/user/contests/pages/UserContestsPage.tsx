@@ -9,7 +9,7 @@ import {
     CalendarStar, Users, Clock, ArrowRight,
     CircleNotch, Trophy, XCircle
 } from '@phosphor-icons/react';
-import { UserLayout } from '../../components/UserLayout';
+import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
 import { userDashboardService } from "../../home/services/userDashboardService";
 

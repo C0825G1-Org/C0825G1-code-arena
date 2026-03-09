@@ -13,7 +13,7 @@ import { Avatar } from '../../../../shared/components/Avatar';
 import { LeaderboardTab } from '../components/LeaderboardTab';
 import { RulesModal } from '../components/RulesModal';
 import { TutorialModal } from '../components/TutorialModal';
-import { UserLayout } from '../../components/UserLayout';
+import { UserLayout } from '../../../../layouts/UserLayout';
 import { GroupChat } from '../../../chat/components/GroupChat';
 
 // Status styling configuration
