@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from './store';
 import { LoginPage } from '../features/auth/pages/LoginPage';
@@ -43,9 +43,10 @@ import { Error500Page } from '../features/errors/pages/Error500Page';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+    const location = useLocation();
 
     if (!isAuthenticated || !user) {
-        return <Navigate to="/err/403" replace />;
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
@@ -58,8 +59,14 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+    const location = useLocation();
 
     if (isAuthenticated && user) {
+        const from = (location.state as any)?.from;
+        if (from) {
+            return <Navigate to={from} replace />;
+        }
+
         const userRole = user.role?.replace('ROLE_', '').toUpperCase() || '';
         if (userRole === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
         if (userRole === 'MODERATOR') return <Navigate to="/moderator/dashboard" replace />;
