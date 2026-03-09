@@ -11,6 +11,8 @@ interface TestCaseItemProps {
     input?: string;
     expectedOutput?: string;
     actualOutput?: string;
+    score?: number;
+    scoreWeight?: number;
 }
 
 const TestCaseItem: React.FC<TestCaseItemProps> = React.memo(({
@@ -23,7 +25,9 @@ const TestCaseItem: React.FC<TestCaseItemProps> = React.memo(({
     errorMessage,
     input,
     expectedOutput,
-    actualOutput
+    actualOutput,
+    score = 0,
+    scoreWeight = 0
 }) => {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -64,9 +68,12 @@ const TestCaseItem: React.FC<TestCaseItemProps> = React.memo(({
                     </span>
                     <span className={`font-bold ml-2 ${getStatusColor(status)}`}>{status}</span>
                 </div>
-                <div className="text-slate-400 text-sm flex gap-4">
-                    <span>⏱️ {executionTime}ms</span>
-                    <span>💾 {memoryUsed}KB</span>
+                <div className="text-slate-400 text-sm flex gap-4 items-center">
+                    <span className="bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-amber-400 font-bold">
+                        {score} / {scoreWeight} pts
+                    </span>
+                    <span>⏱️ {executionTime > 0 ? `${executionTime}ms` : '- ms'}</span>
+                    <span>💾 {memoryUsed > 0 ? `${memoryUsed}KB` : '- KB'}</span>
                     <span className="text-xl">{isOpen ? '▾' : '▸'}</span>
                 </div>
             </div>

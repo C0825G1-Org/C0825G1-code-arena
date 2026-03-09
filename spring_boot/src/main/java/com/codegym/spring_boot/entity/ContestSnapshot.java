@@ -41,6 +41,6 @@ public class ContestSnapshot extends BaseEntity {
 
     @Transient
     public String getImageUrl() {
-        return "/uploads/snapshots/" + fileName;
+        return this.filePath;
     }
 }

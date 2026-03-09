@@ -40,4 +40,47 @@ public class UserDashboardController {
         List<TopCoderResponse> topCoders = userDashboardService.getTopCoders();
         return ResponseEntity.ok(topCoders);
     }
+
+    @Operation(summary = "Get recent submissions", description = "Retrieves the user's latest N submissions.")
+    @GetMapping("/submissions/recent")
+    public ResponseEntity<List<com.codegym.spring_boot.dto.dashboard.response.RecentSubmissionResponse>> getRecentSubmissions(
+            @AuthenticationPrincipal User user,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int limit) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(userDashboardService.getRecentSubmissions(user, limit));
+    }
+
+    @Operation(summary = "Get submission status stats", description = "Retrieves count of submissions by status for doughnut chart.")
+    @GetMapping("/submissions/stats")
+    public ResponseEntity<List<com.codegym.spring_boot.dto.dashboard.response.SubmissionStatusStatResponse>> getSubmissionStatusStats(
+            @AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(userDashboardService.getSubmissionStatusStats(user));
+    }
+
+    @Operation(summary = "Get activity heatmap", description = "Retrieves submission count per day for the last N days.")
+    @GetMapping("/submissions/heatmap")
+    public ResponseEntity<List<com.codegym.spring_boot.dto.dashboard.response.HeatmapResponse>> getActivityHeatmap(
+            @AuthenticationPrincipal User user,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "30") int days) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(userDashboardService.getActivityHeatmap(user, days));
+    }
+
+    @Operation(summary = "Get recent contests", description = "Retrieves the user's latest N participated contests.")
+    @GetMapping("/contests/recent")
+    public ResponseEntity<List<com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse>> getRecentContests(
+            @AuthenticationPrincipal User user,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int limit) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(userDashboardService.getRecentContests(user, limit));
+    }
 }

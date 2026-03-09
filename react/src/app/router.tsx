@@ -31,6 +31,8 @@ import { UserContestsPage } from '../features/user/contests/pages/UserContestsPa
 import { UserContestDetailPage } from '../features/user/contests/pages/UserContestDetailPage';
 import { UserContestResultsPage } from '../features/user/contests/pages/UserContestResultsPage';
 import { LeaderboardPage } from '../features/user/leaderboard/pages/LeaderboardPage';
+import { ProfilePage } from '../features/user/profile/pages/ProfilePage';
+import { SettingsPage } from '../features/user/settings/pages/SettingsPage';
 import TutorialEditorPage from '../features/user/code-editor/pages/TutorialEditorPage';
 
 // Error Pages
@@ -157,6 +159,22 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
                 <LeaderboardPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/profile',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <ProfilePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/settings',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <SettingsPage />
             </ProtectedRoute>
         )
     },

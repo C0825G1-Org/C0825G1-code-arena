@@ -13,6 +13,7 @@ import { LeaderboardTab } from '../components/LeaderboardTab';
 import { RulesModal } from '../components/RulesModal';
 import { TutorialModal } from '../components/TutorialModal';
 import { UserLayout } from '../../components/UserLayout';
+import { GroupChat } from '../../../chat/components/GroupChat';
 
 // Status styling configuration
 const statusConfig: Record<string, { label: string; bg: string; text: string; border: string }> = {
@@ -53,6 +54,9 @@ export const UserContestDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const { user } = useSelector((state: RootState) => state.auth);
     const navigate = useNavigate();
+
+    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
+    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
     const [contest, setContest] = useState<ContestDetailData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -419,6 +423,11 @@ export const UserContestDetailPage = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Integration of Group Chat */}
+                {(userIsRegistered || isModerator) && user && (contest.status === 'upcoming' || contest.status === 'finished' || isModerator) && (
+                    <GroupChat contestId={Number(id)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName }} />
+                )}
             </main>
         </UserLayout>
     );

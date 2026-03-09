@@ -4,15 +4,15 @@ import com.codegym.spring_boot.dto.JudgeResultMessage;
 import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.entity.TestCase;
 import com.codegym.spring_boot.repository.ITestCaseRepository;
-import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
+import com.codegym.spring_boot.entity.SubmissionTestResult;
+import com.codegym.spring_boot.entity.enums.SubmissionStatus;
+import com.codegym.spring_boot.dto.TestCaseResultDetailDTO;
+import com.codegym.spring_boot.dto.SubmissionDetailDTO;
 import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.entity.Contest;
-import java.time.Duration;
 import com.codegym.spring_boot.service.NotificationService;
-import com.codegym.spring_boot.entity.SubmissionTestResult;
 
 import com.codegym.spring_boot.dto.JudgeTicket;
-import com.codegym.spring_boot.dto.SubmissionResultDTO;
 import com.codegym.spring_boot.dto.SubmitRequestDTO;
 import com.codegym.spring_boot.dto.SubmissionHistoryDTO;
 import java.util.stream.Collectors;
@@ -20,7 +20,6 @@ import com.codegym.spring_boot.entity.Language;
 import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Submission;
 import com.codegym.spring_boot.entity.User;
-import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
 import com.codegym.spring_boot.repository.ContestParticipantRepository;
@@ -28,8 +27,6 @@ import com.codegym.spring_boot.service.ISubmissionService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -238,10 +235,14 @@ public class SubmissionService implements ISubmissionService {
                                 String inputFilename = tcResult.getTestCaseNumber() + ".in";
                                 TestCase tcEntity = testCaseRepository.findByProblemIdAndInputFilename(
                                                 submission.getProblem().getId(), inputFilename);
-                                int weight = (tcEntity != null && tcEntity.getScoreWeight() != null)
-                                                ? tcEntity.getScoreWeight()
-                                                : 1;
-                                passedWeight += weight;
+                                if (tcEntity != null) {
+                                        int weight = (tcEntity.getScoreWeight() != null)
+                                                        ? tcEntity.getScoreWeight()
+                                                        : 1; // Mặc định 1 nếu null trong DB
+                                        passedWeight += weight;
+                                } else {
+                                        log.warn("[JudgeScore] Skipping weight for unknown TC: {}", inputFilename);
+                                }
                         }
                         score = passedWeight;
                 } else if (finalStatus == SubmissionStatus.AC) {
@@ -438,7 +439,7 @@ public class SubmissionService implements ISubmissionService {
 
         @Override
         @Transactional(readOnly = true)
-        public com.codegym.spring_boot.dto.SubmissionDetailDTO getSubmissionDetail(Integer submissionId) {
+        public SubmissionDetailDTO getSubmissionDetail(Integer submissionId) {
                 Submission submission = submissionRepository.findById(submissionId)
                                 .orElseThrow(() -> new jakarta.persistence.NoResultException(
                                                 "Không tìm thấy bài nộp ID: " + submissionId));
@@ -447,7 +448,6 @@ public class SubmissionService implements ISubmissionService {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 String username = auth.getName();
                 if (!submission.getUser().getUsername().equals(username)) {
-                        // Trừ khi là MOD hoặc ADMIN (Tạm thời check đơn giản, Dev 1 có thể mở rộng)
                         boolean isAdmin = auth.getAuthorities().stream()
                                         .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")
                                                         || a.getAuthority().equals("ROLE_MODERATOR"));
@@ -456,34 +456,66 @@ public class SubmissionService implements ISubmissionService {
                         }
                 }
 
-                // Lấy danh sách kết quả chi tiết từng testcase
+                // Lấy danh sách kết quả chi tiết từng testcase (Dùng JOIN FETCH để lấy luôn
+                // TestCase tránh Lazy load issue)
                 List<SubmissionTestResult> testResults = submissionTestResultRepository
                                 .findBySubmissionId(submissionId);
 
-                List<com.codegym.spring_boot.dto.TestCaseResultDetailDTO> detailTCs = testResults.stream()
-                                .map(tr -> com.codegym.spring_boot.dto.TestCaseResultDetailDTO.builder()
-                                                .id(tr.getId())
-                                                .status(tr.getStatus().name())
-                                                .executionTime(tr.getExecutionTime())
-                                                .memoryUsed(tr.getMemoryUsed())
-                                                .isSample(tr.getTestCase().getIsSample())
-                                                .input(tr.getTestCase().getIsSample()
-                                                                ? tr.getTestCase().getSampleInput()
-                                                                : null)
-                                                .expectedOutput(tr.getTestCase().getIsSample()
-                                                                ? tr.getTestCase().getSampleOutput()
-                                                                : null)
-                                                .actualOutput(tr.getTestCase().getIsSample()
-                                                                ? tr.getUserOutput()
-                                                                : null)
-                                                .errorMessage(tr.getErrorMessage())
-                                                .build())
+                // Tính maxScore của bài tập
+                Integer problemId = submission.getProblem().getId();
+                int maxScoreVal = testCaseRepository.sumScoreWeightByProblemId(problemId);
+                log.info("[SubmissionDetail] ID: {}, ProblemID: {}, Computed maxScore: {}", submissionId, problemId,
+                                maxScoreVal);
+
+                List<TestCaseResultDetailDTO> detailTCs = testResults.stream()
+                                .map(tr -> {
+                                        TestCase tc = tr.getTestCase();
+                                        Integer weight = 1; // Mặc định 1 để khớp với logic chấm
+                                        if (tc != null) {
+                                                weight = tc.getScoreWeight();
+                                                if (weight == null)
+                                                        weight = 1;
+                                        }
+
+                                        boolean isAC = tr.getStatus() == SubmissionStatus.AC;
+                                        int tcScore = isAC ? weight : 0;
+
+                                        log.info("[SubmissionDetail] ID: {}, TC_ID: {}, TR_ID: {}, Status: {}, Weight: {}, Score: {}, Time: {}ms, Mem: {}KB",
+                                                        submissionId, (tc != null ? tc.getId() : "null"), tr.getId(),
+                                                        tr.getStatus(), weight, tcScore, tr.getExecutionTime(),
+                                                        tr.getMemoryUsed());
+
+                                        return TestCaseResultDetailDTO.builder()
+                                                        .id(tr.getId())
+                                                        .status(tr.getStatus().name())
+                                                        .executionTime(tr.getExecutionTime() != null
+                                                                        ? tr.getExecutionTime()
+                                                                        : 0)
+                                                        .memoryUsed(tr.getMemoryUsed() != null ? tr.getMemoryUsed() : 0)
+                                                        .isSample(tc != null && Boolean.TRUE.equals(tc.getIsSample()))
+                                                        .input((tc != null && Boolean.TRUE.equals(tc.getIsSample()))
+                                                                        ? tc.getSampleInput()
+                                                                        : null)
+                                                        .expectedOutput((tc != null
+                                                                        && Boolean.TRUE.equals(tc.getIsSample()))
+                                                                                        ? tc.getSampleOutput()
+                                                                                        : null)
+                                                        .actualOutput((tc != null
+                                                                        && Boolean.TRUE.equals(tc.getIsSample()))
+                                                                                        ? tr.getUserOutput()
+                                                                                        : null)
+                                                        .errorMessage(tr.getErrorMessage())
+                                                        .score(tcScore)
+                                                        .scoreWeight(weight)
+                                                        .build();
+                                })
                                 .collect(Collectors.toList());
 
-                return com.codegym.spring_boot.dto.SubmissionDetailDTO.builder()
+                return SubmissionDetailDTO.builder()
                                 .id(submission.getId())
                                 .status(submission.getStatus().name())
                                 .score(submission.getScore())
+                                .maxScore(maxScoreVal)
                                 .executionTime(submission.getExecutionTime())
                                 .memoryUsed(submission.getMemoryUsed())
                                 .sourceCode(submission.getSourceCode())

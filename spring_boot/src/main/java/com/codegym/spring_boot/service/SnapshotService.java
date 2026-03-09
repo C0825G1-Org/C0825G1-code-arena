@@ -7,15 +7,12 @@ import com.codegym.spring_boot.repository.ContestRepository;
 import com.codegym.spring_boot.repository.ContestSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,9 +21,7 @@ import java.util.UUID;
 public class SnapshotService {
     private final ContestSnapshotRepository snapshotRepository;
     private final ContestRepository contestRepository;
-
-    @Value("${app.upload.dir:uploads/snapshots}")
-    private String uploadDir;
+    private final CloudinaryService cloudinaryService;
 
     @Transactional
     public void saveSnapshot(Integer contestId, User user, MultipartFile file) throws IOException {
@@ -35,29 +30,25 @@ public class SnapshotService {
         Contest contest = contestRepository.findById(contestId)
                 .orElseThrow(() -> new IllegalArgumentException("Cuộc thi không tồn tại."));
 
-        // Tạo thư mục nếu chưa có
-        Path root = Paths.get(uploadDir);
-        if (!Files.exists(root)) {
-            Files.createDirectories(root);
-        }
-
-        // Tạo tên file duy nhất (.jpg)
-        String fileName = String.format("snapshot_%d_%d_%s.jpg",
+        // Tạo public_id duy nhất
+        String publicId = String.format("snapshot_%d_%d_%s",
                 contestId, user.getId(), UUID.randomUUID().toString().substring(0, 8));
 
-        Path filePath = root.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath);
+        // Upload lên Cloudinary
+        Map<String, Object> uploadResult = cloudinaryService.upload(file, "code_arena_snapshots", publicId);
+        String secureUrl = (String) uploadResult.get("secure_url");
+        String finalPublicId = (String) uploadResult.get("public_id");
 
         // Lưu vào DB
         ContestSnapshot snapshot = ContestSnapshot.builder()
                 .contest(contest)
                 .user(user)
-                .fileName(fileName)
-                .filePath(filePath.toString())
+                .fileName(finalPublicId) // Lưu public_id vào fileName để dùng cho việc xóa sau này
+                .filePath(secureUrl) // Lưu link ảnh (secure_url) vào filePath
                 .build();
 
         snapshotRepository.save(snapshot);
-        log.debug("Saved camera snapshot from user {} in contest {}", user.getUsername(), contestId);
+        log.debug("Saved camera snapshot from user {} in contest {} via Cloudinary", user.getUsername(), contestId);
     }
 
     @Transactional(readOnly = true)

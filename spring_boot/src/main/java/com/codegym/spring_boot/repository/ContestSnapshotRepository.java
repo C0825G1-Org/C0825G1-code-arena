@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ContestSnapshotRepository extends JpaRepository<ContestSnapshot, Integer> {
     List<ContestSnapshot> findAllByContestIdAndUserId(Integer contestId, Integer userId);
+
+    List<ContestSnapshot> findAllByCapturedAtBefore(java.time.LocalDateTime dateTime);
 }

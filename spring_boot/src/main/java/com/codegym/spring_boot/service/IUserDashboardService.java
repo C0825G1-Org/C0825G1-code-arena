@@ -7,6 +7,18 @@ import com.codegym.spring_boot.entity.User;
 import java.util.List;
 
 public interface IUserDashboardService {
-    UserStatsResponse getUserStats(User user);
-    List<TopCoderResponse> getTopCoders();
+        UserStatsResponse getUserStats(User user);
+
+        List<TopCoderResponse> getTopCoders();
+
+        List<com.codegym.spring_boot.dto.dashboard.response.RecentSubmissionResponse> getRecentSubmissions(User user,
+                        int limit);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.SubmissionStatusStatResponse> getSubmissionStatusStats(
+                        User user);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.HeatmapResponse> getActivityHeatmap(User user, int days);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse> getRecentContests(User user,
+                        int limit);
 }

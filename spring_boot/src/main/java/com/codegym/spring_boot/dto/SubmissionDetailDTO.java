@@ -21,5 +21,6 @@ public class SubmissionDetailDTO {
     private String sourceCode;
     private LocalDateTime createdAt;
     private Boolean isTestRun;
+    private Integer maxScore;
     private List<TestCaseResultDetailDTO> testCaseResults;
 }

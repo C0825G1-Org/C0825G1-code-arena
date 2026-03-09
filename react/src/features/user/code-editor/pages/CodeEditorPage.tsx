@@ -29,6 +29,7 @@ import { EditorHeader } from '../components/EditorHeader';
 import { ProblemStrip } from '../components/ProblemStrip';
 import { ActionToolbar } from '../components/ActionToolbar';
 import { Clock, LockKey, PlayCircle } from '@phosphor-icons/react';
+import { GroupChat } from '../../../chat/components/GroupChat';
 
 export default function Home() {
     const [searchParams] = useSearchParams();
@@ -42,6 +43,8 @@ export default function Home() {
     const location = useLocation();
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
     const userId = user?.id;
+    const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
+    const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [testCases, setTestCases] = useState<TestCase[]>([]);
@@ -59,8 +62,8 @@ export default function Home() {
     // vì `null?.participantStatus !== 'JOINED'` → `undefined !== 'JOINED'` → TRUE (sai)
     const isWaitingRoom = isExamMode && contest?.status === 'upcoming';
     const isReadOnly = isContestEnded
-        || (isExamMode && contest !== null && contest.participantStatus !== 'JOINED')
-        || (contest?.status === 'upcoming' || contest?.status === 'past');
+        || (isExamMode && contest !== null && (contest.participantStatus === 'FINISHED' || contest.participantStatus === 'DISQUALIFIED'))
+        || (contest?.status === 'upcoming' || contest?.status === 'finished');
     const examReadOnly = isExamMode && !!localStorage.getItem(`arena:contest_finished:${contestId || '0'}`);
 
     const { language, code, setCode, setRawCode, changeLanguage, resetCode } = useArena(problemId, contestId, examReadOnly || isReadOnly);
@@ -476,7 +479,6 @@ export default function Home() {
                                 {!isExamMode && (
                                     <>
                                         <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'hints' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('hints')}>Gợi ý</button>
-                                        <button className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 min-w-[100px] ${activeTab === 'discussions' ? 'bg-[#1e293b] text-white shadow-sm border border-white/5' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'}`} onClick={() => setActiveTab('discussions')}>Thảo luận</button>
                                     </>
                                 )}
                             </div>
@@ -489,14 +491,6 @@ export default function Home() {
                                         <h4 className="text-lg font-bold text-white mb-2">Gợi ý & Hướng dẫn</h4>
                                         <p className="text-center max-w-sm">Trong chế độ luyện tập, bạn có thể xem gợi ý tiếp cận bài toán.</p>
                                         <button className="mt-4 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg border border-blue-500/20 font-medium hover:bg-blue-600/30 transition-colors">Mở khóa gợi ý</button>
-                                    </div>
-                                )}
-                                {activeTab === 'discussions' && (
-                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-slate-400">
-                                        <span className="text-4xl mb-4">💬</span>
-                                        <h4 className="text-lg font-bold text-white mb-2">Cộng đồng Thảo luận</h4>
-                                        <p className="text-center max-w-sm">Tham gia thảo luận cùng các người chơi khác.</p>
-                                        <span className="mt-4 px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-xs font-bold uppercase tracking-widest text-slate-300">Coming Soon</span>
                                     </div>
                                 )}
                             </div>
@@ -592,6 +586,10 @@ export default function Home() {
                 }}
                 onCancel={() => setIsConfirmSubmitOpen(false)}
             />
+
+            {isExamMode && contestId && (contest?.isRegistered || contest?.participantStatus !== undefined || isModerator) && user && (isWaitingRoom || contest?.status === 'finished' || isModerator) && (
+                <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} />
+            )}
         </div>
     );
 }
