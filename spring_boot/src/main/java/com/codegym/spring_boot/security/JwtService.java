@@ -58,6 +58,9 @@ public class JwtService {
             extraClaims.put("fullName", user.getFullName());
             extraClaims.put("email", user.getEmail());
             extraClaims.put("role", user.getRole().name());
+            if (user.getProfile() != null) {
+                extraClaims.put("avatarUrl", user.getProfile().getAvatarUrl());
+            }
         }
 
         return generateToken(extraClaims, userDetails);
