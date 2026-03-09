@@ -98,7 +98,7 @@ export const ProfileSettingsForm: React.FC = () => {
 
     if (!profile) return <div className="text-white text-center py-4">Đang tải...</div>;
 
-    const avatarSource = profile.avatarUrl || `https://ui-avatars.com/api/?name=${profile.username}&background=random`;
+    const avatarSource = profile.avatarUrl || `https://i.pravatar.cc/150?u=${profile.id || 1}`;
 
     return (
         <div className="glass p-8 rounded-2xl border border-slate-700/50">
