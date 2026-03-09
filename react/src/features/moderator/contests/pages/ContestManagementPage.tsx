@@ -6,6 +6,7 @@ import { DeleteContestModal } from '../components/DeleteContestModal';
 import { EditContestModal } from '../components/EditContestModal';
 import { ManageProblemsModal } from '../components/ManageProblemsModal';
 import { CreateContestModal } from '../components/CreateContestModal';
+import { ShareContestModal } from '../components/ShareContestModal';
 import { useContestWebSocket } from '../../../../features/user/contests/hooks/useContestWebSocket';
 
 interface Contest {
@@ -39,6 +40,7 @@ export const ContestManagementPage = () => {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [manageProblemModalOpen, setManageProblemModalOpen] = useState(false);
     const [selectedContest, setSelectedContest] = useState<{ id: number; title: string } | null>(null);
+    const [shareModalOpen, setShareModalOpen] = useState(false);
 
     const fetchContests = useCallback(async () => {
         try {
@@ -311,6 +313,18 @@ export const ContestManagementPage = () => {
                                                     <i className="ph-duotone ph-chart-line-up text-base"></i>
                                                 </Link>
                                             )}
+                                            {(contest.status === 'upcoming' || contest.status === 'active') && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedContest({ id: contest.id, title: contest.title });
+                                                        setShareModalOpen(true);
+                                                    }}
+                                                    className="inline-block p-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
+                                                    title="Chia sẻ cuộc thi"
+                                                >
+                                                    <i className="ph-bold ph-share-network text-base"></i>
+                                                </button>
+                                            )}
                                             {contest.status === 'finished' && (
                                                 <Link
                                                     to={`/moderator/contests/${contest.id}/results`}
@@ -417,6 +431,12 @@ export const ContestManagementPage = () => {
                 contestId={selectedContest?.id || null}
                 contestTitle={selectedContest?.title || ''}
                 onSuccess={fetchContests}
+            />
+            <ShareContestModal
+                isOpen={shareModalOpen}
+                onClose={() => setShareModalOpen(false)}
+                contestId={selectedContest?.id || null}
+                contestTitle={selectedContest?.title || ''}
             />
         </ModeratorLayout>
     );
