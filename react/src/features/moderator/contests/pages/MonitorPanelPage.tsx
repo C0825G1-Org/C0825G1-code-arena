@@ -22,7 +22,8 @@ export const MonitorPanelPage = () => {
         totalSubmissionsCount: 0,
         remainingTimeSeconds: 0,
         remainingStartTimeSeconds: 0,
-        status: 'UNKNOWN'
+        status: 'UNKNOWN',
+        endTime: undefined as string | undefined
     });
 
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -223,7 +224,8 @@ export const MonitorPanelPage = () => {
                 totalSubmissionsCount: res.totalSubmissionsCount || 0,
                 remainingTimeSeconds: res.remainingTimeSeconds || 0,
                 remainingStartTimeSeconds: startCountdown,
-                status: res.status?.toLowerCase() || 'unknown'
+                status: res.status?.toLowerCase() || 'unknown',
+                endTime: res.endTime
             });
             setFeed(res.recentSubmissions || []);
         } catch (error) {
@@ -411,12 +413,12 @@ export const MonitorPanelPage = () => {
                 </div>
 
                 <div className={`bg-gradient-to-br border rounded-2xl p-6 flex flex-col justify-between ${stats.status === 'upcoming' ? 'from-purple-500/10 to-indigo-500/5 border-purple-500/30' :
-                        (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'from-amber-500/10 to-rose-500/5 border-amber-500/30' : 'from-emerald-500/10 to-teal-500/5 border-emerald-500/20')
+                    (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'from-amber-500/10 to-rose-500/5 border-amber-500/30' : 'from-emerald-500/10 to-teal-500/5 border-emerald-500/20')
                     }`}>
                     <div className="flex justify-between items-start">
                         <div>
                             <p className={`font-medium text-sm mb-1 uppercase tracking-wider ${stats.status === 'upcoming' ? 'text-purple-400' :
-                                    (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400' : 'text-emerald-400/80')
+                                (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400' : 'text-emerald-400/80')
                                 }`}>
                                 {stats.status === 'upcoming' ? 'Bắt đầu sau' : 'Thời gian còn lại'}
                             </p>
@@ -425,10 +427,10 @@ export const MonitorPanelPage = () => {
                             </h3>
                         </div>
                         <div className={`p-3 rounded-xl ${stats.status === 'upcoming' ? 'bg-purple-500/20' :
-                                (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'bg-amber-500/20' : 'bg-emerald-500/20')
+                            (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'bg-amber-500/20' : 'bg-emerald-500/20')
                             }`}>
                             <i className={`ph-fill ${stats.status === 'upcoming' ? 'ph-hourglass-high text-purple-400' : 'ph-clock'} text-2xl ${stats.status === 'upcoming' ? 'animate-pulse' :
-                                    (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400')
+                                (stats.remainingTimeSeconds <= 300 && stats.remainingTimeSeconds > 0 ? 'text-amber-400 animate-pulse' : 'text-emerald-400')
                                 }`}></i>
                         </div>
                     </div>
@@ -632,6 +634,8 @@ export const MonitorPanelPage = () => {
                     contestId={Number(id)}
                     currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }}
                     contestTitle={`Phòng thi ${id}`}
+                    contestStatus={stats.status}
+                    endTime={stats.endTime}
                 />
             )}
         </div>

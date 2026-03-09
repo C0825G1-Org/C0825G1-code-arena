@@ -11,16 +11,52 @@ interface GroupChatProps {
         fullName?: string;
         username: string;
     };
+    contestTitle?: string;
+    contestStatus?: string;
+    endTime?: string;
 }
 
-export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser }) => {
+export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, contestTitle, contestStatus, endTime }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputValue, setInputValue] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
+
+    // Post-contest Countdown Logic
+    const [postContestTimeLeft, setPostContestTimeLeft] = useState<number | null>(null);
+    const [showChat, setShowChat] = useState(true);
+
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Fetch history
+    useEffect(() => {
+        if (contestStatus?.toLowerCase() === 'finished' && endTime) {
+            const calculateTimeLeft = () => {
+                const end = new Date(endTime).getTime();
+                const now = new Date().getTime();
+                const diffSeconds = Math.floor((now - end) / 1000);
+
+                if (diffSeconds >= 900) { // 15 phút = 900 giây
+                    setShowChat(false);
+                    setPostContestTimeLeft(0);
+                } else if (diffSeconds >= 0) {
+                    setShowChat(true);
+                    setPostContestTimeLeft(900 - diffSeconds);
+                } else {
+                    // Chờ đến lúc endTime (chưa Finished thực sự)
+                    setPostContestTimeLeft(null);
+                }
+            };
+
+            calculateTimeLeft();
+            const timer = setInterval(calculateTimeLeft, 1000);
+            return () => clearInterval(timer);
+        } else {
+            setPostContestTimeLeft(null);
+            setShowChat(true);
+        }
+    }, [contestStatus, endTime]);
+
     useEffect(() => {
         const fetchHistory = async () => {
             try {
@@ -53,6 +89,8 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser }) 
         setInputValue('');
     };
 
+    if (!showChat) return null;
+
     if (!isOpen) {
         return (
             <button
@@ -70,10 +108,19 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser }) 
         <div className={`fixed bottom-6 right-6 w-80 sm:w-96 bg-[#1e293b] border border-slate-700/50 rounded-2xl shadow-2xl flex flex-col transition-all z-[100] ${isMinimized ? 'h-14' : 'h-[500px]'}`}>
             {/* Header */}
             <div className="p-4 border-b border-slate-700/50 flex items-center justify-between bg-slate-800/50 rounded-t-2xl">
-                <div className="flex items-center gap-2">
-                    <ChatCircleDots size={24} weight="fill" className="text-blue-400" />
-                    <span className="font-bold text-slate-100">Contest Chat</span>
-                    <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <ChatCircleDots size={24} weight="fill" className="text-blue-400" />
+                        <span className="font-bold text-slate-100 max-w-[200px] truncate" title={contestTitle || 'Contest Chat'}>
+                            {contestTitle || 'Contest Chat'}
+                        </span>
+                        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
+                    </div>
+                    {postContestTimeLeft !== null && (
+                        <div className="text-xs text-amber-400 mt-0.5 ml-8 animate-pulse">
+                            Đóng sau: {Math.floor(postContestTimeLeft / 60)}:{(postContestTimeLeft % 60).toString().padStart(2, '0')}
+                        </div>
+                    )}
                 </div>
                 <div className="flex items-center gap-2">
                     <button onClick={() => setIsMinimized(!isMinimized)} className="text-slate-400 hover:text-white p-1 hover:bg-slate-700 rounded transition-colors">
@@ -105,11 +152,11 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser }) 
                                     )}
                                     <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                         <div className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-slate-700 bg-slate-800 ${isMe ? 'hidden' : 'flex items-center justify-center'}`}>
-                                            {msg.senderAvatar ? (
-                                                <img src={msg.senderAvatar} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <User size={16} />
-                                            )}
+                                            <img
+                                                src={msg.senderAvatar || `https://i.pravatar.cc/150?u=${msg.senderId}`}
+                                                alt={msg.senderName}
+                                                className="w-full h-full object-cover"
+                                            />
                                         </div>
                                         <div className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-100 rounded-tl-none border border-slate-700'}`}>
                                             {msg.content}

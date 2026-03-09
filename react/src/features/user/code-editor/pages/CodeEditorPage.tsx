@@ -588,7 +588,7 @@ export default function Home() {
             />
 
             {isExamMode && contestId && (contest?.isRegistered || contest?.participantStatus !== undefined || isModerator) && user && (isWaitingRoom || contest?.status === 'finished' || isModerator) && (
-                <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} />
+                <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} contestTitle={contest?.title} />
             )}
         </div>
     );

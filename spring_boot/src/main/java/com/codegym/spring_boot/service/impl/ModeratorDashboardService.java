@@ -170,6 +170,7 @@ public class ModeratorDashboardService implements IModeratorDashboardService {
                 .remainingTimeSeconds(remainingTimeSeconds)
                 .status(contest.getStatus().name())
                 .startTime(contest.getStartTime() != null ? contest.getStartTime().toString() : null)
+                .endTime(contest.getEndTime() != null ? contest.getEndTime().toString() : null)
                 .leaderboard(leaderboard)
                 .recentSubmissions(recentSubmissions)
                 .build();

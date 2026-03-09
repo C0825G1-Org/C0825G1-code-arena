@@ -12,6 +12,7 @@ public class MonitorDashboardResponse {
     private Long remainingTimeSeconds;
     private String status;
     private String startTime;
+    private String endTime;
 
     // Paginated Leaderboard (Top 5 for initial page)
     private List<MonitorLeaderboardEntry> leaderboard;
