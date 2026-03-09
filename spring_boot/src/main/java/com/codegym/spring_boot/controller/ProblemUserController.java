@@ -27,8 +27,9 @@ public class ProblemUserController {
             @RequestParam(required = false) Difficulty difficulty,
             @RequestParam(required = false) List<Integer> tagIds,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Boolean isFavorite,
             @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             @AuthenticationPrincipal User currentUser) {
-        return ResponseEntity.ok(problemUserService.getAllProblemsForUser(title, difficulty, tagIds, status, pageable, currentUser));
+        return ResponseEntity.ok(problemUserService.getAllProblemsForUser(title, difficulty, tagIds, status, isFavorite, pageable, currentUser));
     }
 }

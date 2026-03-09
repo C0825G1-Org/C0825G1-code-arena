@@ -142,7 +142,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             </nav>
 
             {/* Main Content */}
-            <div className="flex-1 relative z-10">
+            <div className="flex-1 relative">
                 {children}
             </div>
 

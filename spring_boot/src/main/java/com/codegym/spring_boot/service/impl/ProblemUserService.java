@@ -10,6 +10,7 @@ import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.Difficulty;
 import com.codegym.spring_boot.entity.enums.SubmissionStatus;
 import com.codegym.spring_boot.entity.enums.TestCaseStatus;
+import com.codegym.spring_boot.entity.FavoriteProblem;
 import com.codegym.spring_boot.repository.IProblemUserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
 import com.codegym.spring_boot.service.IProblemUserService;
@@ -36,7 +37,7 @@ public class ProblemUserService implements IProblemUserService {
     private final SubmissionRepository submissionRepository;
 
     @Override
-    public ProblemUserPageWrapperDTO getAllProblemsForUser(String title, Difficulty difficulty, List<Integer> tagIds, String status, Pageable pageable, User currentUser) {
+    public ProblemUserPageWrapperDTO getAllProblemsForUser(String title, Difficulty difficulty, List<Integer> tagIds, String status, Boolean isFavorite, Pageable pageable, User currentUser) {
         Specification<Problem> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("isDeleted"), false));
@@ -94,6 +95,15 @@ public class ProblemUserService implements IProblemUserService {
                     
                     predicates.add(cb.and(cb.exists(subquery), cb.not(cb.exists(acSubquery))));
                 }
+            }
+
+            if (Boolean.TRUE.equals(isFavorite) && currentUser != null) {
+                Subquery<Integer> favoriteSubquery = query.subquery(Integer.class);
+                Root<FavoriteProblem> favoriteRoot = favoriteSubquery.from(FavoriteProblem.class);
+                favoriteSubquery.select(cb.literal(1))
+                        .where(cb.equal(favoriteRoot.get("problem"), root),
+                               cb.equal(favoriteRoot.get("user").get("id"), currentUser.getId()));
+                predicates.add(cb.exists(favoriteSubquery));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

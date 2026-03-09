@@ -55,7 +55,7 @@ export const AdminProblemPage = () => {
         fetchData();
     }, []);
 
-    // Reset page on filter change
+    // Reset pages on filter change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, difficulty]);

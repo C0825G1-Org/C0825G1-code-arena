@@ -108,7 +108,7 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                 {/* HeaderBar */}
                 <header
                     className="top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                    {/* Header title can be injected via context or left generic if page titles are rendered in the content area. We will keep it generic or empty here, as each page might want its own header tools (like CreatePage has a Back button and Save button).
+                    {/* Header title can be injected via context or left generic if pages titles are rendered in the content area. We will keep it generic or empty here, as each pages might want its own header tools (like CreatePage has a Back button and Save button).
                         Actually, let's put the user profile and logout here. */}
                     <div className="flex-1">
                         {headerTitle ? (

@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface IProblemUserService {
-    ProblemUserPageWrapperDTO getAllProblemsForUser(String title, Difficulty difficulty, List<Integer> tagIds, String status, Pageable pageable, User currentUser);
+    ProblemUserPageWrapperDTO getAllProblemsForUser(String title, Difficulty difficulty, List<Integer> tagIds, String status, Boolean isFavorite, Pageable pageable, User currentUser);
 }
