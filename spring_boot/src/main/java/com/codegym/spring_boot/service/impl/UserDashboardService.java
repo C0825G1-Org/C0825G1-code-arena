@@ -27,7 +27,13 @@ public class UserDashboardService implements IUserDashboardService {
 
         @Override
         public UserStatsResponse getUserStats(User user) {
-                Integer userId = user.getId();
+                return getUserStats(user.getId());
+        }
+
+        @Override
+        public UserStatsResponse getUserStats(Integer userId) {
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
                 int globalRating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
 
                 // 1. Calculate Rank and Top % (smaller global_rating is better)
@@ -46,7 +52,7 @@ public class UserDashboardService implements IUserDashboardService {
                 double acRate = totalSubmissions > 0 ? ((double) acceptedSubmissions / totalSubmissions) * 100 : 0.0;
 
                 // 4. Calculate Streak
-                List<Date> acDates = submissionRepository.findDistinctAcceptedDatesByUserIdDesc(userId,
+                List<java.sql.Date> acDates = submissionRepository.findDistinctAcceptedDatesByUserIdDesc(userId,
                                 SubmissionStatus.AC);
                 int streak = calculateStreak(acDates);
 
@@ -70,6 +76,7 @@ public class UserDashboardService implements IUserDashboardService {
                                 .username(user.getUsername())
                                 .fullName(user.getFullName())
                                 .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
+                                .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                                 .build()).collect(Collectors.toList());
         }
 
@@ -112,9 +119,16 @@ public class UserDashboardService implements IUserDashboardService {
         public List<com.codegym.spring_boot.dto.dashboard.response.RecentSubmissionResponse> getRecentSubmissions(
                         User user,
                         int limit) {
+                return getRecentSubmissions(user.getId(), limit);
+        }
+
+        @Override
+        public List<com.codegym.spring_boot.dto.dashboard.response.RecentSubmissionResponse> getRecentSubmissions(
+                        Integer userId,
+                        int limit) {
                 org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0,
                                 limit);
-                return submissionRepository.findRecentSubmissionsByUserId(user.getId(), pageable).stream()
+                return submissionRepository.findRecentSubmissionsByUserId(userId, pageable).stream()
                                 .map(sub -> com.codegym.spring_boot.dto.dashboard.response.RecentSubmissionResponse
                                                 .builder()
                                                 .id(sub.getId())
@@ -136,7 +150,13 @@ public class UserDashboardService implements IUserDashboardService {
         @Override
         public List<com.codegym.spring_boot.dto.dashboard.response.SubmissionStatusStatResponse> getSubmissionStatusStats(
                         User user) {
-                List<Object[]> rawStats = submissionRepository.countStatusStatByUserId(user.getId());
+                return getSubmissionStatusStats(user.getId());
+        }
+
+        @Override
+        public List<com.codegym.spring_boot.dto.dashboard.response.SubmissionStatusStatResponse> getSubmissionStatusStats(
+                        Integer userId) {
+                List<Object[]> rawStats = submissionRepository.countStatusStatByUserId(userId);
                 return rawStats.stream()
                                 .map(obj -> com.codegym.spring_boot.dto.dashboard.response.SubmissionStatusStatResponse
                                                 .builder()
@@ -149,8 +169,14 @@ public class UserDashboardService implements IUserDashboardService {
         @Override
         public List<com.codegym.spring_boot.dto.dashboard.response.HeatmapResponse> getActivityHeatmap(User user,
                         int days) {
+                return getActivityHeatmap(user.getId(), days);
+        }
+
+        @Override
+        public List<com.codegym.spring_boot.dto.dashboard.response.HeatmapResponse> getActivityHeatmap(Integer userId,
+                        int days) {
                 LocalDate since = LocalDate.now().minusDays(days - 1); // e.g. 30 days including today
-                List<Object[]> rawData = submissionRepository.countHeatmapByUserIdAndDateRange(user.getId(),
+                List<Object[]> rawData = submissionRepository.countHeatmapByUserIdAndDateRange(userId,
                                 since.atStartOfDay());
                 return rawData.stream()
                                 .map(obj -> com.codegym.spring_boot.dto.dashboard.response.HeatmapResponse.builder()
@@ -163,9 +189,16 @@ public class UserDashboardService implements IUserDashboardService {
         @Override
         public List<com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse> getRecentContests(User user,
                         int limit) {
+                return getRecentContests(user.getId(), limit);
+        }
+
+        @Override
+        public List<com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse> getRecentContests(
+                        Integer userId,
+                        int limit) {
                 org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0,
                                 limit);
-                return contestParticipantRepository.findRecentContestsByUserId(user.getId(), pageable).stream()
+                return contestParticipantRepository.findRecentContestsByUserId(userId, pageable).stream()
                                 .map(cp -> com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse
                                                 .builder()
                                                 .contestId(cp.getContest() != null ? cp.getContest().getId() : null)

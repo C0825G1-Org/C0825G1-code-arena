@@ -53,6 +53,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
+                    .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                     .build();
         });
     }

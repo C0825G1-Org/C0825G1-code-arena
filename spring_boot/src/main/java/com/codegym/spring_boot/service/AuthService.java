@@ -61,6 +61,7 @@ public class AuthService {
                                 .fullName(user.getFullName())
                                 .email(user.getEmail())
                                 .role(user.getRole().name())
+                                .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                                 .build();
         }
 
@@ -82,6 +83,7 @@ public class AuthService {
                                 .fullName(user.getFullName())
                                 .email(user.getEmail())
                                 .role(user.getRole().name())
+                                .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                                 .build();
         }
 
@@ -134,6 +136,7 @@ public class AuthService {
                                 .fullName(user.getFullName())
                                 .email(user.getEmail())
                                 .role(user.getRole().name())
+                                .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                                 .build();
         }
 

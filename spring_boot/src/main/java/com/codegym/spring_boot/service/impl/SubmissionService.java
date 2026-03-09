@@ -119,17 +119,21 @@ public class SubmissionService implements ISubmissionService {
                                                 : false)
                                 .build();
 
+                log.info(">>> [SUBMIT] Start saving submission to DB...");
                 Submission savedSubmission = submissionRepository.save(newSubmission);
-                log.info("Saved submission to DB with ID: {}", savedSubmission.getId());
+                log.info(">>> [SUBMIT] Saved to DB with ID: {}", savedSubmission.getId());
 
-                // 4. Push ticket to Redis Queue - PUSH DIRECTLY (Diagnostic)
-                log.info("Pushing ticket to Redis for submission ID: {}", savedSubmission.getId());
+                // 4. Push ticket to Redis Queue
+                log.info(">>> [SUBMIT] Creating JudgeTicket for ID: {}", savedSubmission.getId());
                 JudgeTicket ticket = new JudgeTicket(
                                 savedSubmission.getId(),
                                 submitRequestDTO.getProblemId(),
                                 submitRequestDTO.getLanguageId(),
                                 savedSubmission.getIsTestRun());
+                                
+                log.info(">>> [SUBMIT] Pushing ticket to Redis queue...");
                 judgeQueueService.pushTicketToQueue(ticket);
+                log.info(">>> [SUBMIT] Pushed successfully. Returning ID: {}", savedSubmission.getId());
 
                 return savedSubmission.getId();
         }

@@ -77,7 +77,7 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
                @Param("status") SubmissionStatus status);
 
      // API Lịch sử nộp bài gần đây (Recent Submissions)
-     @Query("SELECT s FROM Submission s JOIN FETCH s.problem JOIN FETCH s.language WHERE s.user.id = :userId AND s.isTestRun = false AND s.contest IS NULL ORDER BY s.createdAt DESC")
+     @Query("SELECT s FROM Submission s JOIN FETCH s.problem JOIN FETCH s.language WHERE s.user.id = :userId AND s.isTestRun = false ORDER BY s.createdAt DESC")
      List<Submission> findRecentSubmissionsByUserId(@Param("userId") Integer userId,
                org.springframework.data.domain.Pageable pageable);
 
