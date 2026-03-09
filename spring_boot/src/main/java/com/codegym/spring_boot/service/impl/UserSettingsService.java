@@ -30,35 +30,44 @@ public class UserSettingsService implements IUserSettingsService {
 
     @Override
     public UserProfileResponse getUserProfile(User user) {
-        Profile profile = user.getProfile();
+        // Fetch fresh user to ensure Profile is loaded (principal might be
+        // detached/shallow)
+        User freshUser = userRepository.findById(user.getId())
+                .orElse(user);
+        Profile profile = freshUser.getProfile();
         return UserProfileResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
+                .id(freshUser.getId())
+                .username(freshUser.getUsername())
+                .fullName(freshUser.getFullName())
+                .email(freshUser.getEmail())
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
                 .githubLink(profile != null ? profile.getGithubLink() : null)
-                .createdAt(user.getCreatedAt())
+                .createdAt(freshUser.getCreatedAt())
                 .build();
     }
 
     @Override
     @Transactional
     public UserProfileResponse updateProfile(User user, UpdateProfileRequest request) {
-        user.setFullName(request.getFullName());
-        userRepository.save(user);
+        // Fetch fresh user from DB to ensure profile is linked
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Profile profile = user.getProfile();
+        currentUser.setFullName(request.getFullName());
+        userRepository.save(currentUser);
+
+        Profile profile = currentUser.getProfile();
         if (profile == null) {
             profile = new Profile();
-            profile.setUser(user);
+            profile.setUser(currentUser);
+            currentUser.setProfile(profile); // Ensure bidirectional consistency
         }
         profile.setBio(request.getBio());
         profile.setGithubLink(request.getGithubLink());
         profileRepository.save(profile);
 
-        return getUserProfile(user);
+        return getUserProfile(currentUser);
     }
 
     @Override

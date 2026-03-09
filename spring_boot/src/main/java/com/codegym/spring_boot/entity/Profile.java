@@ -25,7 +25,7 @@ public class Profile {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @Pattern(regexp = "^(https?://)?(www\\.)?github\\.com/.*$", message = "Link Github không hợp lệ")
+    @Pattern(regexp = "^(|(https?://)?(www\\.)?github\\.com/.*)$", message = "Link Github không hợp lệ")
     @Column(name = "github_link")
     private String githubLink;
 }
