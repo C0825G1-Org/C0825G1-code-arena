@@ -277,49 +277,7 @@ export const UserContestDetailPage = () => {
     };
 
     return (
-<<<<<<< HEAD
         <UserLayout>
-=======
-        <div className="antialiased min-h-screen flex flex-col relative bg-[#0f172a] text-slate-50 font-sans overflow-clip">
-            {/* Background Effects */}
-            <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-purple-900/20 to-transparent pointer-events-none" />
-            <div className="absolute top-[10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[130px] rounded-full pointer-events-none" />
-            <div className="absolute right-[-5%] top-[20%] w-[30%] h-[40%] bg-purple-600/10 blur-[130px] rounded-full pointer-events-none" />
-
-            {/* Navbar */}
-            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                <div className="flex items-center gap-8">
-                    <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
-                        <Code weight="fill" className="text-blue-500 text-3xl" />
-                        <span className="text-white">Code<span className="text-blue-500">Arena</span></span>
-                    </Link>
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-                        <Link to="/home" className="hover:text-blue-400 transition-colors">Trang chủ</Link>
-                        <Link to="/problems" className="hover:text-blue-400 transition-colors">Bài tập</Link>
-                        <Link to="/contests" className="text-white hover:text-blue-400 transition-colors">Cuộc thi</Link>
-                        <Link to="/leaderboard" className="hover:text-blue-400 transition-colors">Bảng xếp hạng</Link>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    {isModerator && (
-                        <Link to={userRole === 'ADMIN' ? '/admin/dashboard' : '/moderator/dashboard'} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-600/20 text-purple-300 hover:bg-purple-600/40 hover:text-purple-100 transition-all text-sm font-medium border border-purple-500/20">
-                            <ShieldStar weight="duotone" className="text-lg" /> <span>Quản trị</span>
-                        </Link>
-                    )}
-                    <NotificationBell />
-                    <Link to="/profile" className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
-                        <Avatar
-                            src={user?.avatarUrl}
-                            userId={user?.id}
-                            size="md"
-                        />
-                    </Link>
-                    <button onClick={handleLogout} title="Đăng xuất" className="p-2 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors border border-red-500/20 bg-red-500/5 hover:border-red-500/50"><SignOut weight="bold" className="text-xl" /></button>
-                </div>
-            </nav>
-
-            {/* Rules & Tutorial Modals */}
->>>>>>> d36abc3459a317e74ab56a079a24f34676dc76d9
             <RulesModal
                 isOpen={isRulesOpen}
                 onClose={() => setIsRulesOpen(false)}
