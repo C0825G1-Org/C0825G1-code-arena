@@ -29,6 +29,12 @@ export const useChatSocket = (contestId: number, onNewMessage: (msg: ChatMessage
 
         socketRef.current = socket;
 
+        // Xử lý trường hợp Manager đã gộp socket & connect sẵn
+        if (socket.connected) {
+            setConnected(true);
+            socket.emit('join_contest_chat', contestId);
+        }
+
         socket.on('connect', () => {
             console.log('Chat Socket Connected');
             setConnected(true);
