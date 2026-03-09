@@ -15,7 +15,7 @@ const CHAT_API_URL = '/chat';
 
 export const chatService = {
     getHistory: async (contestId: number): Promise<ChatMessage[]> => {
-        const response = await axiosInstance.get(`${CHAT_API_URL}/${contestId}/history`);
-        return response.data;
+        const response: any = await axiosInstance.get(`${CHAT_API_URL}/${contestId}/history`);
+        return response; // axiosClient interceptor đã trả về response.data rồi
     }
 };
