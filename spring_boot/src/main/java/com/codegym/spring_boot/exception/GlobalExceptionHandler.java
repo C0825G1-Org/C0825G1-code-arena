@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(buildError(HttpStatus.FORBIDDEN, "Bạn không có quyền truy cập tài nguyên này."));
+                .body(buildError(HttpStatus.FORBIDDEN, ex.getMessage()));
     }
 
     // 400: Sai kiểu dữ liệu path variable (vd: gửi "{4}" thay vì 4)

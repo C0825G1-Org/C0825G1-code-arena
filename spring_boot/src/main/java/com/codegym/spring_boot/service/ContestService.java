@@ -869,9 +869,9 @@ public class ContestService {
 
         for (ContestProblem cp : contestProblems) {
             Integer problemId = cp.getId().getProblemId();
-            // Chỉ unlock nếu problem không còn trong contest nào khác
-            long otherContestCount = problemRepository.countByIdProblemId(problemId) - 1;
-            if (otherContestCount <= 0) {
+            // Chỉ unlock nếu problem không còn trong contest nào khác ĐANG DIỄN RA hoặc SẮP DIỄN RA
+            long activeContestCount = problemRepository.countActiveOrUpcomingByIdProblemId(problemId);
+            if (activeContestCount <= 0) {
                 iProblemRepository.findById(problemId).ifPresent(problem -> {
                     problem.setIsLocked(false);
                     iProblemRepository.save(problem);

@@ -1,6 +1,7 @@
 package com.codegym.spring_boot.service.impl;
 
 import com.codegym.spring_boot.dto.problem.ProblemRequestDTO;
+import lombok.extern.slf4j.Slf4j;
 import com.codegym.spring_boot.dto.problem.ProblemResponseDTO;
 import com.codegym.spring_boot.dto.tag.TagDTO;
 import com.codegym.spring_boot.entity.Problem;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class ProblemService implements IProblemService {
     private final IProblemRepository problemRepository;
     private final ITagRepository tagRepository;
@@ -149,6 +151,7 @@ public class ProblemService implements IProblemService {
 
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
         if (currentUsername == null || currentUsername.equals("anonymousUser")) {
+            log.warn("Access denied to locked problem {}: guest user", problem.getId());
             throw new AccessDeniedException("Bài tập này đang bị khóa trong một kỳ thi. Yêu cầu đăng nhập.");
         }
 
@@ -166,7 +169,15 @@ public class ProblemService implements IProblemService {
 
         for (ContestProblem cp : cpList) {
             ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
-            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
+            
+            // Nếu contest đã kết thúc hoặc bị hủy, bài tập nên được xem tự do (thường đã được unlock, nhưng check này cho chắc)
+            if (realStatus == ContestStatus.finished || realStatus == ContestStatus.cancelled) {
+                hasAccess = true;
+                break;
+            }
+
+            // Nếu đang trong kỳ thi (ACTIVE/UPCOMING), phải là thí sinh mới được xem
+            if (realStatus == ContestStatus.active || realStatus == ContestStatus.upcoming) {
                 boolean isParticipant = contestParticipantRepository
                         .findByContestIdAndUserId(cp.getContest().getId(), currentUser.getId()).isPresent();
                 if (isParticipant) {
@@ -177,6 +188,7 @@ public class ProblemService implements IProblemService {
         }
 
         if (!hasAccess) {
+            log.warn("Access denied to locked problem {} for user {}: not authorized", problem.getId(), currentUsername);
             throw new AccessDeniedException(
                     "Đề thi này đang bị khóa! Bạn chưa đến giờ làm bài hoặc không phải là thí sinh của kỳ thi.");
         }

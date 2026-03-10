@@ -107,9 +107,9 @@ public class ContestScheduler {
 
         for (ContestProblem cp : contestProblems) {
             Integer problemId = cp.getId().getProblemId();
-            // Đếm bao nhiêu contest khác (không tính contest hiện tại) đang dùng problem này
-            long otherContestCount = contestProblemRepository.countByIdProblemId(problemId) - 1;
-            if (otherContestCount <= 0) {
+            // Đếm bao nhiêu contest khác (ACTIVE hoặc UPCOMING) đang dùng bài tập này
+            long activeContestCount = contestProblemRepository.countActiveOrUpcomingByIdProblemId(problemId);
+            if (activeContestCount <= 0) {
                 iProblemRepository.findById(problemId).ifPresent(problem -> {
                     problem.setIsLocked(false);
                     iProblemRepository.save(problem);

@@ -24,4 +24,8 @@ public interface ContestProblemRepository extends JpaRepository<ContestProblem, 
 
     // Đếm tổng số bài tập đang có trong một cuộc thi
     long countByIdContestId(Integer contestId);
+
+    // Đếm số contest đang ACTIVE hoặc UPCOMING mà bài tập này tham gia
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(cp) FROM ContestProblem cp WHERE cp.id.problemId = :problemId AND cp.contest.status IN (com.codegym.spring_boot.entity.enums.ContestStatus.active, com.codegym.spring_boot.entity.enums.ContestStatus.upcoming)")
+    long countActiveOrUpcomingByIdProblemId(@org.springframework.data.repository.query.Param("problemId") Integer problemId);
 }
