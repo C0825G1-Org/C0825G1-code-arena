@@ -30,8 +30,13 @@ for input_file in ${TESTCASE_DIR}/*.in; do
   
   echo "--- TESTCASE ${test_id} ---"
   
-  timeout 2s ./main.out < "$input_file" > "user_output${test_id}.txt" 2> runtime_error.txt
+  /usr/bin/time -o "stats${test_id}.txt" -f "TIME: %e\nMEM: %M" timeout 2s ./main.out < "$input_file" > "user_output${test_id}.txt" 2> runtime_error.txt
   EXIT_CODE=$?
+  
+  # In metrics ra log để parser đọc
+  if [ -f "stats${test_id}.txt" ]; then
+    cat "stats${test_id}.txt"
+  fi
   
   if [ $EXIT_CODE -eq 124 ]; then
     echo "STATUS: TLE"

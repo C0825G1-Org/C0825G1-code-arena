@@ -69,13 +69,30 @@ public class JudgeUtils {
                     .testCaseNumber(testId)
                     .passed(passed)
                     .message(status)
-                    .executionTime(0L)
-                    .memoryUsed(0L)
+                    .executionTime(parseMetric(content, "TIME: (\\d+\\.\\d+|\\d+)"))
+                    .memoryUsed(parseMetric(content, "MEM: (\\d+)"))
                     .userOutput(actualOutput)
                     .build());
         }
 
         return results;
+    }
+
+    private static Long parseMetric(String content, String regex) {
+        try {
+            Matcher m = Pattern.compile(regex).matcher(content);
+            if (m.find()) {
+                String val = m.group(1);
+                if (regex.contains("TIME")) {
+                    // TIME is in seconds (e.g. 0.12), convert to ms
+                    return (long) (Double.parseDouble(val) * 1000);
+                }
+                return Long.parseLong(val);
+            }
+        } catch (Exception e) {
+            // Log error or ignore
+        }
+        return 0L;
     }
 
     private static boolean compareWithExpected(String actual, String problemPath, int testId) {
