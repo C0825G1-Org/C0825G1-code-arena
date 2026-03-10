@@ -7,9 +7,10 @@ import RankProgression from './RankProgression';
 interface Props {
     profile?: UserProfileResponse;
     stats?: UserStats;
+    isOwnProfile?: boolean;
 }
 
-const ProfileSidebar: React.FC<Props> = ({ profile, stats }) => {
+const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
     const joinDate = profile?.createdAt
         ? new Date(profile.createdAt).toLocaleDateString("vi-VN")
         : "...";
@@ -45,11 +46,13 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats }) => {
                     <RankProgression rating={stats?.eloRanking || 0} />
                 </div>
 
-                <Link
-                    to="/settings"
-                    className="block w-full text-center py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-sm font-medium transition-colors mb-4 tracking-wide">
-                    Chỉnh sửa hồ sơ
-                </Link>
+                {isOwnProfile && (
+                    <Link
+                        to="/settings"
+                        className="block w-full text-center py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-sm font-medium transition-colors mb-4 tracking-wide">
+                        Chỉnh sửa hồ sơ
+                    </Link>
+                )}
 
                 <div className="w-full pt-4 border-t border-slate-700/50 flex flex-col gap-3 text-sm text-left">
                     <div className="flex items-center gap-3 text-slate-400">
