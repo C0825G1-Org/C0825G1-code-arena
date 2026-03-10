@@ -5,7 +5,7 @@ export type Problem = {
     difficulty: string;
     timeLimit: number;
     memoryLimit: number;
-    // Tags etc can be added later
+    ioTemplates?: { languageId: number, languageName: string, templateCode: string }[];
 };
 
 export async function getProblem(id: number): Promise<Problem> {

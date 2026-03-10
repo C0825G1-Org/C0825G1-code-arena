@@ -8,11 +8,9 @@ import com.codegym.spring_boot.entity.Problem;
 import com.codegym.spring_boot.entity.Tag;
 import com.codegym.spring_boot.entity.User;
 import com.codegym.spring_boot.entity.enums.UserRole;
-import com.codegym.spring_boot.repository.ContestProblemRepository;
-import com.codegym.spring_boot.repository.IProblemRepository;
-import com.codegym.spring_boot.repository.ITagRepository;
-import com.codegym.spring_boot.repository.UserRepository;
-import com.codegym.spring_boot.repository.ContestParticipantRepository;
+import com.codegym.spring_boot.dto.problem.ProblemIOTemplateDTO;
+import com.codegym.spring_boot.entity.ProblemIOTemplate;
+import com.codegym.spring_boot.repository.*;
 import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.IProblemService;
 import com.codegym.spring_boot.entity.ContestProblem;
@@ -38,19 +36,25 @@ public class ProblemService implements IProblemService {
     private final ContestProblemRepository contestProblemRepository;
     private final ContestParticipantRepository contestParticipantRepository;
     private final ContestService contestService;
+    private final IProblemIOTemplateRepository ioTemplateRepository;
+    private final LanguageRepository languageRepository;
 
     public ProblemService(IProblemRepository problemRepository,
             ITagRepository tagRepository,
             UserRepository userRepository,
             ContestProblemRepository contestProblemRepository,
             ContestParticipantRepository contestParticipantRepository,
-            ContestService contestService) {
+            ContestService contestService,
+            IProblemIOTemplateRepository ioTemplateRepository,
+            LanguageRepository languageRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.contestProblemRepository = contestProblemRepository;
         this.contestParticipantRepository = contestParticipantRepository;
         this.contestService = contestService;
+        this.ioTemplateRepository = ioTemplateRepository;
+        this.languageRepository = languageRepository;
     }
 
     @Override
@@ -233,6 +237,30 @@ public class ProblemService implements IProblemService {
         } else {
             problem.setTags(new HashSet<>());
         }
+
+        // Xử lý I/O Templates
+        if (requestDTO.getIoTemplates() != null) {
+            // Trong bối cảnh Transactional, ta có thể clear và add lại
+            if (problem.getIoTemplates() == null) {
+                problem.setIoTemplates(new HashSet<>());
+            } else {
+                problem.getIoTemplates().clear();
+            }
+
+            for (ProblemIOTemplateDTO dto : requestDTO.getIoTemplates()) {
+                if (dto.getLanguageId() == null || dto.getTemplateCode() == null) continue;
+                
+                var language = languageRepository.findById(dto.getLanguageId()).orElse(null);
+                if (language != null) {
+                    ProblemIOTemplate template = ProblemIOTemplate.builder()
+                            .problem(problem)
+                            .language(language)
+                            .templateCode(dto.getTemplateCode())
+                            .build();
+                    problem.getIoTemplates().add(template);
+                }
+            }
+        }
     }
 
     private ProblemResponseDTO mapToResponseDTO(Problem problem) {
@@ -257,6 +285,17 @@ public class ProblemService implements IProblemService {
                     .map(tag -> new TagDTO(tag.getId(), tag.getName()))
                     .collect(Collectors.toSet());
             response.setTags(tagDTOs);
+        }
+
+        if (problem.getIoTemplates() != null) {
+            Set<ProblemIOTemplateDTO> ioTemplateDTOs = problem.getIoTemplates().stream()
+                    .map(template -> ProblemIOTemplateDTO.builder()
+                            .languageId(template.getLanguage().getId())
+                            .languageName(template.getLanguage().getName())
+                            .templateCode(template.getTemplateCode())
+                            .build())
+                    .collect(Collectors.toSet());
+            response.setIoTemplates(ioTemplateDTOs);
         }
         return response;
     }

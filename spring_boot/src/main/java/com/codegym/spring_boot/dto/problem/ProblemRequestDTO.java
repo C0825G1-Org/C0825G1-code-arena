@@ -29,4 +29,5 @@ public class ProblemRequestDTO {
     private Integer memoryLimit;
 
     private Set<Integer> tagIds;
+    private Set<ProblemIOTemplateDTO> ioTemplates;
 }

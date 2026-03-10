@@ -17,8 +17,8 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"createdBy", "tags"})
-@EqualsAndHashCode(exclude = {"createdBy", "tags"})
+@ToString(exclude = {"createdBy", "tags", "ioTemplates"})
+@EqualsAndHashCode(exclude = {"createdBy", "tags", "ioTemplates"})
 public class Problem extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,4 +65,7 @@ public class Problem extends BaseEntity {
         inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private Set<Tag> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ProblemIOTemplate> ioTemplates = new HashSet<>();
 }

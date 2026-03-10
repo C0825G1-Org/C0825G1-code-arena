@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LanguageRepository extends JpaRepository<Language, Integer> {
     long countByIsActiveTrue();
+    java.util.List<com.codegym.spring_boot.entity.Language> findAllByIsActiveTrue();
 }
