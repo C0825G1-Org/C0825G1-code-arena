@@ -15,4 +15,6 @@ public interface IUserSettingsService {
     String uploadAvatar(User user, MultipartFile file) throws IOException;
 
     void changePassword(User user, ChangePasswordRequest request);
+
+    UserProfileResponse getUserProfileById(Integer userId);
 }

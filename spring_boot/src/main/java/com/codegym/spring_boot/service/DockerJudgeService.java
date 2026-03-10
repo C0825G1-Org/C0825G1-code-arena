@@ -192,7 +192,7 @@ public class DockerJudgeService {
                     memoryUsedKb);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(">>> [JUDGE] Critical error during judging process: {}", e.getMessage(), e);
             return new SubmissionResult("RUNTIME_ERROR", e.getMessage(), new ArrayList<>(), 0, 0);
         } finally {
             // 7. Cleanup

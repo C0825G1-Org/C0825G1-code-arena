@@ -100,4 +100,11 @@ public class UserSettingsService implements IUserSettingsService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+
+    @Override
+    public UserProfileResponse getUserProfileById(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return getUserProfile(user);
+    }
 }

@@ -132,7 +132,7 @@ public class ContestEventScheduler {
         if (startTime == null) return;
         List<ScheduledFuture<?>> futures = new java.util.ArrayList<>();
         // Các mốc thời gian nhắc nhở (phút trước khi bắt đầu)
-        int[] minutesBefore = {60, 15, 5, 1};
+        int[] minutesBefore = {60, 30, 15, 5, 1};
         for (int minutes : minutesBefore) {
             LocalDateTime reminderTime = startTime.minusMinutes(minutes);
             Date reminderDate = Date.from(reminderTime.atZone(ZoneId.systemDefault()).toInstant());
