@@ -9,10 +9,11 @@ USE code_arena;
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
+    full_name VARCHAR(100),
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'moderator', 'admin') DEFAULT 'user',
-    global_rating INT DEFAULT 1500,
+    global_rating INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_username (username)
 );
@@ -90,7 +91,7 @@ CREATE TABLE contests (
     description TEXT,
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,
-    status ENUM('upcoming', 'active', 'finished') DEFAULT 'upcoming',
+    status ENUM('upcoming', 'active', 'finished', 'cancelled') DEFAULT 'upcoming',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -163,3 +164,6 @@ CREATE TABLE posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+ALTER TABLE contests MODIFY COLUMN status ENUM('upcoming', 'active', 'finished', 'cancelled') DEFAULT 'upcoming';
+ALTER TABLE contests MODIFY COLUMN description LONGTEXT;
+ALTER TABLE users MODIFY COLUMN global_rating INT DEFAULT 0;

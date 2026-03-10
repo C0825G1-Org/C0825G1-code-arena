@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Cá Nhân - Code Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0f172a',
+                        card: 'rgba(30, 41, 59, 0.7)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js for stats -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .heat-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+        }
+
+        .heat-0 {
+            background-color: #1e293b;
+        }
+
+        .heat-1 {
+            background-color: #064e3b;
+        }
+
+        .heat-2 {
+            background-color: #047857;
+        }
+
+        .heat-3 {
+            background-color: #10b981;
+        }
+
+        .heat-4 {
+            background-color: #34d399;
+        }
+    </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col relative">
+
+    <!-- Navbar -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-800">
+        <div class="flex items-center gap-8">
+            <a href="home.html" class="flex items-center gap-2 text-2xl font-bold tracking-tighter">
+                <i class="ph-fill ph-code text-blue-500 text-3xl"></i>
+                <span class="text-white">Code<span class="text-blue-500">Arena</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+                <a href="home.html" class="hover:text-blue-400 transition-colors">Trang chủ</a>
+                <a href="problems.html" class="hover:text-blue-400 transition-colors">Bài tập</a>
+                <a href="contests.html" class="hover:text-blue-400 transition-colors">Cuộc thi</a>
+                <a href="leaderboard.html" class="hover:text-blue-400 transition-colors">Bảng xếp hạng</a>
+                <a href="discussions.html" class="hover:text-blue-400 transition-colors">Thảo luận</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="profile.html"
+                class="flex items-center gap-3 cursor-pointer group pl-2 relative hover:bg-slate-800/50 p-2 rounded-xl transition-colors">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">nguyenvana
+                    </div>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=3"
+                    class="w-10 h-10 rounded-full border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-1 container mx-auto px-4 py-8 max-w-6xl w-full flex flex-col md:flex-row gap-8">
+
+        <!-- Left Sidebar (Profile Info) -->
+        <div class="w-full md:w-1/3 xl:w-1/4 space-y-6">
+
+            <div class="glass p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden">
+                <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-br from-blue-600/20 to-purple-600/20"></div>
+
+                <div class="relative w-28 h-28 mt-4 mb-4">
+                    <img src="https://i.pravatar.cc/150?u=3"
+                        class="w-full h-full rounded-full object-cover border-4 border-slate-900 shadow-xl">
+                    <span class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-2 border-slate-900 rounded-full"
+                        title="Online"></span>
+                </div>
+
+                <h2 class="text-xl font-bold text-white">Nguyễn Văn A</h2>
+                <p class="text-blue-400 text-sm font-medium mb-1">@nguyenvana</p>
+
+                <div
+                    class="text-xs text-slate-400 font-mono mb-4 px-3 py-1 bg-slate-800 rounded-full border border-slate-700">
+                    Thành viên từ T10, 2023
+                </div>
+
+                <p class="text-sm text-slate-400 mb-6 italic">
+                    "Sinh viên năm 2, đang học cấu trúc dữ liệu và thuật toán."
+                </p>
+
+                <a href="settings.html"
+                    class="block w-full text-center py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 rounded-lg text-sm font-medium transition-colors mb-4 inline-block tracking-wide">
+                    Chỉnh sửa hồ sơ
+                </a>
+
+                <div class="w-full pt-4 border-t border-slate-700/50 flex flex-col gap-3 text-sm text-left">
+                    <div class="flex items-center gap-3 text-slate-400">
+                        <i class="ph ph-envelope-simple text-lg text-slate-500"></i>
+                        <span class="truncate">vana@gmail.com</span>
+                    </div>
+                    <a href="https://github.com/vana" target="_blank"
+                        class="flex items-center gap-3 text-slate-400 hover:text-white transition-colors">
+                        <i class="ph-fill ph-github-logo text-lg text-slate-500"></i>
+                        <span class="truncate">github.com/vana</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-2xl">
+                <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                    <i class="ph-fill ph-ranking text-yellow-500"></i> Xếp Hạng Đấu Trường
+                </h3>
+                <div class="text-center mb-2">
+                    <div class="text-4xl font-black font-mono text-white mb-1">1550</div>
+                    <div class="text-sm text-blue-400 font-medium">Chuyên gia (Expert)</div>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2.5 mt-4 mb-1 border border-slate-700">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-2.5 rounded-full" style="width: 65%">
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 font-mono">
+                    <span>1400</span>
+                    <span>1600 (Master)</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Content (Stats & History) -->
+        <div class="w-full md:w-2/3 xl:w-3/4 space-y-6">
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass p-4 rounded-xl border border-slate-700/50 flex flex-col">
+                    <span class="text-slate-400 text-sm mb-1">Đã giải</span>
+                    <span class="text-2xl font-bold text-white">42 <span class="text-sm font-normal text-slate-500">/
+                            120</span></span>
+                </div>
+                <div class="glass p-4 rounded-xl border border-slate-700/50 flex flex-col">
+                    <span class="text-slate-400 text-sm mb-1">Submissions</span>
+                    <span class="text-2xl font-bold text-white">156</span>
+                </div>
+                <div class="glass p-4 rounded-xl border border-slate-700/50 flex flex-col">
+                    <span class="text-slate-400 text-sm mb-1">Tỉ lệ AC</span>
+                    <span class="text-2xl font-bold text-green-400">65%</span>
+                </div>
+                <div class="glass p-4 rounded-xl border border-slate-700/50 flex flex-col">
+                    <span class="text-slate-400 text-sm mb-1">Giải cao nhất</span>
+                    <span class="text-2xl font-bold text-yellow-500">Top 50</span>
+                </div>
+            </div>
+
+            <!-- Activity & Chart -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Heatmap (Mockup) -->
+                <div class="glass p-6 rounded-2xl w-full overflow-hidden">
+                    <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+                        <i class="ph-fill ph-fire text-orange-500"></i> Hoạt động 30 ngày qua
+                    </h3>
+
+                    <div class="flex flex-wrap gap-1 max-w-full">
+                        <!-- Gen 5 weeks x 7 days heat boxes (Fake data) -->
+                        <!-- Week 1 -->
+                        <div class="heat-box heat-1"></div>
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-2"></div>
+                        <div class="heat-box heat-4"></div>
+                        <div class="heat-box heat-1"></div>
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-0"></div>
+                        <!-- Week 2 -->
+                        <div class="heat-box heat-3"></div>
+                        <div class="heat-box heat-2"></div>
+                        <div class="heat-box heat-1"></div>
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-3"></div>
+                        <div class="heat-box heat-2"></div>
+                        <div class="heat-box heat-1"></div>
+                        <!-- Week 3 -->
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-4"></div>
+                        <div class="heat-box heat-4"></div>
+                        <div class="heat-box heat-3"></div>
+                        <div class="heat-box heat-1"></div>
+                        <div class="heat-box heat-0"></div>
+                        <!-- Week 4 -->
+                        <div class="heat-box heat-2"></div>
+                        <div class="heat-box heat-3"></div>
+                        <div class="heat-box heat-1"></div>
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-4"></div>
+                        <div class="heat-box heat-2"></div>
+                        <!-- Week 5 -->
+                        <div class="heat-box heat-0"></div>
+                        <div class="heat-box heat-1"></div>
+                        <div class="heat-box heat-2"></div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 mt-4 text-xs text-slate-400">
+                        <span>Ít</span>
+                        <div class="heat-box heat-0 border border-slate-700"></div>
+                        <div class="heat-box heat-1 border border-slate-700"></div>
+                        <div class="heat-box heat-2 border border-slate-700"></div>
+                        <div class="heat-box heat-3 border border-slate-700"></div>
+                        <div class="heat-box heat-4 border border-slate-700"></div>
+                        <span>Nhiều</span>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart (Mockup via CSS) -->
+                <div class="glass p-6 rounded-2xl flex flex-col">
+                    <h3 class="font-bold text-lg mb-4">Tình trạng Submissions</h3>
+                    <div class="flex-1 flex items-center justify-between">
+                        <div class="relative w-32 h-32 ml-4">
+                            <!-- CSS pure circle chart mock -->
+                            <div class="absolute inset-0 rounded-full border-8 border-slate-800"></div>
+                            <div class="absolute inset-0 rounded-full border-8 border-transparent border-t-green-500 border-r-green-500"
+                                style="transform: rotate(45deg);"></div>
+                            <div class="absolute inset-0 rounded-full border-8 border-transparent border-b-red-500"
+                                style="transform: rotate(15deg);"></div>
+                            <div class="absolute inset-0 rounded-full border-8 border-transparent border-l-yellow-500"
+                                style="transform: rotate(-30deg);"></div>
+
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <span class="text-xl font-bold text-white">156</span>
+                                <span class="text-[10px] text-slate-400 uppercase tracking-widest">Tổng</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3 pr-4">
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                <span class="text-slate-300 w-12 pt-1 font-mono">AC</span>
+                                <span class="text-white font-semibold pt-1">101</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                <span class="text-slate-300 w-12 pt-1 font-mono">WA/RE</span>
+                                <span class="text-white font-semibold pt-1">35</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                <span class="text-slate-300 w-12 pt-1 font-mono">TLE</span>
+                                <span class="text-white font-semibold pt-1">20</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Submissions -->
+            <div class="glass rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
+                <div class="p-6 pb-4 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-white">Lịch sử nộp bài gần đây</h3>
+                    <a href="#" class="text-sm text-blue-400 hover:underline">Xem tất cả</a>
+                </div>
+                <table class="w-full text-sm text-left text-slate-400 font-mono">
+                    <thead class="text-xs uppercase bg-slate-800/50 text-slate-300 border-b border-slate-700">
+                        <tr>
+                            <th class="px-6 py-3">Bài tập</th>
+                            <th class="px-6 py-3 text-center">Trạng thái</th>
+                            <th class="px-6 py-3">Ngôn ngữ</th>
+                            <th class="px-6 py-3">Thời gian</th>
+                            <th class="px-6 py-3">Bộ nhớ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                            <td class="px-6 py-3 font-medium text-blue-400 hover:underline cursor-pointer">1. Tổng hai
+                                số</td>
+                            <td class="px-6 py-3 text-center"><span
+                                    class="px-2 py-0.5 rounded text-white bg-green-600 font-bold text-xs">AC</span></td>
+                            <td class="px-6 py-3">C++ 20</td>
+                            <td class="px-6 py-3">15 ms</td>
+                            <td class="px-6 py-3">1 MB</td>
+                        </tr>
+                        <tr class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
+                            <td class="px-6 py-3 font-medium text-blue-400 hover:underline cursor-pointer">2. Số
+                                Fibonacci thứ N</td>
+                            <td class="px-6 py-3 text-center"><span
+                                    class="px-2 py-0.5 rounded text-white bg-yellow-600 font-bold text-xs">TLE</span>
+                            </td>
+                            <td class="px-6 py-3">Python 3</td>
+                            <td class="px-6 py-3">501 ms</td>
+                            <td class="px-6 py-3">4 MB</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30 transition-colors">
+                            <td class="px-6 py-3 font-medium text-blue-400 hover:underline cursor-pointer">1. Tổng hai
+                                số</td>
+                            <td class="px-6 py-3 text-center"><span
+                                    class="px-2 py-0.5 rounded text-white bg-red-600 font-bold text-xs">WA</span></td>
+                            <td class="px-6 py-3">C++ 20</td>
+                            <td class="px-6 py-3">10 ms</td>
+                            <td class="px-6 py-3">1 MB</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

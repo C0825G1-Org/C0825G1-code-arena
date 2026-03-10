@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Mới Kỳ Thi - Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: '#0f172a', card: '#1e293b' }, fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] } }
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+            font-medium;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+
+        .card-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar Moderator -->
+    <aside class="w-64 bg-[#0b1120] border-r border-[#1e293b] flex flex-col pt-6 pb-4 z-20 shrink-0">
+        <div class="px-6 mb-8 mt-2 text-xl font-bold tracking-tight flex items-center gap-2">
+            <div
+                class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                <i class="ph-bold ph-shield text-white text-lg"></i>
+            </div>
+            <span class="text-white">Moderator<span class="text-indigo-400">Panel</span></span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2">
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="ph-duotone ph-squares-four text-xl"></i> Tổng quan
+            </a>
+            <a href="manage_problems.html" class="sidebar-link">
+                <i class="ph-duotone ph-book-open-text text-xl"></i> Ngân hàng bài tập
+            </a>
+            <a href="manage_testcases.html" class="sidebar-link">
+                <i class="ph-duotone ph-flask text-xl"></i> Kho Test Cases
+            </a>
+            <a href="manage_contests.html" class="sidebar-link active">
+                <i class="ph-duotone ph-trophy text-xl"></i> Quản lý Kỳ thi
+            </a>
+            <a href="manage_submissions.html" class="sidebar-link">
+                <i class="ph-duotone ph-list-dashes text-xl"></i> Lịch sử Chấm bài
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- HeaderBar -->
+        <header
+            class="h-16 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+            <div class="flex items-center gap-4">
+                <a href="manage_contests.html" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-arrow-left text-xl"></i>
+                </a>
+                <h1 class="text-xl font-semibold text-white flex items-center gap-2">
+                    Tạo mới <span class="text-indigo-400">Kỳ Thi / Đợt Kiểm Tra</span>
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-indigo-500/30 transition flex items-center gap-2">
+                    <i class="ph-bold ph-rocket-launch"></i> Xuất bản Kỳ Thi
+                </button>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
+
+            <div class="max-w-5xl mx-auto flex flex-col lg:flex-row gap-8">
+
+                <!-- Left: Form Info -->
+                <div class="w-full lg:w-1/2 flex flex-col gap-6">
+
+                    <div class="card-glass rounded-xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-4 border-b border-slate-700/50 pb-2">Thông tin Kỳ Thi
+                        </h2>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Tên Kỳ thi <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" placeholder="Vd: Bài kiểm tra Giữa kỳ Khóa 1"
+                                    class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Mô tả quy chế (Sơ
+                                    lược)</label>
+                                <textarea rows="3"
+                                    class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all resize-none"
+                                    placeholder="Các quy tắc làm bài..."></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-300 mb-1">Bắt đầu <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="datetime-local"
+                                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-300 mb-1">Kết thúc <span
+                                            class="text-red-500">*</span></label>
+                                    <input type="datetime-local"
+                                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="inline-flex flex-col mt-2">
+                                    <span class="text-sm font-medium text-slate-300 mb-2">Loại Kỳ thi</span>
+                                    <div class="flex items-center gap-4">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="visibility" value="public"
+                                                class="w-4 h-4 text-blue-600 bg-slate-700 border-slate-500 focus:ring-blue-500"
+                                                checked>
+                                            <span class="text-white text-sm">Public (Mở toàn hệ thống)</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="visibility" value="private"
+                                                class="w-4 h-4 text-blue-600 bg-slate-700 border-slate-500 focus:ring-blue-500">
+                                            <span class="text-white text-sm">Private (Cần Passcode duyệt)</span>
+                                        </label>
+                                    </div>
+                                </label>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right: Assign Problems -->
+                <div class="w-full lg:w-1/2 flex flex-col gap-6">
+
+                    <div class="card-glass rounded-xl p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-700/50 pb-2">
+                            <div>
+                                <h2 class="text-lg font-bold text-white">Xây dựng Bộ Đề</h2>
+                                <p class="text-xs text-slate-400">Chọn các bài toán từ Ngân hàng đề để đưa vào kỳ thi.
+                                </p>
+                            </div>
+                            <span
+                                class="bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded text-sm font-bold font-mono border border-indigo-500/30">
+                                Đã chọn: 2
+                            </span>
+                        </div>
+
+                        <!-- Danh sách Đề bài đã chọn -->
+                        <div class="flex-1 space-y-3 mb-4">
+
+                            <!-- Problem Item 1 -->
+                            <div
+                                class="flex justify-between items-center p-3 rounded-lg bg-slate-800/80 border border-slate-600 shadow-sm cursor-move hover:border-blue-500 group transition">
+                                <div class="flex gap-3 items-center">
+                                    <i
+                                        class="ph-bold ph-dots-six-vertical text-slate-500 group-hover:text-slate-300"></i>
+                                    <div>
+                                        <div class="text-white text-sm font-bold">1. Tổng hai số</div>
+                                        <div class="text-xs text-green-400 font-mono mt-0.5">Easy | ID: 1001</div>
+                                    </div>
+                                </div>
+                                <button class="text-slate-500 hover:text-red-500 transition"><i
+                                        class="ph-bold ph-x"></i></button>
+                            </div>
+
+                            <!-- Problem Item 2 -->
+                            <div
+                                class="flex justify-between items-center p-3 rounded-lg bg-slate-800/80 border border-slate-600 shadow-sm cursor-move hover:border-blue-500 group transition">
+                                <div class="flex gap-3 items-center">
+                                    <i
+                                        class="ph-bold ph-dots-six-vertical text-slate-500 group-hover:text-slate-300"></i>
+                                    <div>
+                                        <div class="text-white text-sm font-bold">2. Tìm đường đi ngắn nhất (Dijkstra)
+                                        </div>
+                                        <div class="text-xs text-red-400 font-mono mt-0.5">Hard | ID: 1024</div>
+                                    </div>
+                                </div>
+                                <button class="text-slate-500 hover:text-red-500 transition"><i
+                                        class="ph-bold ph-x"></i></button>
+                            </div>
+
+                        </div>
+
+                        <!-- Nút Thêm bài + Search Bank Problem Giao diện Placeholder -->
+                        <button
+                            class="w-full border-2 border-dashed border-[#334155] hover:border-blue-500 text-slate-400 hover:text-blue-400 p-4 rounded-lg flex flex-col items-center justify-center transition gap-2 group">
+                            <div
+                                class="w-10 h-10 rounded-full bg-[#1e293b] group-hover:bg-blue-500/20 flex items-center justify-center transition">
+                                <i class="ph-bold ph-magnifying-glass text-xl"></i>
+                            </div>
+                            <span class="text-sm font-semibold">Tìm và chọn bài từ Ngân hàng Code Arena</span>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

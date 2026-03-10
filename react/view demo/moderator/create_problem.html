@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo/Sửa Bài Tập - Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: '#0f172a', card: '#1e293b' }, fontFamily: { sans: ['Inter', 'sans-serif'], } }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- SimpleMDE for Markdown -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+            font-medium;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+
+        .card-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Override SimpleMDE Dark Theme */
+        .editor-toolbar {
+            border-color: #334155;
+            opacity: 1;
+            background: #1e293b;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .editor-toolbar a {
+            color: #cbd5e1 !important;
+        }
+
+        .editor-toolbar a.active,
+        .editor-toolbar a:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .CodeMirror {
+            border-color: #334155;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .editor-statusbar {
+            color: #94a3b8;
+        }
+
+        .CodeMirror-cursor {
+            border-left: 2px solid white;
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside
+        class="w-64 bg-[#0b1120] border-r border-[#1e293b] flex flex-col pt-6 pb-4 shrink-0 transition-transform duration-300">
+        <div class="px-6 mb-8 mt-2 text-xl font-bold tracking-tight flex items-center gap-2">
+            <div
+                class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                <i class="ph-bold ph-shield text-white text-lg"></i>
+            </div>
+            <span class="text-white">Moderator<span class="text-indigo-400">Panel</span></span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2">
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="ph-duotone ph-squares-four text-xl"></i> Tổng quan
+            </a>
+            <a href="manage_problems.html" class="sidebar-link active">
+                <i class="ph-duotone ph-book-open-text text-xl"></i> Ngân hàng bài tập
+            </a>
+            <a href="manage_testcases.html" class="sidebar-link">
+                <i class="ph-duotone ph-flask text-xl"></i> Kho Test Cases
+            </a>
+            <a href="manage_contests.html" class="sidebar-link">
+                <i class="ph-duotone ph-trophy text-xl"></i> Quản lý Kỳ thi
+            </a>
+            <a href="manage_submissions.html" class="sidebar-link">
+                <i class="ph-duotone ph-list-dashes text-xl"></i> Lịch sử Chấm bài
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <header
+            class="h-16 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0 shrink-0">
+            <div class="flex items-center gap-4">
+                <a href="manage_problems.html" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-arrow-left text-xl"></i>
+                </a>
+                <h1 class="text-xl font-semibold text-white">Soạn Bài Tập Mới</h1>
+            </div>
+            <button
+                class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                <i class="ph-bold ph-floppy-disk"></i> Lưu & Cập nhật
+            </button>
+        </header>
+
+        <!-- Form Content -->
+        <div class="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
+            <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Left (Main info) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="card-glass rounded-xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-4 border-b border-slate-700/50 pb-2">Thông tin Chung
+                        </h2>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Tiêu đề bài toán <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" value="Tổng hai số"
+                                    class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Slug (Đường dẫn tĩnh) <span
+                                        class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <span
+                                        class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-sm">/problems/</span>
+                                    <input type="text" value="sum-of-two-numbers"
+                                        class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-[90px] p-2.5 outline-none transition-all font-mono">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1 flex justify-between">
+                                    <span>Nội dung đề bài (Markdown) <span class="text-red-500">*</span></span>
+                                    <a href="#" class="text-blue-400 text-xs hover:underline">Xem Preview</a>
+                                </label>
+                                <!-- Markdown Area -->
+                                <textarea id="markdown-editor" class="hidden"># Đề bài
+Cho hai số nguyên A và B. Hãy tính tổng của chúng.
+
+### Input
+Một dòng duy nhất chứa hai số nguyên A, B (-10^9 <= A, B <= 10^9).
+
+### Output
+Tổng của A và B.</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right (Settings) -->
+                <div class="space-y-6">
+                    <div class="card-glass rounded-xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-4 border-b border-slate-700/50 pb-2">Phân loại & Giới
+                            hạn</h2>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Độ khó</label>
+                                <select
+                                    class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none">
+                                    <option value="easy" selected>🟢 Easy</option>
+                                    <option value="medium">🟡 Medium</option>
+                                    <option value="hard">🔴 Hard</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Tags (Nhãn)</label>
+                                <input type="text" value="Math, Fundamentals"
+                                    class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all placeholder-slate-500"
+                                    placeholder="Ngăn cách bằng dấu phẩy">
+                            </div>
+
+                            <hr class="border-slate-700/50">
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Giới hạn thời gian (Time
+                                    Limit)</label>
+                                <div class="flex items-center">
+                                    <input type="number" value="1000"
+                                        class="flex-1 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono">
+                                    <span
+                                        class="bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">ms</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Giới hạn bộ nhớ (Memory
+                                    Limit)</label>
+                                <div class="flex items-center">
+                                    <input type="number" value="256"
+                                        class="flex-1 bg-[#1e293b] border border-[#334155] text-white text-sm rounded-l-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono">
+                                    <span
+                                        class="bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">MB</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-glass rounded-xl p-6 border border-indigo-500/30">
+                        <div class="flex justify-between items-center mb-4 border-b border-indigo-500/20 pb-2">
+                            <h2 class="text-lg font-bold text-indigo-400 flex items-center gap-2">
+                                <i class="ph-bold ph-flask"></i> Test Cases
+                            </h2>
+                            <span
+                                class="bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded text-xs font-bold font-mono">3
+                                Tests</span>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-4">Bạn chưa cấu hình Test Case hệ thống nào. Vui lòng tạo bộ
+                            Test Data (Input/Output).</p>
+                        <button
+                            class="w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 border border-indigo-500/50 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-upload-simple"></i> Quản lý Test Cases
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Init Markdown Editor
+        var simplemde = new SimpleMDE({
+            element: document.getElementById("markdown-editor"),
+            spellChecker: false,
+            status: false,
+            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "guide"]
+        });
+    </script>
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if (['nguyenvana', 'System Admin', 'Giảng viên Tùng', 'admin', 'Moderator', 'Hệ thống', 'Manager'].includes(text)) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if (headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function (e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch (e) { }
+        });
+    </script>
+</body>
+
+</html>

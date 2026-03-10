@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Bài tập - Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: '#0f172a', card: '#1e293b' }, fontFamily: { sans: ['Inter', 'sans-serif'], } }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+            font-medium;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
+        }
+
+        .card-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="antialiased h-screen flex overflow-hidden">
+
+    <!-- Sidebar Moderator -->
+    <aside class="w-64 bg-[#0b1120] border-r border-[#1e293b] flex flex-col pt-6 pb-4 z-20">
+        <div class="px-6 mb-8 mt-2 text-xl font-bold tracking-tight flex items-center gap-2">
+            <div
+                class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg">
+                <i class="ph-bold ph-shield text-white text-lg"></i>
+            </div>
+            <span class="text-white">Moderator<span class="text-indigo-400">Panel</span></span>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2">
+            <a href="dashboard.html" class="sidebar-link">
+                <i class="ph-duotone ph-squares-four text-xl"></i> Tổng quan
+            </a>
+            <a href="manage_problems.html" class="sidebar-link active">
+                <i class="ph-duotone ph-book-open-text text-xl"></i> Ngân hàng bài tập
+            </a>
+            <a href="manage_testcases.html" class="sidebar-link">
+                <i class="ph-duotone ph-flask text-xl"></i> Kho Test Cases
+            </a>
+            <a href="manage_contests.html" class="sidebar-link">
+                <i class="ph-duotone ph-trophy text-xl"></i> Quản lý Kỳ thi
+            </a>
+            <a href="manage_submissions.html" class="sidebar-link">
+                <i class="ph-duotone ph-list-dashes text-xl"></i> Lịch sử Chấm bài
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph-duotone ph-users-three text-xl"></i> Danh sách thí sinh
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+        <!-- HeaderBar -->
+        <header
+            class="h-16 border-b border-[#1e293b] bg-slate-900/50 backdrop-blur flex justify-between items-center px-8 z-10 sticky top-0">
+            <h1 class="text-xl font-semibold text-white">Quản lý Bài tập</h1>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <img src="https://i.pravatar.cc/150?u=2" class="w-10 h-10 rounded-full border border-indigo-500">
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-8 bg-[#0f172a]">
+
+            <div class="flex justify-between items-center mb-6">
+                <!-- Search & Filter -->
+                <div class="flex gap-4">
+                    <div class="relative w-72">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" placeholder="Tìm theo tên diễn đạt, ID..."
+                            class="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-2.5 outline-none transition-all">
+                    </div>
+                    <select
+                        class="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none">
+                        <option value="">Tất cả độ khó</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+
+                <a href="create_problem.html"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                    <i class="ph-bold ph-plus"></i> Soạn bài mới
+                </a>
+            </div>
+
+            <!-- Table Card -->
+            <div class="card-glass rounded-xl overflow-hidden border border-slate-700/50">
+                <table class="w-full text-sm text-left text-slate-400">
+                    <thead class="text-xs uppercase bg-[#1e293b] text-slate-300">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold">ID</th>
+                            <th class="px-6 py-4 font-semibold">Tên bài toán</th>
+                            <th class="px-6 py-4 font-semibold">Độ khó</th>
+                            <th class="px-6 py-4 font-semibold text-center">Test Cases</th>
+                            <th class="px-6 py-4 font-semibold text-center">Submissions</th>
+                            <th class="px-6 py-4 font-semibold text-right">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
+                            <td class="px-6 py-4 font-mono">#001</td>
+                            <td class="px-6 py-4 font-medium text-white">1. Tổng hai số</td>
+                            <td class="px-6 py-4"><span
+                                    class="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded text-xs font-semibold">EASY</span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-mono">3</td>
+                            <td class="px-6 py-4 text-center font-mono">1,024</td>
+                            <td class="px-6 py-4 text-right space-x-2">
+                                <button
+                                    class="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 tooltip"
+                                    title="Chỉnh sửa Tests">
+                                    <i class="ph-bold ph-flask"></i>
+                                </button>
+                                <a href="create_problem.html"
+                                    class="inline-block p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20 tooltip"
+                                    title="Chỉnh sửa Đề">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </a>
+                                <button
+                                    class="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20 tooltip"
+                                    title="Xóa">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
+                            <td class="px-6 py-4 font-mono">#002</td>
+                            <td class="px-6 py-4 font-medium text-white">2. Số Fibonacci thứ N</td>
+                            <td class="px-6 py-4"><span
+                                    class="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2 py-1 rounded text-xs font-semibold">MEDIUM</span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-mono">3</td>
+                            <td class="px-6 py-4 text-center font-mono">451</td>
+                            <td class="px-6 py-4 text-right space-x-2">
+                                <button
+                                    class="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20">
+                                    <i class="ph-bold ph-flask"></i>
+                                </button>
+                                <button
+                                    class="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button
+                                    class="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <tr class="hover:bg-[#1e293b]/50 transition-colors">
+                            <td class="px-6 py-4 font-mono">#003</td>
+                            <td class="px-6 py-4 font-medium text-white">3. Tìm đường đi ngắn nhất</td>
+                            <td class="px-6 py-4"><span
+                                    class="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-1 rounded text-xs font-semibold">HARD</span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-mono">0 <i
+                                    class="ph-fill ph-warning-circle text-yellow-500 inline ml-1"></i></td>
+                            <td class="px-6 py-4 text-center font-mono">120</td>
+                            <td class="px-6 py-4 text-right space-x-2">
+                                <button
+                                    class="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 rounded-lg transition-colors border border-indigo-500/20 relative">
+                                    <i class="ph-bold ph-flask"></i>
+                                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                                        <span
+                                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                                    </span>
+                                </button>
+                                <button
+                                    class="p-2 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors border border-blue-500/20">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button
+                                    class="p-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/20">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-[#1e293b] flex justify-between items-center bg-slate-900/30">
+                    <span class="text-sm text-slate-400">Hiển thị <span class="font-medium text-white">1-3</span> trong
+                        số <span class="font-medium text-white">12</span> bài tập</span>
+                    <div class="flex gap-1">
+                        <button
+                            class="px-3 py-1 border border-[#334155] bg-[#1e293b] text-slate-400 rounded hover:bg-[#334155] transition text-sm">Trang
+                            trước</button>
+                        <button class="px-3 py-1 bg-blue-600 text-white rounded text-sm font-medium">1</button>
+                        <button
+                            class="px-3 py-1 border border-[#334155] bg-[#1e293b] hover:bg-[#334155] text-white rounded transition text-sm">2</button>
+                        <button
+                            class="px-3 py-1 border border-[#334155] bg-[#1e293b] text-white rounded hover:bg-[#334155] transition text-sm">Trang
+                            sau</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+
+    <!-- Auth & Logout Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = localStorage.getItem('codeArenaUser');
+            if (!userData) {
+                window.location.href = '../login.html';
+                return;
+            }
+            try {
+                const user = JSON.parse(userData);
+                // Update username display
+                const nameElements = document.querySelectorAll('.font-semibold.text-white');
+                nameElements.forEach(el => {
+                    const text = el.textContent.trim();
+                    if(text.includes('nguyenvana') || text.includes('System Admin') || text.includes('Moderator') || text.includes('admin') || text.includes('Hệ thống') || text.includes('Manager')) {
+                        // Change only the text node, keeping child elements intact if any (avatar etc., though usually it's just text here)
+                        el.textContent = user.username;
+                    }
+                });
+
+                // Add logout button to navbar/header
+                const headerRight = document.querySelector('header .flex.items-center.gap-4, nav .flex.items-center.gap-4');
+                if(headerRight && !document.getElementById('logout-btn')) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.id = 'logout-btn';
+                    logoutBtn.className = 'p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors tooltip ml-2 border border-red-500/20 bg-red-500/10 hover:border-red-500/50';
+                    logoutBtn.title = 'Đăng xuất';
+                    logoutBtn.innerHTML = '<i class="ph-bold ph-sign-out text-xl"></i>';
+                    logoutBtn.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.removeItem('codeArenaUser');
+                        window.location.href = '../login.html';
+                    };
+                    headerRight.appendChild(logoutBtn);
+                }
+            } catch(e) {}
+        });
+    </script>
+</body>
+
+</html>

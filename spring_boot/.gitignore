@@ -1,3 +1,8 @@
+### Custom Configurations ###
+src/main/resources/application.properties
+src/main/resources/application.yml
+*.env
+
 HELP.md
 .gradle
 build/
@@ -35,3 +40,17 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Ignore local properties with secrets
+src/main/resources/application.properties
+
+# IDE and build files
+.idea/
+.gradle/
+build/
+out/
+*.iml
+target/
+
+# Uploads directory
+uploads/

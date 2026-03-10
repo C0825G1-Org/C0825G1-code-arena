@@ -1,0 +1,1 @@
+﻿Chứa các hằng số không đổi dùng toàn dự án
