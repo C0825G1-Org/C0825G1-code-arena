@@ -6,6 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/clone_admin_pages.cjs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/scheduler/ContestEventScheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/scheduler/ContestEventScheduler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -145,7 +147,9 @@
       <workItem from="1772769154729" duration="2050000" />
       <workItem from="1773024797574" duration="395000" />
       <workItem from="1773025835727" duration="3606000" />
-      <workItem from="1773061841992" duration="677000" />
+      <workItem from="1773061841992" duration="4137000" />
+      <workItem from="1773114542887" duration="1660000" />
+      <workItem from="1773124429671" duration="1050000" />
     </task>
     <servers />
   </component>
