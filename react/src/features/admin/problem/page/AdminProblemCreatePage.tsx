@@ -175,8 +175,8 @@ export const AdminProblemCreatePage = () => {
                                             disabled={loading}
                                         >
                                             <span className="truncate">
-                                                {tagIds.length === 0 
-                                                    ? "Chọn tags..." 
+                                                {tagIds.length === 0
+                                                    ? "Chọn tags..."
                                                     : `${allTags.filter(t => tagIds.includes(t.id)).map(t => t.name).join(', ')}`}
                                             </span>
                                             <i className={`ph-bold ph-caret-down transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}></i>
@@ -197,11 +197,10 @@ export const AdminProblemCreatePage = () => {
                                                                     key={tag.id}
                                                                     className="flex items-center gap-3 px-3 py-2 cursor-pointer rounded hover:bg-[#334155] transition-colors"
                                                                 >
-                                                                    <div className={`w-4 h-4 rounded border flex flex-shrink-0 items-center justify-center transition-colors ${
-                                                                        isSelected 
-                                                                            ? 'bg-blue-500 border-blue-500' 
-                                                                            : 'border-slate-500 bg-transparent'
-                                                                    }`}>
+                                                                    <div className={`w-4 h-4 rounded border flex flex-shrink-0 items-center justify-center transition-colors ${isSelected
+                                                                        ? 'bg-blue-500 border-blue-500'
+                                                                        : 'border-slate-500 bg-transparent'
+                                                                        }`}>
                                                                         {isSelected && <i className="ph-bold ph-check text-white text-xs"></i>}
                                                                     </div>
                                                                     <input

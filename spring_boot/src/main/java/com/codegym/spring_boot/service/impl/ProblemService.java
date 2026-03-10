@@ -143,43 +143,7 @@ public class ProblemService implements IProblemService {
     }
 
     private void checkReadPermission(Problem problem) {
-        if (!Boolean.TRUE.equals(problem.getIsLocked())) {
-            return;
-        }
-
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (currentUsername == null || currentUsername.equals("anonymousUser")) {
-            throw new AccessDeniedException("Bài tập này đang bị khóa trong một kỳ thi. Yêu cầu đăng nhập.");
-        }
-
-        User currentUser = userRepository.findByUsernameAndIsDeletedFalse(currentUsername)
-                .orElseThrow(() -> new AccessDeniedException("Người dùng không hợp lệ"));
-
-        if (currentUser.getRole() == UserRole.admin)
-            return;
-        if (currentUser.getRole() == UserRole.moderator && problem.getCreatedBy() != null
-                && problem.getCreatedBy().getId().equals(currentUser.getId()))
-            return;
-
-        List<ContestProblem> cpList = contestProblemRepository.findByIdProblemId(problem.getId());
-        boolean hasAccess = false;
-
-        for (ContestProblem cp : cpList) {
-            ContestStatus realStatus = contestService.computeRealTimeStatus(cp.getContest());
-            if (realStatus == ContestStatus.active || realStatus == ContestStatus.finished) {
-                boolean isParticipant = contestParticipantRepository
-                        .findByContestIdAndUserId(cp.getContest().getId(), currentUser.getId()).isPresent();
-                if (isParticipant) {
-                    hasAccess = true;
-                    break;
-                }
-            }
-        }
-
-        if (!hasAccess) {
-            throw new AccessDeniedException(
-                    "Đề thi này đang bị khóa! Bạn chưa đến giờ làm bài hoặc không phải là thí sinh của kỳ thi.");
-        }
+        // Mọi người (bao gồm khách và thí sinh) đều có thể xem đề bài bất cứ lúc nào.
     }
 
     private void checkModifyPermission(Problem problem) {
