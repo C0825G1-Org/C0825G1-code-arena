@@ -59,3 +59,13 @@ export const BACKEND_LANGUAGE_TO_EDITOR: Record<string, string> = {
     'javascript': 'javascript', 'java': 'java',
     'python': 'python', 'cpp': 'cpp', 'c++': 'cpp'
 };
+
+export function normalizeEditorLanguage(raw: string): string {
+    if (!raw) return "unknown";
+    const lower = raw.toLowerCase();
+    if (lower.includes("cpp") || lower.includes("c++")) return "cpp";
+    if (lower.includes("javascript") || lower.includes("node") || lower.includes("js")) return "javascript";
+    if (lower.includes("java")) return "java";
+    if (lower.includes("python")) return "python";
+    return lower.split(" ")[0];
+}

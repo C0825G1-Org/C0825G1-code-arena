@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { boilerplateMap } from "../constants";
+import { boilerplateMap, normalizeEditorLanguage } from "../constants";
+import { getProblem, Problem } from "../services/problemService";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../app/store";
 
@@ -17,6 +18,8 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
     const [language, setLanguage] = useState<Language>("javascript");
     const [codeMap, setCodeMap] = useState<CodeByLanguage>({});
     const [isUnsaved, setIsUnsaved] = useState<boolean>(false);
+    const [problemTemplates, setProblemTemplates] = useState<Record<string, string>>({});
+    const [isTemplatesLoading, setIsTemplatesLoading] = useState<boolean>(true);
 
     const currentCode = codeMap[language] ?? "";
 
@@ -26,6 +29,21 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
     useEffect(() => {
         setCodeMap({});
         setIsUnsaved(false);
+        setIsTemplatesLoading(true);
+
+        // Fetch problem templates
+        getProblem(problemId).then(data => {
+            if (data.ioTemplates) {
+                const templates: Record<string, string> = {};
+                data.ioTemplates.forEach(t => {
+                    const editorLang = normalizeEditorLanguage(t.languageName);
+                    templates[editorLang] = t.templateCode;
+                });
+                setProblemTemplates(templates);
+            }
+        })
+            .catch(err => console.error("Failed to fetch problem templates", err))
+            .finally(() => setIsTemplatesLoading(false));
     }, [userId, problemId, contextMode]);
 
     /**
@@ -33,21 +51,29 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
      * Trong chế độ thi (có contestId), KHÔNG load từ localStorage → luôn bắt đầu với boilerplate trắng
      */
     useEffect(() => {
-        const isExamMode = !!contestId;
+        if (isTemplatesLoading) return; // Prevent initializing with wrong fallback before templates load
+
         const storageKey = `arena:code:${userId}:${contextMode}:${problemId}:${language}`;
         const saved = isReadOnly ? null : localStorage.getItem(storageKey);
 
         setCodeMap((prev) => {
-            // Nếu đã có code cho ngôn ngữ này trong memory rồi thì không ghi đè (tránh mất code vừa gõ khi sync)
-            if (prev[language] !== undefined) return prev;
+            // Thứ tự ưu tiên: 
+            // 1. Code từ localStorage (nếu không read-only) 
+            // 2. Template từ Problem (Moderator thiết lập)
+            // 3. Boilerplate mặc định của hệ thống
+            const templateCode = problemTemplates[language];
+            const fallbackCode = templateCode || (boilerplateMap[language] ?? "");
 
-            // Ưu tiên: code từ localStorage (nếu không read-only) -> boilerplate
+            // Nếu người dùng đã gõ code (prev[language] tồn tại) thì không ghi đè trừ khi template vừa load xong (isTemplatesLoading thay đổi)
+            const currentInMemory = prev[language];
+            const hasUserTyped = currentInMemory !== undefined && currentInMemory !== null && currentInMemory.trim() !== "";
+
             return {
                 ...prev,
-                [language]: saved !== null ? saved : (boilerplateMap[language] ?? "")
+                [language]: (saved && saved.trim() !== "") ? saved : (hasUserTyped ? currentInMemory : fallbackCode)
             };
         });
-    }, [language, problemId, userId, contestId, contextMode, isReadOnly]);
+    }, [language, problemId, userId, contestId, contextMode, isReadOnly, problemTemplates, isTemplatesLoading]);
 
 
     /**
@@ -105,12 +131,15 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
      * Reset code về boilerplate mặc định
      */
     const resetCode = useCallback(() => {
+        const templateCode = problemTemplates[language];
+        const fallbackCode = templateCode || (boilerplateMap[language] ?? "");
+
         setCodeMap((prev) => ({
             ...prev,
-            [language]: boilerplateMap[language]
+            [language]: fallbackCode
         }));
         setIsUnsaved(false);
-    }, [language]);
+    }, [language, problemTemplates]);
 
     /**
      * Keyboard shortcut Ctrl / Cmd + Enter

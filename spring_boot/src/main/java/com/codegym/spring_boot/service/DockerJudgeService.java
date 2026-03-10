@@ -9,6 +9,8 @@ import com.github.dockerjava.api.model.Volume;
 import com.codegym.spring_boot.dto.SubmissionResult;
 import com.codegym.spring_boot.dto.TestCaseResult;
 import com.codegym.spring_boot.util.JudgeUtils;
+import com.codegym.spring_boot.entity.ProblemIOTemplate;
+import com.codegym.spring_boot.repository.IProblemIOTemplateRepository;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.model.Statistics;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,9 @@ public class DockerJudgeService {
     @org.springframework.beans.factory.annotation.Value("${storage.testcases.path:./data/testcases}")
     private String testcaseStoragePath;
 
+    @Autowired
+    private IProblemIOTemplateRepository ioTemplateRepository;
+
     /**
      * Chấm bài bằng Docker container
      */
@@ -58,9 +63,28 @@ public class DockerJudgeService {
             Files.createDirectories(Path.of(submissionDir));
 
             // 2. Lưu source code vào file
+            // Kiểm tra và trộn code với Template I/O nếu có
+            String finalCode = sourceCode;
+            try {
+                Integer pId = Integer.parseInt(problemId);
+                var templates = ioTemplateRepository.findByProblemId(pId);
+                for (ProblemIOTemplate t : templates) {
+                    if (normalizeLanguage(t.getLanguage().getName()).equals(language)) {
+                        String template = t.getTemplateCode();
+                        if (template != null && template.contains("// {{USER_CODE}}")) {
+                            finalCode = template.replace("// {{USER_CODE}}", sourceCode);
+                            log.info(">>> [JUDGE] Code merged with I/O template for language {}", language);
+                        }
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn(">>> [JUDGE] Error fetching/merging I/O template: {}", e.getMessage());
+            }
+
             String fileName = JudgeUtils.getSourceFileName(language);
             Path sourcePath = Path.of(submissionDir, fileName);
-            Files.writeString(sourcePath, sourceCode);
+            Files.writeString(sourcePath, finalCode);
 
             // 3. Cấu hình Docker
             String imageName = "judge-" + language;

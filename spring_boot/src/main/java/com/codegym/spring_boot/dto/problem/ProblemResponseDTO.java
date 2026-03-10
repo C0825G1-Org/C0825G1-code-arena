@@ -21,4 +21,5 @@ public class ProblemResponseDTO {
     private Integer authorId;
     private String authorUsername;
     private String authorName;
+    private Set<ProblemIOTemplateDTO> ioTemplates;
 }

@@ -1,5 +1,11 @@
 import axiosClient from '../../../shared/services/axiosClient';
 
+export interface LanguageDTO {
+    id: number;
+    name: string;
+    isActive: boolean;
+}
+
 export interface TagDTO {
     id: number;
     name: string;
@@ -16,6 +22,7 @@ export interface ProblemResponseDTO {
     testcaseStatus: 'ready' | 'not_uploaded';
     tags: TagDTO[];
     authorId?: number;
+    ioTemplates?: { languageId: number, languageName: string, templateCode: string }[];
 }
 export interface ProblemUserDTO extends ProblemResponseDTO {
     userStatus?: string;
@@ -28,6 +35,7 @@ export interface ProblemRequestDTO {
     timeLimit: number;
     memoryLimit: number;
     tagIds: number[];
+    ioTemplates?: { languageId: number, templateCode: string }[];
 }
 
 export const problemApi = {
@@ -43,7 +51,7 @@ export const problemApi = {
     getTags: async (): Promise<TagDTO[]> => {
         return await axiosClient.get('/tags');
     },
-    
+
     getProblemById: async (id: number): Promise<ProblemResponseDTO> => {
         return await axiosClient.get(`/problems/${id}`);
     },
@@ -58,5 +66,9 @@ export const problemApi = {
 
     deleteProblem: async (id: number): Promise<void> => {
         return await axiosClient.delete(`/problems/${id}`);
+    },
+
+    getLanguages: async (): Promise<LanguageDTO[]> => {
+        return await axiosClient.get('/languages');
     }
 };
