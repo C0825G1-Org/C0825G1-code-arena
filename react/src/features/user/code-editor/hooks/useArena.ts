@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { boilerplateMap, normalizeEditorLanguage } from "../constants";
 import { getProblem, Problem } from "../services/problemService";
 import { useSelector } from "react-redux";
@@ -20,6 +20,15 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
     const [isUnsaved, setIsUnsaved] = useState<boolean>(false);
     const [problemTemplates, setProblemTemplates] = useState<Record<string, string>>({});
     const [isTemplatesLoading, setIsTemplatesLoading] = useState<boolean>(true);
+
+    // Reset synchronous state when problemId changes to prevent code overlapping
+    const lastProblemIdRef = useRef(problemId);
+    if (lastProblemIdRef.current !== problemId) {
+        lastProblemIdRef.current = problemId;
+        setCodeMap({});
+        setIsUnsaved(false);
+        setIsTemplatesLoading(true);
+    }
 
     const currentCode = codeMap[language] ?? "";
 

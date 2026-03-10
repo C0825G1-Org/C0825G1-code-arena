@@ -34,26 +34,20 @@ public class ProblemService implements IProblemService {
     private final ITagRepository tagRepository;
     private final UserRepository userRepository;
     private final ContestProblemRepository contestProblemRepository;
-    private final ContestParticipantRepository contestParticipantRepository;
     private final ContestService contestService;
-    private final IProblemIOTemplateRepository ioTemplateRepository;
     private final LanguageRepository languageRepository;
 
     public ProblemService(IProblemRepository problemRepository,
             ITagRepository tagRepository,
             UserRepository userRepository,
             ContestProblemRepository contestProblemRepository,
-            ContestParticipantRepository contestParticipantRepository,
             ContestService contestService,
-            IProblemIOTemplateRepository ioTemplateRepository,
             LanguageRepository languageRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.contestProblemRepository = contestProblemRepository;
-        this.contestParticipantRepository = contestParticipantRepository;
         this.contestService = contestService;
-        this.ioTemplateRepository = ioTemplateRepository;
         this.languageRepository = languageRepository;
     }
 
