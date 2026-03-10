@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import { RootState } from '../../../../app/store';
 import ProfileSidebar from '../components/ProfileSidebar';
 import ProfileStatsPanel from '../components/ProfileStatsPanel';
@@ -12,7 +13,8 @@ import { toast } from 'react-hot-toast';
 import { UserLayout } from '../../../../layouts/UserLayout';
 
 export const ProfilePage: React.FC = () => {
-    const { user } = useSelector((state: RootState) => state.auth);
+    const { user: currentUser } = useSelector((state: RootState) => state.auth);
+    const { userId } = useParams<{ userId: string }>();
 
     const [profile, setProfile] = useState<UserProfileResponse | undefined>();
     const [stats, setStats] = useState<UserStats | undefined>();
@@ -26,13 +28,16 @@ export const ProfilePage: React.FC = () => {
         const fetchProfileData = async () => {
             try {
                 setLoading(true);
+                // If userId exists in URL, fetch for that user; otherwise fetch for currentUser
+                const targetId = userId || undefined;
+
                 const [profileData, statsData, submissionsData, contestsData, statusData, heatmapData] = await Promise.all([
-                    profileService.getUserProfile(),
-                    profileService.getUserStats(),
-                    profileService.getRecentSubmissions(5),
-                    profileService.getRecentContests(5),
-                    profileService.getSubmissionStatusStats(),
-                    profileService.getActivityHeatmap(35)
+                    profileService.getUserProfile(targetId),
+                    profileService.getUserStats(targetId),
+                    profileService.getRecentSubmissions(5, targetId),
+                    profileService.getRecentContests(5, targetId),
+                    profileService.getSubmissionStatusStats(targetId),
+                    profileService.getActivityHeatmap(35, targetId)
                 ]);
 
                 setProfile(profileData);
@@ -49,12 +54,12 @@ export const ProfilePage: React.FC = () => {
             }
         };
 
-        if (user) {
+        if (currentUser) {
             fetchProfileData();
         }
-    }, [user]);
+    }, [currentUser, userId]);
 
-    if (!user) {
+    if (!currentUser) {
         return <UserLayout><div className="text-white text-center p-8">Vui lòng đăng nhập...</div></UserLayout>;
     }
 

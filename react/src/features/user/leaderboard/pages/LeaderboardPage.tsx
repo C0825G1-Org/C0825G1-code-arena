@@ -11,6 +11,7 @@ import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
 
 export const LeaderboardPage: React.FC = () => {
+    const navigate = useNavigate();
     const { user } = useSelector((state: RootState) => state.auth);
     const [users, setUsers] = useState<LeaderboardUserResponse[]>([]);
     const [top3, setTop3] = useState<LeaderboardUserResponse[]>([]);
@@ -83,8 +84,14 @@ export const LeaderboardPage: React.FC = () => {
                             alt={secondPlace.username}
                             borderColor="border-slate-400"
                             className="mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(148,163,184,0.4)]"
+                            onClick={() => navigate(`/profile/${secondPlace.userId}`)}
                         />
-                        <span className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center">{secondPlace.fullName}</span>
+                        <span
+                            className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center cursor-pointer hover:text-blue-400 transition-colors"
+                            onClick={() => navigate(`/profile/${secondPlace.userId}`)}
+                        >
+                            {secondPlace.fullName}
+                        </span>
                         <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
                         <div className="w-full h-[100px] border-t-2 border-slate-400 bg-gradient-to-b from-slate-400/20 to-transparent rounded-t-xl flex justify-center items-start pt-4 shadow-xl">
                             <span className="text-4xl font-black text-slate-500/50">2</span>
@@ -105,8 +112,14 @@ export const LeaderboardPage: React.FC = () => {
                             alt={firstPlace.username}
                             borderColor="border-yellow-500"
                             className="mb-3 z-10 bg-slate-800 shadow-[0_0_20px_rgba(234,179,8,0.5)]"
+                            onClick={() => navigate(`/profile/${firstPlace.userId}`)}
                         />
-                        <span className="font-bold text-white text-base md:text-lg truncate w-full px-2">{firstPlace.fullName}</span>
+                        <span
+                            className="font-bold text-white text-base md:text-lg truncate w-full px-2 cursor-pointer hover:text-yellow-400 transition-colors"
+                            onClick={() => navigate(`/profile/${firstPlace.userId}`)}
+                        >
+                            {firstPlace.fullName}
+                        </span>
                         <div className="flex justify-center mb-2">
                             <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
                                 {firstPlace.globalRating} ELO
@@ -132,8 +145,14 @@ export const LeaderboardPage: React.FC = () => {
                             alt={thirdPlace.username}
                             borderColor="border-orange-600"
                             className="mb-3 z-10 bg-slate-800 shadow-[0_0_15px_rgba(194,65,12,0.4)]"
+                            onClick={() => navigate(`/profile/${thirdPlace.userId}`)}
                         />
-                        <span className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center" >{thirdPlace.fullName}</span>
+                        <span
+                            className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center cursor-pointer hover:text-blue-400 transition-colors"
+                            onClick={() => navigate(`/profile/${thirdPlace.userId}`)}
+                        >
+                            {thirdPlace.fullName}
+                        </span>
                         <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
                         <div className="w-full h-[80px] border-t-2 border-orange-600 bg-gradient-to-b from-orange-600/20 to-transparent rounded-t-xl flex justify-center items-start pt-2 shadow-xl">
                             <span className="text-4xl font-black text-orange-700/50">3</span>
@@ -216,7 +235,10 @@ export const LeaderboardPage: React.FC = () => {
                                                 {u.rank === 1 && <Crown weight="fill" className="absolute -top-2 -right-2 text-yellow-500 text-lg drop-shadow-md" />}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className={`font-semibold text-base transition-colors ${u.userId === user?.id ? 'text-blue-400' : 'text-slate-200 group-hover:text-blue-400 cursor-pointer'}`}>
+                                                <span
+                                                    className={`font-semibold text-base transition-colors cursor-pointer hover:text-blue-400 ${u.userId === user?.id ? 'text-blue-400' : 'text-slate-200'}`}
+                                                    onClick={() => navigate(`/profile/${u.userId}`)}
+                                                >
                                                     {u.fullName || u.username} {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
                                                 </span>
                                                 <span className="text-xs text-slate-500 font-mono">{u.email}</span>

@@ -53,32 +53,50 @@ export interface UserProfileResponse {
 
 export const profileService = {
     // Basic profile info
-    getUserProfile: async (): Promise<UserProfileResponse> => {
+    getUserProfile: async (userId?: number | string): Promise<UserProfileResponse> => {
+        if (userId) {
+            return axiosInstance.get(`/users/${userId}/profile`);
+        }
         return axiosInstance.get('/users/settings/profile');
     },
 
     // Basic stats
-    getUserStats: async (): Promise<UserStats> => {
+    getUserStats: async (userId?: number | string): Promise<UserStats> => {
+        if (userId) {
+            return axiosInstance.get(`/user-dashboard/stats/${userId}`);
+        }
         return axiosInstance.get('/user-dashboard/stats');
     },
 
     // Recent submissions
-    getRecentSubmissions: async (limit: number = 10): Promise<RecentSubmission[]> => {
-        return axiosInstance.get(`/user-dashboard/submissions/recent?limit=${limit}`);
+    getRecentSubmissions: async (limit: number = 10, userId?: number | string): Promise<RecentSubmission[]> => {
+        const url = userId
+            ? `/user-dashboard/submissions/recent/${userId}?limit=${limit}`
+            : `/user-dashboard/submissions/recent?limit=${limit}`;
+        return axiosInstance.get(url);
     },
 
     // Recent contests
-    getRecentContests: async (limit: number = 10): Promise<RecentContest[]> => {
-        return axiosInstance.get(`/user-dashboard/contests/recent?limit=${limit}`);
+    getRecentContests: async (limit: number = 10, userId?: number | string): Promise<RecentContest[]> => {
+        const url = userId
+            ? `/user-dashboard/contests/recent/${userId}?limit=${limit}`
+            : `/user-dashboard/contests/recent?limit=${limit}`;
+        return axiosInstance.get(url);
     },
 
     // Submission Status Stats for Doughnut chart
-    getSubmissionStatusStats: async (): Promise<SubmissionStatusStat[]> => {
+    getSubmissionStatusStats: async (userId?: number | string): Promise<SubmissionStatusStat[]> => {
+        if (userId) {
+            return axiosInstance.get(`/user-dashboard/submissions/stats/${userId}`);
+        }
         return axiosInstance.get('/user-dashboard/submissions/stats');
     },
 
     // Activity heatmap
-    getActivityHeatmap: async (days: number = 30): Promise<HeatmapData[]> => {
-        return axiosInstance.get(`/user-dashboard/submissions/heatmap?days=${days}`);
+    getActivityHeatmap: async (days: number = 30, userId?: number | string): Promise<HeatmapData[]> => {
+        const url = userId
+            ? `/user-dashboard/submissions/heatmap/${userId}?days=${days}`
+            : `/user-dashboard/submissions/heatmap?days=${days}`;
+        return axiosInstance.get(url);
     }
 };
