@@ -21,4 +21,17 @@ public interface IUserDashboardService {
 
         List<com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse> getRecentContests(User user,
                         int limit);
+
+        UserStatsResponse getUserStats(Integer userId);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.RecentSubmissionResponse> getRecentSubmissions(Integer userId,
+                        int limit);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.SubmissionStatusStatResponse> getSubmissionStatusStats(
+                        Integer userId);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.HeatmapResponse> getActivityHeatmap(Integer userId, int days);
+
+        List<com.codegym.spring_boot.dto.dashboard.response.RecentContestResponse> getRecentContests(Integer userId,
+                        int limit);
 }
