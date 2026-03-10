@@ -1,6 +1,9 @@
 # Sử dụng image ổn định từ Eclipse Temurin
 FROM eclipse-temurin:21-jdk-jammy
 
+# Cài đặt các tiện ích đo tài nguyên
+RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
+
 # Tạo user không phải root
 RUN useradd -m -s /bin/bash judge
 
