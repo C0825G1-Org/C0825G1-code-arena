@@ -69,8 +69,8 @@ public class JudgeUtils {
                     .testCaseNumber(testId)
                     .passed(passed)
                     .message(status)
-                    .executionTime(parseMetric(content, "TIME: (\\d+\\.\\d+|\\d+)"))
-                    .memoryUsed(parseMetric(content, "MEM: (\\d+)"))
+                    .executionTime(parseMetric(content, "TIME:\\s*([\\d.,]+)"))
+                    .memoryUsed(parseMetric(content, "MEM:\\s*(\\d+)"))
                     .userOutput(actualOutput)
                     .build());
         }
@@ -82,8 +82,12 @@ public class JudgeUtils {
         try {
             Matcher m = Pattern.compile(regex).matcher(content);
             if (m.find()) {
-                String val = m.group(1);
+                String val = m.group(1).trim();
                 if (regex.contains("TIME")) {
+                    val = val.replace(",", ".");
+                    if (val.startsWith(".")) {
+                        val = "0" + val;
+                    }
                     // TIME is in seconds (e.g. 0.12), convert to ms
                     return (long) (Double.parseDouble(val) * 1000);
                 }

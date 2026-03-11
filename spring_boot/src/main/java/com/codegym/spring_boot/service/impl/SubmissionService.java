@@ -130,7 +130,7 @@ public class SubmissionService implements ISubmissionService {
                                 submitRequestDTO.getProblemId(),
                                 submitRequestDTO.getLanguageId(),
                                 savedSubmission.getIsTestRun());
-                                
+
                 log.info(">>> [SUBMIT] Pushing ticket to Redis queue...");
                 judgeQueueService.pushTicketToQueue(ticket);
                 log.info(">>> [SUBMIT] Pushed successfully. Returning ID: {}", savedSubmission.getId());
@@ -146,7 +146,8 @@ public class SubmissionService implements ISubmissionService {
 
                 return SubmissionResultDTO.builder()
                                 .submissionId(submission.getId().longValue())
-                                .status(submission.getStatus() != null ? submission.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
+                                .status(submission.getStatus() != null ? submission.getStatus().name()
+                                                : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .executionTime(submission.getExecutionTime().longValue())
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
@@ -186,12 +187,13 @@ public class SubmissionService implements ISubmissionService {
                         SubmissionResultDTO dto = SubmissionResultDTO.builder()
                                         .submissionId(msg.getSubmissionId())
                                         .problemId(submission.getProblem().getId())
-                                        .status(finalStatus != null ? finalStatus.name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
+                                        .status(finalStatus != null ? finalStatus.name()
+                                                        : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending
+                                                                        .name())
                                         .build();
                         notificationService.sendSubmissionUpdate(msg.getUserId(), dto);
                         return;
                 }
-
 
                 // 1. Lưu TestResult chi tiết
                 if (msg.getTestCaseResults() != null) {
@@ -274,6 +276,10 @@ public class SubmissionService implements ISubmissionService {
                 // Nếu là chạy thử, gửi kèm kết quả từng test case (để hiển thị output thực tế)
                 List<SubmissionResultDTO.TestCaseResultDTO> tcResultDTOs = null;
                 if (Boolean.TRUE.equals(submission.getIsTestRun()) && msg.getTestCaseResults() != null) {
+                        // Sắp xếp kết quả test theo thứ tự số
+                        msg.getTestCaseResults().sort(java.util.Comparator
+                                        .comparingInt(com.codegym.spring_boot.dto.TestCaseResult::getTestCaseNumber));
+
                         tcResultDTOs = msg.getTestCaseResults().stream().map(tcResult -> {
                                 String inputFilename = tcResult.getTestCaseNumber() + ".in";
                                 TestCase tcEntity = testCaseRepository.findByProblemIdAndInputFilename(
@@ -302,7 +308,8 @@ public class SubmissionService implements ISubmissionService {
                                 .submissionId(msg.getSubmissionId())
                                 .problemId(submission.getProblem().getId())
                                 .contestId(submission.getContest() != null ? submission.getContest().getId() : null)
-                                .status(finalStatus != null ? finalStatus.name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
+                                .status(finalStatus != null ? finalStatus.name()
+                                                : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .executionTime(submission.getExecutionTime().longValue())
                                 .memoryUsed(submission.getMemoryUsed().longValue())
                                 .score(submission.getScore())
@@ -317,10 +324,14 @@ public class SubmissionService implements ISubmissionService {
                         com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog logEntry = com.codegym.spring_boot.dto.moderator.response.MonitorDashboardResponse.MonitorSubmissionLog
                                         .builder()
                                         .submissionId(submission.getId())
-                                        .fullname(submission.getUser().getFullName() != null ? submission.getUser().getFullName() : submission.getUser().getUsername())
+                                        .fullname(submission.getUser().getFullName() != null
+                                                        ? submission.getUser().getFullName()
+                                                        : submission.getUser().getUsername())
                                         .problemId(submission.getProblem().getId())
                                         .problemTitle(submission.getProblem().getTitle())
-                                        .status(finalStatus != null ? finalStatus.name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
+                                        .status(finalStatus != null ? finalStatus.name()
+                                                        : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending
+                                                                        .name())
                                         .score(submission.getScore())
                                         .submittedAt(submission.getCreatedAt().toString())
                                         .build();
@@ -431,7 +442,8 @@ public class SubmissionService implements ISubmissionService {
 
                 return submissions.stream().map(sub -> SubmissionHistoryDTO.builder()
                                 .id(sub.getId())
-                                .status(sub.getStatus() != null ? sub.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
+                                .status(sub.getStatus() != null ? sub.getStatus().name()
+                                                : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .executionTime(sub.getExecutionTime())
                                 .memoryUsed(sub.getMemoryUsed())
                                 .score(sub.getScore())
@@ -465,6 +477,26 @@ public class SubmissionService implements ISubmissionService {
                 List<SubmissionTestResult> testResults = submissionTestResultRepository
                                 .findBySubmissionId(submissionId);
 
+                // Sắp xếp testResults theo số thứ tự trích xuất từ tên file input (VD: 1.in,
+                // 2.in, 11.in)
+                testResults.sort((t1, t2) -> {
+                        try {
+                                String name1 = (t1.getTestCase() != null && t1.getTestCase().getInputFilename() != null)
+                                                ? t1.getTestCase().getInputFilename()
+                                                : "";
+                                String name2 = (t2.getTestCase() != null && t2.getTestCase().getInputFilename() != null)
+                                                ? t2.getTestCase().getInputFilename()
+                                                : "";
+                                String num1 = name1.replaceAll("[^0-9]", "");
+                                String num2 = name2.replaceAll("[^0-9]", "");
+                                int n1 = num1.isEmpty() ? 0 : Integer.parseInt(num1);
+                                int n2 = num2.isEmpty() ? 0 : Integer.parseInt(num2);
+                                return Integer.compare(n1, n2);
+                        } catch (Exception e) {
+                                return 0;
+                        }
+                });
+
                 // Tính maxScore của bài tập
                 Integer problemId = submission.getProblem().getId();
                 int maxScoreVal = testCaseRepository.sumScoreWeightByProblemId(problemId);
@@ -491,7 +523,9 @@ public class SubmissionService implements ISubmissionService {
 
                                         return TestCaseResultDetailDTO.builder()
                                                         .id(tr.getId())
-                                                        .status(tr.getStatus() != null ? tr.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.RE.name())
+                                                        .status(tr.getStatus() != null ? tr.getStatus().name()
+                                                                        : com.codegym.spring_boot.entity.enums.SubmissionStatus.RE
+                                                                                        .name())
                                                         .executionTime(tr.getExecutionTime() != null
                                                                         ? tr.getExecutionTime()
                                                                         : 0)
@@ -517,7 +551,8 @@ public class SubmissionService implements ISubmissionService {
 
                 return SubmissionDetailDTO.builder()
                                 .id(submission.getId())
-                                .status(submission.getStatus() != null ? submission.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
+                                .status(submission.getStatus() != null ? submission.getStatus().name()
+                                                : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                 .score(submission.getScore())
                                 .maxScore(maxScoreVal)
                                 .executionTime(submission.getExecutionTime())
