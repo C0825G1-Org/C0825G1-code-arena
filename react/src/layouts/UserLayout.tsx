@@ -142,12 +142,12 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             </nav>
 
             {/* Main Content */}
-            <main className="flex-1 relative z-10 w-full">
+            <main className="flex-1 w-full flex flex-col">
                 {children}
             </main>
 
             {/* Footer */}
-            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative">
+            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6">
                 <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
                         <Code weight="fill" className="text-blue-500 text-3xl" />

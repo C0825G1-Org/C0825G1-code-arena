@@ -288,7 +288,7 @@ export const UserContestDetailPage = () => {
                 onClose={() => setIsTutorialOpen(false)}
             />
 
-            <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 z-10 max-w-6xl">
+            <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 max-w-6xl">
                 <Link to="/contests" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 font-medium">
                     <ArrowLeft weight="bold" /> Quay lại danh sách
                 </Link>
