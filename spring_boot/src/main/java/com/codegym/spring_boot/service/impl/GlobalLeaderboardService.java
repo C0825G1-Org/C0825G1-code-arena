@@ -52,6 +52,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .fullName(user.getFullName())
                     .email(user.getEmail())
                     .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
+                    .previousGlobalRating(user.getPreviousGlobalRating() != null ? user.getPreviousGlobalRating() : 0)
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
                     .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)

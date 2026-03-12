@@ -14,7 +14,13 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'moderator', 'admin') DEFAULT 'user',
     global_rating INT DEFAULT 0,
+    previous_global_rating INT DEFAULT 0,
+    is_contest_chat_locked BOOLEAN DEFAULT FALSE,
+    is_discussion_locked BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_username (username)
 );
 
@@ -23,6 +29,10 @@ CREATE TABLE profiles (
     avatar_url VARCHAR(255),
     bio TEXT,
     github_link VARCHAR(255),
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -31,10 +41,14 @@ CREATE TABLE profiles (
 -- ==========================================
 CREATE TABLE languages (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(20) NOT NULL,        -- C++, Java, Python...
-    compiler_option VARCHAR(255),    -- Lệnh biên dịch/thực thi
-    docker_image VARCHAR(100),       -- Tên Docker Image tương ứng (vd: 'judge-gcc20')
-    is_active BOOLEAN DEFAULT TRUE
+    name VARCHAR(20) NOT NULL,
+    compiler_option VARCHAR(255),
+    docker_image VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- ==========================================
@@ -46,11 +60,14 @@ CREATE TABLE problems (
     slug VARCHAR(255) NOT NULL UNIQUE,
     description LONGTEXT NOT NULL,
     difficulty ENUM('easy', 'medium', 'hard') DEFAULT 'easy',
-    time_limit INT DEFAULT 1000,     -- ms
-    memory_limit INT DEFAULT 256,    -- MB
+    time_limit INT DEFAULT 1000,
+    memory_limit INT DEFAULT 256,
     testcase_status ENUM('not_uploaded', 'ready', 'error') DEFAULT 'not_uploaded',
     created_by INT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_difficulty (difficulty)
@@ -59,12 +76,16 @@ CREATE TABLE problems (
 CREATE TABLE test_cases (
     id INT AUTO_INCREMENT PRIMARY KEY,
     problem_id INT NOT NULL,
-    is_sample BOOLEAN DEFAULT FALSE, -- Nếu là TRUE, dùng 2 cột sample bên dưới
-    sample_input TEXT,               -- Nội dung hiển thị trên UI cho thí sinh
-    sample_output TEXT,              -- Nội dung hiển thị trên UI cho thí sinh
-    input_filename VARCHAR(100),     -- Tên file thực tế trong folder (vd: 1.in)
-    output_filename VARCHAR(100),    -- Tên file thực tế trong folder (vd: 1.out)
-    score_weight INT DEFAULT 1,      -- Trọng số điểm cho test này
+    is_sample BOOLEAN DEFAULT FALSE,
+    sample_input TEXT,
+    sample_output TEXT,
+    input_filename VARCHAR(100),
+    output_filename VARCHAR(100),
+    score_weight INT DEFAULT 1,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
 );
@@ -88,11 +109,18 @@ CREATE TABLE problem_tags (
 CREATE TABLE contests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    description TEXT,
+    description LONGTEXT,
     start_time DATETIME NOT NULL,
     end_time DATETIME NOT NULL,
     status ENUM('upcoming', 'active', 'finished', 'cancelled') DEFAULT 'upcoming',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    is_frozen BOOLEAN DEFAULT FALSE,
+    frozen_reason VARCHAR(500),
+    created_by INT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE contest_problems (
@@ -109,7 +137,16 @@ CREATE TABLE contest_participants (
     user_id INT NOT NULL,
     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_score INT DEFAULT 0,
-    total_penalty INT DEFAULT 0,     -- Lưu penalty tổng để truy vấn nhanh
+    total_penalty INT DEFAULT 0,
+    status ENUM('JOINED', 'DISQUALIFIED') DEFAULT 'JOINED',
+    violation_count INT DEFAULT 0,
+    has_score_penalty BOOLEAN DEFAULT FALSE,
+    has_joined_active BOOLEAN DEFAULT FALSE,
+    is_camera_violating BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (contest_id, user_id),
     FOREIGN KEY (contest_id) REFERENCES contests(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -126,17 +163,21 @@ CREATE TABLE submissions (
     language_id INT NOT NULL,
     source_code LONGTEXT NOT NULL,
     status ENUM('pending', 'judging', 'AC', 'WA', 'TLE', 'MLE', 'RE', 'CE') DEFAULT 'pending',
-    execution_time INT DEFAULT 0,    -- Max time (ms)
-    memory_used INT DEFAULT 0,       -- Max memory (KB)
+    execution_time INT DEFAULT 1000,
+    memory_used INT DEFAULT 256,
     score INT DEFAULT 0,
+    is_test_run BOOLEAN DEFAULT FALSE,
+    error_message LONGTEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    is_locked BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE,
     FOREIGN KEY (contest_id) REFERENCES contests(id) ON DELETE SET NULL,
     FOREIGN KEY (language_id) REFERENCES languages(id),
     
-    -- Index quan trọng để tính Penalty: lọc bài nộp của User trong một Contest cho một Problem
     INDEX idx_penalty_calc (contest_id, user_id, problem_id, created_at)
 );
 

@@ -23,6 +23,7 @@ public class LeaderboardDTO {
     private Boolean hasScorePenalty; // Added
     private String status; // Added
     private Integer globalRating; // Added for User Rank Display
+    private Integer previousGlobalRating; // Added for Rank Change
     private List<ProblemDetail> problemDetails;
 
     @Data

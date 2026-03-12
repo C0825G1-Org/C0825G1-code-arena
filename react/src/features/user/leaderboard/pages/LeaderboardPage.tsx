@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal
+    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal,
+    ArrowUp, ArrowDown, Minus
 } from '@phosphor-icons/react';
 import { RootState } from '../../../../app/store';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
@@ -173,6 +174,27 @@ export const LeaderboardPage: React.FC = () => {
         );
     };
 
+    const renderRatingChange = (current: number, previous: number | undefined | null) => {
+        if (previous === undefined || previous === null || current === previous) {
+            return <Minus weight="bold" className="text-slate-500" />;
+        }
+        const diff = current - previous;
+        if (diff > 0) {
+            return (
+                <div className="flex items-center text-emerald-500 gap-0.5 animate-pulse">
+                    <ArrowUp weight="bold" />
+                    <span className="text-[10px] font-bold">+{diff}</span>
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center text-rose-500 gap-0.5">
+                <ArrowDown weight="bold" />
+                <span className="text-[10px] font-bold">{diff}</span>
+            </div>
+        );
+    };
+
     return (
         <UserLayout>
             <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl w-full flex flex-col z-10 relative">
@@ -268,11 +290,16 @@ export const LeaderboardPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
-                                                ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
-                                                    : u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300'}`}>
-                                                {u.globalRating}
-                                            </span>
+                                            <div className="flex flex-col items-end">
+                                                <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
+                                                    ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
+                                                        : u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300'}`}>
+                                                    {u.globalRating}
+                                                </span>
+                                                <div className="flex justify-end mt-1">
+                                                    {renderRatingChange(u.globalRating, u.previousGlobalRating)}
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 )) : !loading && (

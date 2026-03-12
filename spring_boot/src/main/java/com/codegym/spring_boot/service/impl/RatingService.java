@@ -102,6 +102,7 @@ public class RatingService implements IRatingService {
             int finalChange = (int) Math.round(deltas[i] - adjustment);
             int newRating = Math.max(0, oldRating + finalChange);
             
+            user.setPreviousGlobalRating(oldRating);
             user.setGlobalRating(newRating);
             usersToUpdate.add(user);
 

@@ -182,6 +182,7 @@ public class LeaderboardService implements ILeaderboardService {
                 dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
             }
             dto.setGlobalRating(p.getUser().getGlobalRating());
+            dto.setPreviousGlobalRating(p.getUser().getPreviousGlobalRating());
 
             // totalPenalty từ DB (đã tích lũy đúng: thời gian + 20ph*lần_sai + 1000ph nếu
             // vi phạm)

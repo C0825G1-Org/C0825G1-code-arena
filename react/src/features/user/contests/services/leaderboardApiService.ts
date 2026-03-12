@@ -23,6 +23,7 @@ export interface LeaderboardDTO {
     hasScorePenalty?: boolean; // Added
     status?: 'JOINED' | 'FINISHED' | 'DISQUALIFIED'; // Added
     globalRating?: number; // Added
+    previousGlobalRating?: number; // Added
     problemDetails: LeaderboardProblemDetail[];
 }
 
