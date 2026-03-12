@@ -22,6 +22,7 @@ export interface LeaderboardDTO {
     totalSolved: number;  // = số bài AC
     hasScorePenalty?: boolean; // Added
     status?: 'JOINED' | 'FINISHED' | 'DISQUALIFIED'; // Added
+    globalRating?: number; // Added
     problemDetails: LeaderboardProblemDetail[];
 }
 

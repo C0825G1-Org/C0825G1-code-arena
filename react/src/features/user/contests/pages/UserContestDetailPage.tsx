@@ -146,7 +146,18 @@ export const UserContestDetailPage = () => {
             toast.success('Đăng ký tham gia thành công!');
             await fetchContestDetail(); // Refresh immediately
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
+            const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.';
+            if (errorMsg.includes('gói cước của Host')) {
+                toast.error(
+                    <div className="flex flex-col gap-1">
+                        <strong className="text-red-400">Phòng đã đầy!</strong>
+                        <span className="text-sm">{errorMsg}</span>
+                    </div>,
+                    { duration: 5000 }
+                );
+            } else {
+                toast.error(errorMsg);
+            }
         } finally {
             setRegistering(false);
         }

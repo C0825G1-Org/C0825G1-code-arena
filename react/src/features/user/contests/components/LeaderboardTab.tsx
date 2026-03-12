@@ -4,6 +4,7 @@ import { useLeaderboardSocket } from '../hooks/useLeaderboardSocket';
 import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info } from '@phosphor-icons/react';
 import { toast } from 'react-hot-toast';
 import { Avatar } from '../../../../shared/components/Avatar';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 
 interface LeaderboardTabProps {
     contestId: number;
@@ -194,7 +195,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                                     borderColor="border-blue-500/40"
                                                 />
                                                 <div>
-                                                    <div className="font-semibold text-slate-100">{user.username}</div>
+                                                    <UserNameWithRank username={user.username} globalRating={user.globalRating} className="text-base" />
                                                     {user.fullName && (
                                                         <div className="text-xs text-slate-500">{user.fullName}</div>
                                                     )}

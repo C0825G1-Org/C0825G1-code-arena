@@ -20,4 +20,6 @@ public class SubmissionHistoryDTO {
     private LocalDateTime createdAt;
     private String sourceCode; // Mã nguồn của lần nộp
     private String languageName; // Tên ngôn ngữ (cpp, java, python, javascript)
+    private String username;
+    private Integer globalRating;
 }

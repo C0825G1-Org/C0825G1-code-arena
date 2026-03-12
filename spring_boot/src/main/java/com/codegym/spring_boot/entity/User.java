@@ -60,6 +60,26 @@ public class User extends BaseEntity implements UserDetails {
     @PrimaryKeyJoinColumn
     private Profile profile;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserSubscription> userSubscriptions;
+
+    /**
+     * Helper method để lấy ra gói cước đang Active của User.
+     * Nếu không có gói nào thì trả về null (sẽ rơi vào logic fallback lấy gói Free).
+     */
+    public UserSubscription getActiveSubscription() {
+        if (userSubscriptions == null || userSubscriptions.isEmpty()) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return userSubscriptions.stream()
+                .filter(sub -> "ACTIVE".equals(sub.getStatus()) 
+                        && sub.getStartDate().isBefore(now) 
+                        && sub.getEndDate().isAfter(now))
+                .findFirst()
+                .orElse(null);
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name().toUpperCase()));

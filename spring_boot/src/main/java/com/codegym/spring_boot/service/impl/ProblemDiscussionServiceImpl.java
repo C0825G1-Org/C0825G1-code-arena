@@ -120,6 +120,7 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                                                 : null)
                                 .content(discussion.getContent())
                                 .userIsDiscussionLocked(discussion.getUser().getIsDiscussionLocked())
+                                .userGlobalRating(discussion.getUser().getGlobalRating())
                                 .createdAt(discussion.getCreatedAt())
                                 .updatedAt(discussion.getUpdatedAt())
                                 .build();

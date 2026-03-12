@@ -11,9 +11,11 @@ import {
     ShieldStar,
     FacebookLogo,
     TwitterLogo,
-    GithubLogo
+    GithubLogo,
+    Crown
 } from '@phosphor-icons/react';
 import { Avatar } from '../shared/components/Avatar';
+import axiosClient from '../shared/services/axiosClient';
 
 interface UserLayoutProps {
     children: React.ReactNode;
@@ -27,6 +29,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
     const location = useLocation();
 
     const [userStats, setUserStats] = useState<UserStats | null>(null);
+    const [currentPlan, setCurrentPlan] = useState<{ name: string } | null>(null);
     const userRole = user?.role?.replace('ROLE_', '').toUpperCase() || '';
     const isModerator = userRole === 'MODERATOR' || userRole === 'ADMIN';
 
@@ -40,9 +43,20 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
         }
     }, [user]);
 
+    const fetchCurrentPlan = useCallback(async () => {
+        if (!user) return;
+        try {
+            const plan: any = await axiosClient.get('/subscriptions/my-plan');
+            setCurrentPlan(plan);
+        } catch (err) {
+            // Silently fail - fallback to no badge
+        }
+    }, [user]);
+
     useEffect(() => {
         fetchDashboardData();
-    }, [fetchDashboardData]);
+        fetchCurrentPlan();
+    }, [fetchDashboardData, fetchCurrentPlan]);
 
     const handleLogout = () => {
         navigate('/');
@@ -56,6 +70,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
         { path: '/problems', label: 'Bài tập' },
         { path: '/contests', label: 'Cuộc thi' },
         { path: '/leaderboard', label: 'Bảng xếp hạng' },
+        { path: '/pricing', label: 'Nâng cấp', icon: <Crown size={20} className="text-purple-400" />, className: "font-medium bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20", textClassName: "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400" },
     ];
 
     const isPathActive = (path: string) => {
@@ -82,9 +97,15 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
                             <Link
                                 key={link.path}
                                 to={link.path}
-                                className={`transition-colors ${isPathActive(link.path) ? 'text-white font-bold' : 'hover:text-blue-400'}`}
+                                onClick={() => {
+                                    if (link.path === '/pricing') {
+                                        navigate('/pricing');
+                                    }
+                                }}
+                                className={`transition-colors ${isPathActive(link.path) ? 'text-white font-bold' : 'hover:text-blue-400'} ${link.className || ''}`}
                             >
-                                {link.label}
+                                {link.icon && <span className="flex items-center">{link.icon}</span>}
+                                <span className={link.textClassName || ''}>{link.label}</span>
                             </Link>
                         ))}
                     </div>
@@ -119,8 +140,19 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
                                     <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors truncate max-w-[120px]">
                                         {user?.fullName || 'User'}
                                     </div>
-                                    <div className="text-xs text-slate-400 font-mono">
-                                        Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
+                                    <div className="flex items-center justify-end gap-1.5">
+                                        <span className="text-xs text-slate-400 font-mono">
+                                            Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
+                                        </span>
+                                        {currentPlan && (
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                                currentPlan.name === 'PRO'
+                                                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                                                    : 'bg-slate-700 text-slate-400'
+                                            }`}>
+                                                {currentPlan.name === 'PRO' ? '👑 PRO' : 'FREE'}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <Avatar

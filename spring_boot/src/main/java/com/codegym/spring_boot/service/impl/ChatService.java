@@ -40,6 +40,7 @@ public class ChatService implements IChatService {
                 .timestamp(LocalDateTime.now())
                 .isSystem(false)
                 .userIsChatLocked(user.getIsContestChatLocked())
+                .senderGlobalRating(user.getGlobalRating())
                 .build();
 
         return chatMessageRepository.save(message);

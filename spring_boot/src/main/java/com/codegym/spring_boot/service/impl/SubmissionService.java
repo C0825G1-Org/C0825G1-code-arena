@@ -450,6 +450,8 @@ public class SubmissionService implements ISubmissionService {
                                 .createdAt(sub.getCreatedAt())
                                 .sourceCode(sub.getSourceCode())
                                 .languageName(sub.getLanguage() != null ? sub.getLanguage().getName() : null)
+                                .username(sub.getUser().getUsername())
+                                .globalRating(sub.getUser().getGlobalRating())
                                 .build()).collect(Collectors.toList());
         }
 
@@ -560,6 +562,8 @@ public class SubmissionService implements ISubmissionService {
                                 .sourceCode(submission.getSourceCode())
                                 .createdAt(submission.getCreatedAt())
                                 .isTestRun(submission.getIsTestRun())
+                                .username(submission.getUser().getUsername())
+                                .globalRating(submission.getUser().getGlobalRating())
                                 .testCaseResults(detailTCs)
                                 .build();
         }
