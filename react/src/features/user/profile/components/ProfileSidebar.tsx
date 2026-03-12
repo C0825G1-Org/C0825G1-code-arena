@@ -42,8 +42,15 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
                     {profile?.bio ? `"${profile.bio}"` : "Chưa cập nhật tiểu sử."}
                 </p>
 
-                <div className="w-full mb-6">
-                    <RankProgression rating={stats?.eloRanking || 0} />
+                <div className="w-full mb-6 space-y-4">
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Hệ Cuộc Thi</p>
+                        <RankProgression rating={stats?.eloRanking || 0} />
+                    </div>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Hệ Bài Tập</p>
+                        <RankProgression rating={stats?.practiceRating || 0} />
+                    </div>
                 </div>
 
                 {isOwnProfile && (

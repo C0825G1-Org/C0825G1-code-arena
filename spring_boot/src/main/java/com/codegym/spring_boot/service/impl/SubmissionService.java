@@ -179,6 +179,14 @@ public class SubmissionService implements ISubmissionService {
                                         submission.getContest().getId(), SubmissionStatus.AC);
                 }
 
+                // CRITICAL: Cũng phải kiểm tra alreadySolvedInPractice TRƯỚC KHI save()
+                // để tránh đúng lỗi race condition tương tự alreadyAC ở trên
+                boolean alreadySolvedInPractice = false;
+                if (submission.getContest() == null) {
+                        alreadySolvedInPractice = submissionRepository.existsByUserIdAndProblemIdAndContestIsNullAndStatus(
+                                        submission.getUser().getId(), submission.getProblem().getId(), SubmissionStatus.AC);
+                }
+
                 submission.setStatus(finalStatus);
 
                 // Nếu là trạng thái đang chấm, chỉ cập nhật status và notify UI rồi thoát
@@ -270,6 +278,12 @@ public class SubmissionService implements ISubmissionService {
                 // alreadyAC được kiểm tra TRƯỚC khi save() → tránh race condition
                 if (submission.getContest() != null && !submission.getIsTestRun()) {
                         leaderboardService.updateScore(submission, alreadyAC);
+                } else if (submission.getContest() == null && !submission.getIsTestRun() 
+                        && finalStatus == SubmissionStatus.AC) {
+                        // Logic PRACTICE ELO - alreadySolvedInPractice đã được kiểm tra TRƯỚC save()
+                        if (!alreadySolvedInPractice) {
+                                updatePracticeRating(submission.getUser(), submission.getProblem());
+                        }
                 }
 
                 // 4. Gửi Socket về ReactJS realtime
@@ -374,6 +388,28 @@ public class SubmissionService implements ISubmissionService {
                                         leaderboard);
                 }
 
+        }
+
+        private void updatePracticeRating(User user, Problem problem) {
+                double userRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
+                double problemRating = switch (problem.getDifficulty()) {
+                        case easy -> 800.0;
+                        case medium -> 1200.0;
+                        case hard -> 1800.0;
+                };
+
+                double kFactor = 16.0;
+                double expectedScore = 1.0 / (1.0 + Math.pow(10, (problemRating - userRating) / 400.0));
+                
+                int ratingChange = (int) Math.round(kFactor * (1.0 - expectedScore));
+                if (ratingChange < 1) ratingChange = 1; // Tối thiểu cộng 1 điểm khi giải quyết được bài tập mới
+
+                int newRating = (int) (userRating + ratingChange);
+                user.setPracticeRating(newRating);
+                userRepository.save(user);
+                
+                log.info("Practice Rating updated for user {}: {} -> {} (+{}) by solving problem {} ({})", 
+                        user.getUsername(), (int)userRating, newRating, ratingChange, problem.getId(), problem.getDifficulty());
         }
 
         private SubmissionStatus mapDockerStatusToTestCaseStatus(String status) {

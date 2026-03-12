@@ -4,9 +4,9 @@ import com.codegym.spring_boot.entity.mongo.ChatMessage;
 import java.util.List;
 
 public interface IChatService {
-    ChatMessage saveMessage(Integer contestId, Integer userId, String content);
+    Object saveMessage(Integer contestId, Integer userId, String content);
 
-    List<ChatMessage> getChatHistory(Integer contestId);
+    java.util.List<Object> getChatHistory(Integer contestId);
 
     boolean canUserChat(Integer contestId, Integer userId);
 }

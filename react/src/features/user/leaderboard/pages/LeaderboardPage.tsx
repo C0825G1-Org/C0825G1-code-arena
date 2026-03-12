@@ -20,13 +20,14 @@ export const LeaderboardPage: React.FC = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [type, setType] = useState('total'); // 'contest', 'practice', or 'total'
 
     const size = 10;
 
     const fetchLeaderboard = async () => {
         setLoading(true);
         try {
-            const data = await getLeaderboard(search, page, size);
+            const data = await getLeaderboard(search, type, page, size);
             setUsers(data.content);
             setTotalPages(data.totalPages);
             setTotalElements(data.totalElements);
@@ -37,7 +38,7 @@ export const LeaderboardPage: React.FC = () => {
                     setTop3(data.content.slice(0, 3));
                 } else if (top3.length === 0) {
                     // If we start on a page other than 0, fetch the top 3 separately
-                    const topData = await getLeaderboard('', 0, 3);
+                    const topData = await getLeaderboard('', type, 0, 3);
                     setTop3(topData.content);
                 }
             }
@@ -55,7 +56,7 @@ export const LeaderboardPage: React.FC = () => {
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [search, page]);
+    }, [search, page, type]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
@@ -171,6 +172,30 @@ export const LeaderboardPage: React.FC = () => {
                     <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
                 </div>
 
+                {/* Type Switcher */}
+                <div className="flex justify-center mb-12">
+                    <div className="bg-slate-800/80 p-1 rounded-2xl border border-slate-700/50 flex gap-1 shadow-xl box-content">
+                        <button
+                            onClick={() => { setType('total'); setPage(0); setTop3([]); }}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'total' ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                        >
+                            Bảng Tổng
+                        </button>
+                        <button
+                            onClick={() => { setType('contest'); setPage(0); setTop3([]); }}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'contest' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                        >
+                            Hệ Cuộc Thi
+                        </button>
+                        <button
+                            onClick={() => { setType('practice'); setPage(0); setTop3([]); }}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'practice' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                        >
+                            Hệ Bài Tập
+                        </button>
+                    </div>
+                </div>
+
                 {/* Show podium only if no search filter */}
                 {search.trim() === '' && renderPodium()}
 
@@ -205,9 +230,13 @@ export const LeaderboardPage: React.FC = () => {
                                 <tr>
                                     <th className="px-6 py-5 text-center w-20 font-bold tracking-wider">Hạng</th>
                                     <th className="px-6 py-5 font-bold tracking-wider">Lập trình viên</th>
-                                    <th className="px-6 py-5 font-bold tracking-wider text-center hidden md:table-cell">AC / Số Bài</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-center hidden md:table-cell">
+                                        {type === 'practice' ? 'Bài Tập AC' : type === 'total' ? 'Tổng Bài AC' : 'Bài Thi AC'}
+                                    </th>
                                     <th className="px-6 py-5 font-bold tracking-wider text-center hidden sm:table-cell">Tỉ lệ AC</th>
-                                    <th className="px-6 py-5 font-bold tracking-wider text-right">Điểm ELO</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-right">
+                                        {type === 'practice' ? 'ELO Bài Tập' : type === 'total' ? 'ELO Tổng' : 'ELO Cuộc Thi'}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
@@ -258,7 +287,11 @@ export const LeaderboardPage: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
                                                 ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
-                                                    : u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300'}`}>
+                                                    : type === 'practice'
+                                                        ? (u.globalRating >= 800 ? 'text-red-400' : u.globalRating >= 500 ? 'text-yellow-400' : u.globalRating >= 250 ? 'text-purple-400' : u.globalRating >= 100 ? 'text-blue-400' : u.globalRating >= 30 ? 'text-green-400' : 'text-slate-300')
+                                                        : type === 'total'
+                                                            ? (u.globalRating >= 2500 ? 'text-red-400' : u.globalRating >= 1500 ? 'text-yellow-400' : u.globalRating >= 750 ? 'text-purple-400' : u.globalRating >= 300 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300')
+                                                            : (u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300')}`}>
                                                 {u.globalRating}
                                             </span>
                                         </td>

@@ -58,6 +58,7 @@ public class UserDashboardService implements IUserDashboardService {
 
                 return UserStatsResponse.builder()
                                 .eloRanking(globalRating)
+                                .practiceRating(user.getPracticeRating() != null ? user.getPracticeRating() : 0)
                                 .topPercent(Math.round(topPercent * 100.0) / 100.0) // Round to 2 decimals
                                 .solvedCount(solvedCount)
                                 .acRate(Math.round(acRate * 100.0) / 100.0) // Round to 2 decimals

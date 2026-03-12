@@ -26,9 +26,9 @@ export interface PageResponse<T> {
     empty: boolean;
 }
 
-export const getLeaderboard = async (search: string, page: number, size: number): Promise<PageResponse<LeaderboardUserResponse>> => {
+export const getLeaderboard = async (search: string, type: string, page: number, size: number): Promise<PageResponse<LeaderboardUserResponse>> => {
     const data = await axiosClient.get<any, PageResponse<LeaderboardUserResponse>>('/leaderboard', {
-        params: { search, page, size }
+        params: { search, type, page, size }
     });
     return data;
 };
