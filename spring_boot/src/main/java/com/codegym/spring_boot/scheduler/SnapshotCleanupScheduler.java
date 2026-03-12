@@ -32,11 +32,12 @@ public class SnapshotCleanupScheduler {
     public void cleanupExpiredSnapshots() {
         log.info("Starting cleanup job for expired snapshots...");
         
-        List<ContestSnapshot> allSnapshots = snapshotRepository.findAll();
         LocalDateTime now = LocalDateTime.now();
+        // Tối ưu: Chỉ lấy các snapshot cũ hơn 2 ngày (mức retention tối thiểu của gói FREE)
+        List<ContestSnapshot> potentialExpiredSnapshots = snapshotRepository.findAllByCapturedAtBefore(now.minusDays(2));
         int deletedCount = 0;
 
-        for (ContestSnapshot snapshot : allSnapshots) {
+        for (ContestSnapshot snapshot : potentialExpiredSnapshots) {
             if (snapshot.getContest() == null || snapshot.getContest().getCreatedBy() == null || snapshot.getCapturedAt() == null) {
                 continue;
             }
