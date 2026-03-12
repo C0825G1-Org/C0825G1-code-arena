@@ -40,6 +40,7 @@ import { Error400Page } from '../features/errors/pages/Error400Page';
 import { Error403Page } from '../features/errors/pages/Error403Page';
 import { Error404Page } from '../features/errors/pages/Error404Page';
 import { Error500Page } from '../features/errors/pages/Error500Page';
+import { ErrorConcurrentLoginPage } from '../features/errors/pages/ErrorConcurrentLoginPage';
 
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -345,6 +346,10 @@ export const router = createBrowserRouter([
     {
         path: '/err/500',
         element: <Error500Page />
+    },
+    {
+        path: '/err/concurrent-login',
+        element: <ErrorConcurrentLoginPage />
     },
     {
         path: '*',
