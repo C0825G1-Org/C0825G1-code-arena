@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 interface UseWaitingRoomTimerProps {
     contest: any;
-    onTimeUp?: () => void;
+    onTimeUp?: (isFocusReady: boolean) => void;
 }
 
 export const useWaitingRoomTimer = ({ contest, onTimeUp }: UseWaitingRoomTimerProps) => {
@@ -36,7 +36,9 @@ export const useWaitingRoomTimer = ({ contest, onTimeUp }: UseWaitingRoomTimerPr
                 // Chỉ gọi onTimeUp đúng 1 lần dù interval chạy lại hoặc effect re-mount
                 if (onTimeUp && !onTimeUpFiredRef.current) {
                     onTimeUpFiredRef.current = true;
-                    onTimeUp();
+                    // Kiểm tra xem thí sinh có đang tập trung vào web và đang ở F11 không
+                    const isFocusReady = !document.hidden && document.hasFocus() && (document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).msFullscreenElement);
+                    onTimeUp(!!isFocusReady); // Chú ý: boolean ép kiểu an toàn
                 }
             } else {
                 const m = Math.floor(diff / 60000);
