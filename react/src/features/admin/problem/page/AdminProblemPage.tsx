@@ -9,6 +9,7 @@ export const AdminProblemPage = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [difficulty, setDifficulty] = useState('');
+    const [testcaseFilter, setTestcaseFilter] = useState('');
     const [problems, setProblems] = useState<AdminProblemResponseDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -58,14 +59,15 @@ export const AdminProblemPage = () => {
     // Reset pages on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, difficulty]);
+    }, [searchTerm, difficulty, testcaseFilter]);
 
     // Derived states for pagination & filter
     const filteredProblemsList = problems.filter((prob) => {
         const term = searchTerm.toLowerCase();
         const matchesSearch = prob.title.toLowerCase().includes(term) || String(prob.id) === term || (prob.authorName && prob.authorName.toLowerCase().includes(term)) || (prob.authorUsername && prob.authorUsername.toLowerCase().includes(term));
         const matchesDifficulty = difficulty ? prob.difficulty === difficulty : true;
-        return matchesSearch && matchesDifficulty;
+        const matchesTestcase = testcaseFilter ? prob.testcaseStatus === testcaseFilter : true;
+        return matchesSearch && matchesDifficulty && matchesTestcase;
     });
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -110,6 +112,15 @@ export const AdminProblemPage = () => {
                             <option value="easy">Easy</option>
                             <option value="medium">Medium</option>
                             <option value="hard">Hard</option>
+                        </select>
+                        <select
+                            value={testcaseFilter}
+                            onChange={(e) => setTestcaseFilter(e.target.value)}
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-full md:w-auto"
+                        >
+                            <option value="">Tất cả trạng thái Test</option>
+                            <option value="ready">Đã có Testcase</option>
+                            <option value="not_uploaded">Chưa có Testcase</option>
                         </select>
                     </div>
 

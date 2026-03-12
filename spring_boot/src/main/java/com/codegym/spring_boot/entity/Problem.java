@@ -40,13 +40,13 @@ public class Problem extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty = Difficulty.easy;
 
-    @Min(value = 100, message = "Thời gian giới hạn tối thiểu 100ms")
-    @Max(value = 10000, message = "Thời gian giới hạn tối đa 10s")
+//    @Min(value = 100, message = "Thời gian giới hạn tối thiểu 100ms")
+//    @Max(value = 5000, message = "Thời gian giới hạn tối đa 5s")
     @Column(name = "time_limit")
     private Integer timeLimit = 1000;
 
-    @Min(value = 16, message = "Bộ nhớ tối thiểu 16MB")
-    @Max(value = 1024, message = "Bộ nhớ tối đa 1024MB")
+//    @Min(value = 16, message = "Bộ nhớ tối thiểu 16MB")
+//    @Max(value = 1024, message = "Bộ nhớ tối đa 1024MB")
     @Column(name = "memory_limit")
     private Integer memoryLimit = 256;
 

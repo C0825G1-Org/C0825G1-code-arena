@@ -21,7 +21,7 @@ public class ProblemRequestDTO {
     private Difficulty difficulty;
 
     @Min(value = 100, message = "Thời gian giới hạn tối thiểu 100ms")
-    @Max(value = 10000, message = "Thời gian giới hạn tối đa 10s")
+    @Max(value = 5000, message = "Thời gian giới hạn tối đa 5s")
     private Integer timeLimit;
 
     @Min(value = 16, message = "Bộ nhớ tối thiểu 16MB")

@@ -54,6 +54,16 @@ export const CreatePage = () => {
             return;
         }
 
+        if (timeLimit < 100 || timeLimit > 5000) {
+            toast.warning('Giới hạn thời gian phải từ 100ms đến 5000ms!');
+            return;
+        }
+
+        if (memoryLimit < 16 || memoryLimit > 1024) {
+            toast.warning('Giới hạn bộ nhớ phải từ 16MB đến 1024MB!');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             await problemApi.createProblem({
@@ -330,6 +340,7 @@ export const CreatePage = () => {
                                         />
                                         <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">ms</span>
                                     </div>
+                                    <p className="mt-1 text-xs text-slate-500 italic">Giới hạn: 100ms - 5000ms</p>
                                 </div>
 
                                 <div>
@@ -343,6 +354,7 @@ export const CreatePage = () => {
                                         />
                                         <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">MB</span>
                                     </div>
+                                    <p className="mt-1 text-xs text-slate-500 italic">Giới hạn: 16MB - 1024MB</p>
                                 </div>
                             </div>
                         </div>
