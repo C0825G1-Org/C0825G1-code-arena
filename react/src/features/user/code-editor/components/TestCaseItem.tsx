@@ -72,8 +72,8 @@ const TestCaseItem: React.FC<TestCaseItemProps> = React.memo(({
                     <span className="bg-slate-900 px-2 py-0.5 rounded border border-slate-700 text-amber-400 font-bold">
                         {score} / {scoreWeight} pts
                     </span>
-                    <span>⏱️ {executionTime > 0 ? `${executionTime}ms` : '- ms'}</span>
-                    <span>💾 {memoryUsed > 0 ? `${memoryUsed}KB` : '- KB'}</span>
+                    <span>⏱️ {executionTime != null ? `${executionTime}ms` : '- ms'}</span>
+                    <span>💾 {memoryUsed != null ? `${memoryUsed}KB` : '- KB'}</span>
                     <span className="text-xl">{isOpen ? '▾' : '▸'}</span>
                 </div>
             </div>

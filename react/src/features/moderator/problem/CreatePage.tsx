@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ModeratorLayout } from '../components/ModeratorLayout';
-import { problemApi, TagDTO } from '../services/problemApi';
+import { problemApi, TagDTO, LanguageDTO } from '../services/problemApi';
 
 export const CreatePage = () => {
     const navigate = useNavigate();
@@ -20,17 +20,25 @@ export const CreatePage = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // I/O Template states
+    const [allLanguages, setAllLanguages] = useState<LanguageDTO[]>([]);
+    const [ioTemplates, setIoTemplates] = useState<{ languageId: number, templateCode: string }[]>([]);
+    const [selectedLangId, setSelectedLangId] = useState<number | ''>('');
+
     useEffect(() => {
         const fetchFormData = async () => {
             setLoading(true);
             try {
-                const [diffs, tagsData] = await Promise.all([
+                const [diffs, tagsData, langsData] = await Promise.all([
                     problemApi.getDifficulties(),
-                    problemApi.getTags()
+                    problemApi.getTags(),
+                    problemApi.getLanguages()
                 ]);
                 setDifficulties(diffs);
                 setAllTags(tagsData);
+                setAllLanguages(langsData);
                 if (diffs.length > 0) setDifficulty(diffs[0]);
+                if (langsData.length > 0) setSelectedLangId(langsData[0].id);
             } catch (error) {
                 console.error('Lỗi khi tải dữ liệu form', error);
             } finally {
@@ -55,7 +63,8 @@ export const CreatePage = () => {
                 difficulty,
                 tagIds,
                 timeLimit,
-                memoryLimit
+                memoryLimit,
+                ioTemplates: ioTemplates.filter(t => t.templateCode.trim() !== '')
             });
             toast.success('Tạo bài tập thành công!');
             navigate('/moderator/problems');
@@ -141,6 +150,85 @@ export const CreatePage = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* I/O Templates Section */}
+                        <div className="bg-[#1e293b]/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50 mt-6">
+                            <h2 className="text-lg font-bold text-white mb-4 border-b border-slate-700/50 pb-2">I/O Code Templates (Dành cho thí sinh)</h2>
+                            <div className="bg-blue-600/10 border border-blue-500/20 rounded-lg p-4 mb-4">
+                                <p className="text-sm text-blue-100 flex items-center gap-2">
+                                    <i className="ph-bold ph-info text-blue-400"></i>
+                                    Thiết lập code mẫu (đọc/ghi dữ liệu) cho từng ngôn ngữ để thí sinh tập trung vào logic.
+                                </p>
+                                <p className="text-xs text-slate-400 mt-2">
+                                    Sử dụng <code className="text-blue-400 font-mono font-bold">// {"{{USER_CODE}}"}</code> để đánh dấu vị trí code của thí sinh sẽ được chèn vào.
+                                </p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex gap-4 items-end">
+                                    <div className="flex-1">
+                                        <label className="block text-sm font-medium text-slate-300 mb-1">Chọn ngôn ngữ</label>
+                                        <select
+                                            value={selectedLangId}
+                                            onChange={(e) => setSelectedLangId(Number(e.target.value))}
+                                            className="w-full bg-[#1e293b] border border-[#334155] text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+                                        >
+                                            <option value="">-- Chọn ngôn ngữ --</option>
+                                            {allLanguages.map(lang => (
+                                                <option key={lang.id} value={lang.id}>{lang.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className={`px-4 py-2.5 rounded-lg text-xs border font-medium flex items-center gap-2 ${ioTemplates.find(t => t.languageId === selectedLangId)
+                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                            : 'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                        }`}>
+                                        {ioTemplates.find(t => t.languageId === selectedLangId) ? (
+                                            <>
+                                                <i className="ph-bold ph-check-circle"></i>
+                                                Đã có template
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="ph-bold ph-question"></i>
+                                                Chưa có template
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {selectedLangId && (
+                                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="block text-sm font-medium text-slate-300">Template code</label>
+                                        </div>
+                                        <textarea
+                                            value={ioTemplates.find(t => t.languageId === selectedLangId)?.templateCode || ''}
+                                            onChange={(e) => {
+                                                const newCode = e.target.value;
+                                                setIoTemplates(prev => {
+                                                    const existing = prev.find(t => t.languageId === selectedLangId);
+                                                    if (existing) {
+                                                        return prev.map(t => t.languageId === selectedLangId ? { ...t, templateCode: newCode } : t);
+                                                    } else {
+                                                        return [...prev, { languageId: selectedLangId as number, templateCode: newCode }];
+                                                    }
+                                                });
+                                            }}
+                                            rows={12}
+                                            placeholder={`Ví dụ (JS):\nconst fs = require('fs');\n\nfunction solve() {\n   // {{USER_CODE}}\n}\nsolve();`}
+                                            className="w-full bg-[#0f172a] border border-[#334155] text-[#e2e8f0] text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all font-mono"
+                                        />
+                                        {!ioTemplates.find(t => t.languageId === selectedLangId)?.templateCode.includes('// {{USER_CODE}}') && (
+                                            <p className="mt-2 text-xs text-amber-400 flex items-center gap-1">
+                                                <i className="ph-bold ph-warning"></i>
+                                                Thiếu thẻ <strong>// {"{{USER_CODE}}"}</strong>
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Right (Settings) */}
@@ -176,8 +264,8 @@ export const CreatePage = () => {
                                             disabled={loading}
                                         >
                                             <span className="truncate">
-                                                {tagIds.length === 0 
-                                                    ? "Chọn tags..." 
+                                                {tagIds.length === 0
+                                                    ? "Chọn tags..."
                                                     : `${allTags.filter(t => tagIds.includes(t.id)).map(t => t.name).join(', ')}`}
                                             </span>
                                             <i className={`ph-bold ph-caret-down transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}></i>
@@ -198,11 +286,10 @@ export const CreatePage = () => {
                                                                     key={tag.id}
                                                                     className="flex items-center gap-3 px-3 py-2 cursor-pointer rounded hover:bg-[#334155] transition-colors"
                                                                 >
-                                                                    <div className={`w-4 h-4 rounded border flex flex-shrink-0 items-center justify-center transition-colors ${
-                                                                        isSelected 
-                                                                            ? 'bg-blue-500 border-blue-500' 
-                                                                            : 'border-slate-500 bg-transparent'
-                                                                    }`}>
+                                                                    <div className={`w-4 h-4 rounded border flex flex-shrink-0 items-center justify-center transition-colors ${isSelected
+                                                                        ? 'bg-blue-500 border-blue-500'
+                                                                        : 'border-slate-500 bg-transparent'
+                                                                        }`}>
                                                                         {isSelected && <i className="ph-bold ph-check text-white text-xs"></i>}
                                                                     </div>
                                                                     <input

@@ -226,3 +226,16 @@ INSERT INTO test_cases (problem_id, is_sample, sample_input, sample_output, inpu
 (5, FALSE, NULL, NULL, '10.in', '10.out', 10),  -- 500 → 125250
 (5, FALSE, NULL, NULL, '11.in', '11.out', 10),  -- 7 → 28
 (5, FALSE, NULL, NULL, '12.in', '12.out', 10);  -- 10000 → 50005000
+
+DELETE FROM test_cases WHERE problem_id = 8;
+INSERT INTO test_cases (problem_id, is_sample, sample_input, sample_output, input_filename, output_filename, score_weight) VALUES
+(8, 1, '5 6 2\n1 2 5\n2 5 5\n1 3 100\n3 4 100\n4 5 1\n2 3 50', '0', '1.in', '1.out', 10),
+(8, 1, '3 3 1\n1 2 10\n2 3 10\n1 3 15', '0', '2.in', '2.out', 10),
+(8, 0, NULL, NULL, '3.in', '3.out', 10),
+(8, 0, NULL, NULL, '4.in', '4.out', 10),
+(8, 0, NULL, NULL, '5.in', '5.out', 10),
+(8, 0, NULL, NULL, '6.in', '6.out', 10),
+(8, 0, NULL, NULL, '7.in', '7.out', 10),
+(8, 0, NULL, NULL, '8.in', '8.out', 10),
+(8, 0, NULL, NULL, '9.in', '9.out', 10),
+(8, 0, NULL, NULL, '10.in', '10.out', 10);

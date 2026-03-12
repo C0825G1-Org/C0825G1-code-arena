@@ -277,7 +277,7 @@ export const UserContestDetailPage = () => {
     };
 
     return (
-        <UserLayout>
+        <UserLayout hideChrome={isRulesOpen}>
             <RulesModal
                 isOpen={isRulesOpen}
                 onClose={() => setIsRulesOpen(false)}
