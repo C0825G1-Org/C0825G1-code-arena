@@ -18,8 +18,7 @@ public class ContestListResponse {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private long participantCount;
-    @Builder.Default
-    private final int maxParticipants = 10;
+    private int maxParticipants;
     private LocalDateTime serverTime;
     @com.fasterxml.jackson.annotation.JsonProperty("isRegistered")
     private boolean isRegistered;

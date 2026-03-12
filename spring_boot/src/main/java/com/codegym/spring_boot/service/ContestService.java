@@ -41,12 +41,22 @@ public class ContestService {
     private final SubmissionRepository submissionRepository; // Để kiểm tra run count và submit status
     private final NotificationService notificationService;
     private final ITestCaseRepository testCaseRepository;
+    private final ISubscriptionService subscriptionService;
 
     // =============================================
     // 1. MODERATOR/ADMIN: Tạo cuộc thi
     // =============================================
     @Transactional
     public ContestDetailResponse createContest(CreateContestRequest request, User currentUser) {
+        // Kiểm tra Plan quota
+        SubscriptionPlan plan = subscriptionService.getUserActivePlan(currentUser.getId());
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        long contestCountThisMonth = contestRepository.countByCreatedByIdAndStartTimeAfter(currentUser.getId(), startOfMonth);
+        
+        if (contestCountThisMonth >= plan.getMaxContestsPerMonth()) {
+            throw new IllegalStateException("Bạn đã tạo tối đa " + plan.getMaxContestsPerMonth() + " cuộc thi trong tháng này theo gói cước hiện tại. Vui lòng nâng cấp gói để tiếp tục.");
+        }
+
         // Validate: startTime phải cách hiện tại ít nhất 5 phút
         if (request.getStartTime().isBefore(LocalDateTime.now().plusMinutes(5))) {
             throw new IllegalArgumentException("Thời gian bắt đầu phải cách thời điểm hiện tại ít nhất 5 phút.");
@@ -60,6 +70,10 @@ public class ContestService {
             throw new IllegalArgumentException("Thời gian diễn ra cuộc thi tối đa là 3 tiếng.");
         }
 
+        if (request.getMaxParticipants() != null && request.getMaxParticipants() > plan.getMaxParticipantsPerContest()) {
+            throw new IllegalArgumentException("Số lượng thí sinh tối đa cho phép của gói hiện tại là " + plan.getMaxParticipantsPerContest() + ". Vui lòng nâng cấp gói hoặc chọn số lượng thấp hơn.");
+        }
+
         Contest contest = new Contest();
         contest.setTitle(request.getTitle());
         contest.setDescription(request.getDescription());
@@ -67,6 +81,7 @@ public class ContestService {
         contest.setEndTime(request.getEndTime());
         contest.setStatus(ContestStatus.upcoming);
         contest.setCreatedBy(currentUser);
+        contest.setMaxParticipants(request.getMaxParticipants() != null ? request.getMaxParticipants() : 10);
 
         contest = contestRepository.save(contest);
 
@@ -149,6 +164,13 @@ public class ContestService {
                         }
                         contest.setEndTime(request.getEndTime());
                     }
+                }
+                if (request.getMaxParticipants() != null) {
+                    SubscriptionPlan plan = subscriptionService.getUserActivePlan(currentUser.getId());
+                    if (request.getMaxParticipants() > plan.getMaxParticipantsPerContest()) {
+                        throw new IllegalArgumentException("Số lượng thí sinh tối đa cho phép của gói hiện tại là " + plan.getMaxParticipantsPerContest());
+                    }
+                    contest.setMaxParticipants(request.getMaxParticipants());
                 }
                 if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
                     contest.setTitle(request.getTitle());
@@ -529,8 +551,10 @@ public class ContestService {
             throw new IllegalStateException("Bạn đã đăng ký cuộc thi này trước đó.");
         }
 
-        if (participantRepository.countByIdContestId(contestId) >= 10) {
-            throw new IllegalStateException("Cuộc thi đã đủ số lượng người tham gia tối đa (10 người).");
+        // Check plan limit based on contest creator
+        SubscriptionPlan creatorPlan = subscriptionService.getUserActivePlan(contest.getCreatedBy().getId());
+        if (participantRepository.countByIdContestId(contestId) >= creatorPlan.getMaxParticipantsPerContest()) {
+            throw new IllegalStateException("Cuộc thi đã đủ số lượng người đăng ký tối đa (" + creatorPlan.getMaxParticipantsPerContest() + " người) theo cấu hình gói cước của Host.");
         }
 
         ContestParticipant participant = new ContestParticipant();
@@ -767,6 +791,7 @@ public class ContestService {
                         ? contest.getCreatedBy().getUsername()
                         : null)
                 .participantCount(participantRepository.countByIdContestId(contest.getId()))
+                .maxParticipants(contest.getMaxParticipants() != null ? contest.getMaxParticipants() : 10)
                 .build();
     }
 
@@ -787,6 +812,7 @@ public class ContestService {
                 .startTime(contest.getStartTime())
                 .endTime(contest.getEndTime())
                 .participantCount(participantRepository.countByIdContestId(contest.getId()))
+                .maxParticipants(contest.getMaxParticipants() != null ? contest.getMaxParticipants() : 10)
                 .serverTime(LocalDateTime.now())
                 .isRegistered(isRegistered)
                 .firstProblemId(firstProblemId)

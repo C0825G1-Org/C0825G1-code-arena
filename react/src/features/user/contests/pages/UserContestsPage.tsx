@@ -257,9 +257,7 @@ export const UserContestsPage = () => {
         }
 
         if (contest.status === 'active') {
-            const destUrl = contest.firstProblemId
-                ? `/code-editor/${contest.firstProblemId}?contestId=${contest.id}`
-                : `/contests/${contest.id}`;
+            const destUrl = `/contests/${contest.id}`;
 
             return (
                 <button

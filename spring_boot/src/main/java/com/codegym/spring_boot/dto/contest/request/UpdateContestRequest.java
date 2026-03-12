@@ -10,4 +10,5 @@ public class UpdateContestRequest {
     private String description;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private Integer maxParticipants;
 }

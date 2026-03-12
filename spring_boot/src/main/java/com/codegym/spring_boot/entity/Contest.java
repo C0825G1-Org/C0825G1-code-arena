@@ -44,4 +44,7 @@ public class Contest extends BaseEntity {
 
     @Column(name = "frozen_reason", length = 500)
     private String frozenReason;
+
+    @Column(name = "max_participants")
+    private Integer maxParticipants = 10;
 }
