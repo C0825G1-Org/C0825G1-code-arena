@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/C0825G1-code-arena.iml" filepath="$PROJECT_DIR$/.idea/C0825G1-code-arena.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/spring_boot.iml" filepath="$PROJECT_DIR$/.idea/modules/spring_boot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/spring_boot.main.iml" filepath="$PROJECT_DIR$/.idea/modules/spring_boot.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/spring_boot.test.iml" filepath="$PROJECT_DIR$/.idea/modules/spring_boot.test.iml" />
     </modules>
   </component>
 </project>

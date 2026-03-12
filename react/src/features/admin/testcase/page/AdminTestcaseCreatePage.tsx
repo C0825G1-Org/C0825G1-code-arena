@@ -92,7 +92,7 @@ export const AdminTestcaseCreatePage = () => {
     const handleSelectTestCase = (tc: TestCaseResponseDTO) => {
         setActiveTestCaseId(tc.id);
         setIsSample(tc.isSample);
-        setScoreWeight(tc.scoreWeight || 1);
+        setScoreWeight(tc.scoreWeight !== undefined && tc.scoreWeight !== null ? tc.scoreWeight : 1);
         setInputContent(tc.sampleInput || '');
         setOutputContent(tc.sampleOutput || '');
     };
@@ -122,7 +122,7 @@ export const AdminTestcaseCreatePage = () => {
                 inputContent: inputContent,
                 outputContent: outputContent,
                 isSample: isSample,
-                scoreWeight: scoreWeight || 1
+                scoreWeight: scoreWeight
             };
 
             if (activeTestCaseId) {
@@ -433,7 +433,15 @@ export const AdminTestcaseCreatePage = () => {
                                     type="checkbox"
                                     className="sr-only peer"
                                     checked={isSample}
-                                    onChange={(e) => setIsSample(e.target.checked)}
+                                    onChange={(e) => {
+                                        const checked = e.target.checked;
+                                        setIsSample(checked);
+                                        if (checked) {
+                                            setScoreWeight(0);
+                                        } else {
+                                            setScoreWeight(1);
+                                        }
+                                    }}
                                 />
                                 <div className="relative w-11 h-6 bg-slate-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                                 <span className="ml-3 text-sm font-medium text-slate-300 whitespace-nowrap">Test Mẫu (Public)</span>
@@ -478,10 +486,14 @@ export const AdminTestcaseCreatePage = () => {
                         <div className="flex items-center">
                             <input
                                 type="number"
-                                min="1"
+                                min={isSample ? "0" : "1"}
                                 max="100"
                                 value={scoreWeight}
-                                onChange={(e) => setScoreWeight(parseInt(e.target.value) || 1)}
+                                onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0;
+                                    const minVal = isSample ? 0 : 1;
+                                    setScoreWeight(Math.max(minVal, val));
+                                }}
                                 className="w-24 bg-[#1e293b] border border-[#334155] focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-white text-sm rounded-l-lg p-2 font-mono text-center"
                             />
                             <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2 rounded-r-lg text-sm">Điểm</span>

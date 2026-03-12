@@ -5,16 +5,49 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/C0825G1-code-arena.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/C0825G1-code-arena.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_13/1.in" beforeDir="false" afterPath="$PROJECT_DIR$/data/testcases/problem_13/1.in" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_13/1.out" beforeDir="false" afterPath="$PROJECT_DIR$/data/testcases/problem_13/1.out" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_13/2.in" beforeDir="false" afterPath="$PROJECT_DIR$/data/testcases/problem_13/2.in" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_13/2.out" beforeDir="false" afterPath="$PROJECT_DIR$/data/testcases/problem_13/2.out" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/2.in" beforeDir="false" afterPath="$PROJECT_DIR$/data/testcases/problem_1/2.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/3.in" beforeDir="false" afterPath="$PROJECT_DIR$/data/testcases/problem_1/3.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemCreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemCreatePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemEditPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemEditPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/admin/testcase/page/AdminTestcaseCreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/testcase/page/AdminTestcaseCreatePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/EditPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/EditPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/testcase/CreatePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/problem/ProblemRequestDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/problem/ProblemRequestDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/entity/Problem.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/entity/Problem.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/spring_boot">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="spring_boot" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -118,6 +151,75 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <method v="2" />
     </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="C0825G1-code-arena" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="C0825G1-code-arena" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="C0825G1-code-arena" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="Python.FlaskServer">
+      <module name="C0825G1-code-arena" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Application" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="spring_boot.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.codegym.spring_boot.Application" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <module name="C0825G1-code-arena" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -152,6 +254,7 @@
       <workItem from="1773061841992" duration="4137000" />
       <workItem from="1773114542887" duration="1660000" />
       <workItem from="1773124429671" duration="2004000" />
+      <workItem from="1773279054401" duration="2884000" />
     </task>
     <servers />
   </component>

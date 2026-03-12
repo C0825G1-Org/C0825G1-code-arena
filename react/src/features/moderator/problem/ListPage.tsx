@@ -13,6 +13,7 @@ export const ListPage = () => {
     const currentUser = useSelector((state: RootState) => state.auth.user);
     const [searchTerm, setSearchTerm] = useState('');
     const [difficulty, setDifficulty] = useState('');
+    const [testcaseFilter, setTestcaseFilter] = useState('');
     const [difficulties, setDifficulties] = useState<string[]>([]);
     const [problems, setProblems] = useState<ProblemResponseDTO[]>([]);
     const [loading, setLoading] = useState(false);
@@ -77,14 +78,15 @@ export const ListPage = () => {
     // Reset pages on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, difficulty]);
+    }, [searchTerm, difficulty, testcaseFilter]);
 
     // Derived states for pagination & filter
     const filteredProblemsList = problems.filter((prob) => {
         const term = searchTerm.toLowerCase();
         const matchesSearch = prob.title.toLowerCase().includes(term) || String(prob.id) === term;
         const matchesDifficulty = difficulty ? prob.difficulty === difficulty : true;
-        return matchesSearch && matchesDifficulty;
+        const matchesTestcase = testcaseFilter ? prob.testcaseStatus === testcaseFilter : true;
+        return matchesSearch && matchesDifficulty && matchesTestcase;
     });
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -133,6 +135,15 @@ export const ListPage = () => {
                                     {d.charAt(0).toUpperCase() + d.slice(1)}
                                 </option>
                             ))}
+                        </select>
+                        <select
+                            value={testcaseFilter}
+                            onChange={(e) => setTestcaseFilter(e.target.value)}
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-full md:w-auto"
+                        >
+                            <option value="">Tất cả trạng thái Test</option>
+                            <option value="ready">Đã có Testcase</option>
+                            <option value="not_uploaded">Chưa có Testcase</option>
                         </select>
                     </div>
 
