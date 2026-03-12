@@ -14,18 +14,30 @@ export const EditContestModal = ({ isOpen, onClose, contestId, onSuccess }: Edit
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
 
+    const [userPlan, setUserPlan] = useState<any>(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         startTime: '',
         endTime: '',
+        maxParticipants: 10,
     });
 
     useEffect(() => {
         if (isOpen && contestId) {
             fetchContestDetail();
+            fetchUserPlan();
         }
     }, [isOpen, contestId]);
+
+    const fetchUserPlan = async () => {
+        try {
+            const data: any = await axiosClient.get('/subscriptions/my-plan');
+            setUserPlan(data);
+        } catch (error) {
+            console.error("Failed to fetch user plan", error);
+        }
+    };
 
     const [originalData, setOriginalData] = useState({
         startTimeIso: '',
@@ -58,7 +70,8 @@ export const EditContestModal = ({ isOpen, onClose, contestId, onSuccess }: Edit
                 title: res.title || '',
                 description: res.description || '',
                 startTime: formattedStart,
-                endTime: formattedEnd
+                endTime: formattedEnd,
+                maxParticipants: res.maxParticipants || 10
             });
         } catch (error) {
             toast.error('Lỗi khi lấy thông tin cuộc thi');
@@ -111,7 +124,8 @@ export const EditContestModal = ({ isOpen, onClose, contestId, onSuccess }: Edit
                 title: formData.title,
                 description: formData.description,
                 startTime: finalStartTime,
-                endTime: finalEndTime
+                endTime: finalEndTime,
+                maxParticipants: Number(formData.maxParticipants)
             };
             await axiosClient.put(`/contests/${contestId}`, payload);
             toast.success('Cập nhật cuộc thi thành công!');
@@ -188,6 +202,29 @@ export const EditContestModal = ({ isOpen, onClose, contestId, onSuccess }: Edit
                                         className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
                                     />
                                 </div>
+                            </div>
+                            <div className="pt-2">
+                                <label className="block text-sm font-medium text-slate-300 mb-1.5 flex justify-between">
+                                    <span>Số lượng thí sinh tối đa *</span>
+                                    {userPlan && (
+                                        <span className="text-xs text-slate-500 font-normal">
+                                            Tối đa cho phép: {userPlan.maxParticipantsPerContest} (Gói {userPlan.name})
+                                        </span>
+                                    )}
+                                </label>
+                                <input
+                                    type="number"
+                                    name="maxParticipants"
+                                    value={formData.maxParticipants}
+                                    onChange={handleChange}
+                                    min={1}
+                                    max={userPlan?.maxParticipantsPerContest || 100}
+                                    required
+                                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
+                                />
+                                <p className="mt-1.5 text-xs text-slate-500">
+                                    Tối đa có thể tham gia cuộc thi này.
+                                </p>
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 p-5 border-t border-slate-700/50 bg-slate-900/30">

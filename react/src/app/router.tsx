@@ -33,7 +33,10 @@ import { UserContestResultsPage } from '../features/user/contests/pages/UserCont
 import { LeaderboardPage } from '../features/user/leaderboard/pages/LeaderboardPage';
 import { ProfilePage } from '../features/user/profile/pages/ProfilePage';
 import { SettingsPage } from '../features/user/settings/pages/SettingsPage';
+import { PricingPage } from '../features/user/subscriptions/pages/PricingPage';
+import { PaymentResultPage } from '../features/user/subscriptions/pages/PaymentResultPage';
 import TutorialEditorPage from '../features/user/code-editor/pages/TutorialEditorPage';
+import { UserLayout } from '../layouts/UserLayout';
 
 // Error Pages
 import { Error400Page } from '../features/errors/pages/Error400Page';
@@ -120,6 +123,24 @@ export const router = createBrowserRouter([
             <PublicRoute>
                 <CompleteProfilePage />
             </PublicRoute>
+        )
+    },
+    {
+        path: '/pricing',
+        element: (
+            <UserLayout>
+                <PricingPage />
+            </UserLayout>
+        )
+    },
+    {
+        path: '/payment/result',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <UserLayout>
+                    <PaymentResultPage />
+                </UserLayout>
+            </ProtectedRoute>
         )
     },
     {

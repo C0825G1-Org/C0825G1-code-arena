@@ -40,6 +40,7 @@ public class UserSettingsService implements IUserSettingsService {
                 .username(freshUser.getUsername())
                 .fullName(freshUser.getFullName())
                 .email(freshUser.getEmail())
+                .globalRating(freshUser.getGlobalRating())
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
                 .githubLink(profile != null ? profile.getGithubLink() : null)

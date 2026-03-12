@@ -146,7 +146,18 @@ export const UserContestDetailPage = () => {
             toast.success('Đăng ký tham gia thành công!');
             await fetchContestDetail(); // Refresh immediately
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
+            const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.';
+            if (errorMsg.includes('gói cước của Host')) {
+                toast.error(
+                    <div className="flex flex-col gap-1">
+                        <strong className="text-red-400">Phòng đã đầy!</strong>
+                        <span className="text-sm">{errorMsg}</span>
+                    </div>,
+                    { duration: 5000 }
+                );
+            } else {
+                toast.error(errorMsg);
+            }
         } finally {
             setRegistering(false);
         }
@@ -288,7 +299,7 @@ export const UserContestDetailPage = () => {
                 onClose={() => setIsTutorialOpen(false)}
             />
 
-            <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 z-10 max-w-6xl">
+            <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 max-w-6xl">
                 <Link to="/contests" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-6 font-medium">
                     <ArrowLeft weight="bold" /> Quay lại danh sách
                 </Link>

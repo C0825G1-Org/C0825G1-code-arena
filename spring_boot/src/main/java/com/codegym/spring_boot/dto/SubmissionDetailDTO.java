@@ -22,5 +22,7 @@ public class SubmissionDetailDTO {
     private LocalDateTime createdAt;
     private Boolean isTestRun;
     private Integer maxScore;
+    private String username;
+    private Integer globalRating;
     private List<TestCaseResultDetailDTO> testCaseResults;
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import axiosClient from '../../../../shared/services/axiosClient';
 import TestCaseItem from './TestCaseItem';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 
 interface SubmissionDetailPanelProps {
     submissionId: number | null;
@@ -41,8 +42,9 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
         <div className={`fixed inset-y-0 right-0 w-full md:w-[600px] bg-slate-900 border-l border-slate-700 shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out ${submissionId ? 'translate-x-0' : 'translate-x-full'}`}>
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    📄 Chi tiết Bài Nộp #{submissionId}
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                    📄 Bài Nộp #{submissionId}
+                    {data && <UserNameWithRank username={data.username} globalRating={data.globalRating} className="text-sm font-normal" />}
                 </h2>
                 <button
                     onClick={onClose}

@@ -6,6 +6,7 @@ import { problemApi, ProblemResponseDTO } from '../../services/problemApi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/store';
 import { ProblemDetailSubModal } from './ProblemDetailSubModal';
+import { useNavigate } from 'react-router-dom';
 
 interface CreateContestModalProps {
     isOpen: boolean;
@@ -21,21 +22,35 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
     const [selectedProblem, setSelectedProblem] = useState<ProblemResponseDTO | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const user = useSelector((state: RootState) => state.auth.user);
+    const navigate = useNavigate();
 
+    const [userPlan, setUserPlan] = useState<any>(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         startTime: '',
         endTime: '',
         problemIds: [] as number[],
+        maxParticipants: 10,
     });
 
     // Fetch problems when modal opens
     React.useEffect(() => {
         if (isOpen) {
             fetchProblems();
+            fetchUserPlan();
         }
     }, [isOpen]);
+
+    const fetchUserPlan = async () => {
+        try {
+            const data: any = await axiosClient.get('/subscriptions/my-plan');
+            setUserPlan(data);
+            setFormData(prev => ({ ...prev, maxParticipants: data.maxParticipantsPerContest || 10 }));
+        } catch (error) {
+            console.error("Failed to fetch user plan", error);
+        }
+    };
 
     const fetchProblems = async () => {
         try {
@@ -106,7 +121,8 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                 description: formData.description,
                 startTime: formatForOutput(formData.startTime),
                 endTime: formatForOutput(formData.endTime),
-                problemIds: formData.problemIds
+                problemIds: formData.problemIds,
+                maxParticipants: Number(formData.maxParticipants)
             };
 
             await axiosClient.post(`/contests`, payload);
@@ -119,13 +135,33 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                 startTime: '',
                 endTime: '',
                 problemIds: [],
+                maxParticipants: userPlan?.maxParticipantsPerContest || 10,
             });
             setSearchQuery('');
 
             onSuccess();
             onClose();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo cuộc thi.');
+            const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi tạo cuộc thi.';
+            if (errorMsg.includes('Vui lòng nâng cấp gói')) {
+                toast((t) => (
+                    <div className="flex flex-col gap-2">
+                        <span className="font-medium">{errorMsg}</span>
+                        <button
+                            onClick={() => {
+                                toast.dismiss(t.id);
+                                onClose();
+                                navigate('/pricing');
+                            }}
+                            className="text-sm bg-purple-600 hover:bg-purple-500 text-white py-1.5 px-3 rounded-lg w-max transition-colors text-left"
+                        >
+                            Xem Bảng Giá Nâng Cấp
+                        </button>
+                    </div>
+                ), { duration: 5000 });
+            } else {
+                toast.error(errorMsg);
+            }
         } finally {
             setLoading(false);
         }
@@ -272,8 +308,32 @@ export const CreateContestModal = ({ isOpen, onClose, onSuccess }: CreateContest
                                     className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
                                 />
                             </div>
+                        </div> {/* End of grid-cols-2 */}
+
+                        <div className="pt-2">
+                            <label className="block text-sm font-medium text-slate-300 mb-1.5 flex justify-between">
+                                <span>Số lượng thí sinh tối đa *</span>
+                                {userPlan && (
+                                    <span className="text-xs text-slate-500 font-normal">
+                                        Tối đa cho phép: {userPlan.maxParticipantsPerContest} (Gói {userPlan.name})
+                                    </span>
+                                )}
+                            </label>
+                            <input
+                                type="number"
+                                name="maxParticipants"
+                                value={formData.maxParticipants}
+                                onChange={handleChange}
+                                min={1}
+                                max={userPlan?.maxParticipantsPerContest || 100}
+                                required
+                                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                            />
+                            <p className="mt-1.5 text-xs text-slate-500">
+                                Tối đa có thể tham gia cuộc thi này.
+                            </p>
                         </div>
-                    </div>
+                    </div> {/* End of p-6 container */}
                     <div className="flex justify-end gap-3 p-5 border-t border-slate-700/50 bg-slate-900/30">
                         <button
                             type="button"

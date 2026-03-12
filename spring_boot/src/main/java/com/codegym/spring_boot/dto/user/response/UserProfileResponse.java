@@ -14,6 +14,7 @@ public class UserProfileResponse {
     private String username;
     private String fullName;
     private String email;
+    private Integer globalRating;
     private String avatarUrl;
     private String bio;
     private String githubLink;

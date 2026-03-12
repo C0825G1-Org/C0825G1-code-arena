@@ -9,6 +9,7 @@ import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboard
 import toast from 'react-hot-toast';
 import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 
 export const LeaderboardPage: React.FC = () => {
     const navigate = useNavigate();
@@ -90,8 +91,11 @@ export const LeaderboardPage: React.FC = () => {
                             className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center cursor-pointer hover:text-blue-400 transition-colors"
                             onClick={() => navigate(`/profile/${secondPlace.userId}`)}
                         >
-                            {secondPlace.fullName}
+                            {secondPlace.fullName || secondPlace.username}
                         </span>
+                        <div className="flex justify-center mb-1">
+                            <UserNameWithRank username={secondPlace.username} globalRating={secondPlace.globalRating} className="text-xs" />
+                        </div>
                         <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
                         <div className="w-full h-[100px] border-t-2 border-slate-400 bg-gradient-to-b from-slate-400/20 to-transparent rounded-t-xl flex justify-center items-start pt-4 shadow-xl">
                             <span className="text-4xl font-black text-slate-500/50">2</span>
@@ -118,8 +122,11 @@ export const LeaderboardPage: React.FC = () => {
                             className="font-bold text-white text-base md:text-lg truncate w-full px-2 cursor-pointer hover:text-yellow-400 transition-colors"
                             onClick={() => navigate(`/profile/${firstPlace.userId}`)}
                         >
-                            {firstPlace.fullName}
+                            {firstPlace.fullName || firstPlace.username}
                         </span>
+                        <div className="flex justify-center mb-1">
+                            <UserNameWithRank username={firstPlace.username} globalRating={firstPlace.globalRating} className="text-sm" />
+                        </div>
                         <div className="flex justify-center mb-2">
                             <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
                                 {firstPlace.globalRating} ELO
@@ -151,8 +158,11 @@ export const LeaderboardPage: React.FC = () => {
                             className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center cursor-pointer hover:text-blue-400 transition-colors"
                             onClick={() => navigate(`/profile/${thirdPlace.userId}`)}
                         >
-                            {thirdPlace.fullName}
+                            {thirdPlace.fullName || thirdPlace.username}
                         </span>
+                        <div className="flex justify-center mb-1">
+                            <UserNameWithRank username={thirdPlace.username} globalRating={thirdPlace.globalRating} className="text-xs" />
+                        </div>
                         <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
                         <div className="w-full h-[80px] border-t-2 border-orange-600 bg-gradient-to-b from-orange-600/20 to-transparent rounded-t-xl flex justify-center items-start pt-2 shadow-xl">
                             <span className="text-4xl font-black text-orange-700/50">3</span>
@@ -235,12 +245,14 @@ export const LeaderboardPage: React.FC = () => {
                                                 {u.rank === 1 && <Crown weight="fill" className="absolute -top-2 -right-2 text-yellow-500 text-lg drop-shadow-md" />}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span
-                                                    className={`font-semibold text-base transition-colors cursor-pointer hover:text-blue-400 ${u.userId === user?.id ? 'text-blue-400' : 'text-slate-200'}`}
-                                                    onClick={() => navigate(`/profile/${u.userId}`)}
-                                                >
-                                                    {u.fullName || u.username} {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
-                                                </span>
+                                                <div className="flex items-center gap-1 flex-wrap">
+                                                    <UserNameWithRank
+                                                        username={u.fullName || u.username}
+                                                        globalRating={u.globalRating}
+                                                        className={`text-base transition-colors cursor-pointer hover:text-blue-400 ${u.userId === user?.id ? 'text-blue-400' : ''}`}
+                                                    />
+                                                    {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
+                                                </div>
                                                 <span className="text-xs text-slate-500 font-mono">{u.email}</span>
                                             </div>
                                         </td>

@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { ConfirmModal } from '../../../shared/components/ConfirmModal';
 import { toast } from 'react-toastify';
 import { Avatar } from '../../../shared/components/Avatar';
+import UserNameWithRank from '../../../shared/components/UserNameWithRank';
 
 interface GroupChatProps {
     contestId: number;
@@ -176,7 +177,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-[100]"
+                className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-[9999]"
                 title="Chat nhóm cuộc thi"
             >
                 <ChatCircleDots size={32} weight="fill" />
@@ -186,7 +187,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
     }
 
     return (
-        <div className={`fixed bottom-6 right-6 w-80 sm:w-96 bg-[#1e293b] border border-slate-700/50 rounded-2xl shadow-2xl flex flex-col transition-all z-[100] ${isMinimized ? 'h-14' : 'h-[500px]'}`}>
+        <div className={`fixed bottom-6 right-6 w-80 sm:w-96 bg-[#1e293b] border border-slate-700/50 rounded-2xl shadow-2xl flex flex-col transition-all z-[9999] ${isMinimized ? 'h-14' : 'h-[500px]'}`}>
             {/* Header */}
             <div className="p-4 border-b border-slate-700/50 flex items-center justify-between bg-slate-800/50 rounded-t-2xl">
                 <div className="flex flex-col">
@@ -229,7 +230,9 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                             return (
                                 <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                     {showName && !isMe && (
-                                        <span className="text-xs text-slate-400 mb-1 ml-1">{msg.senderName}</span>
+                                        <div className="mb-1 ml-1" onClick={(e) => handleUserClick(e, msg)}>
+                                            <UserNameWithRank username={msg.senderName} globalRating={msg.senderGlobalRating} className="text-xs" />
+                                        </div>
                                     )}
                                     <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                         <Avatar

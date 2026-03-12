@@ -10,6 +10,7 @@ export interface ChatMessage {
     timestamp: string;
     isSystem: boolean;
     userIsChatLocked?: boolean;
+    senderGlobalRating?: number;
 }
 
 const CHAT_API_URL = '/chat';

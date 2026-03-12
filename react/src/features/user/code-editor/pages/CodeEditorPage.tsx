@@ -57,12 +57,13 @@ export default function Home() {
     const [contest, setContest] = useState<ContestDetailData | null>(null);
     const [isContestEnded, setIsContestEnded] = useState(false);
     const [cameraWarning, setCameraWarning] = useState<string | null>(null);
+    const [isPendingManualStart, setIsPendingManualStart] = useState(false);
     const hasInitViolations = useRef(false);
 
     // Tính toán trạng thái Read-only
     // QUAN TRỌNG: Khi contest=null (chưa load), KHÔNG được set isReadOnly=true,
     // vì `null?.participantStatus !== 'JOINED'` → `undefined !== 'JOINED'` → TRUE (sai)
-    const isWaitingRoom = isExamMode && contest?.status === 'upcoming';
+    const isWaitingRoom = (isExamMode && contest?.status === 'upcoming') || isPendingManualStart;
     const isReadOnly = isContestEnded
         || (isExamMode && contest !== null && (contest.participantStatus === 'FINISHED' || contest.participantStatus === 'DISQUALIFIED'))
         || (contest?.status === 'upcoming' || contest?.status === 'finished');
@@ -93,31 +94,66 @@ export default function Home() {
         setIsSubmitting, setIsSubmittingExit
     });
 
+    const playNotifySound = () => {
+        try {
+            const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+            const ctx = new AudioContextClass();
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1046.50, ctx.currentTime); // C6 Note - Tiếng Ting sáng và rõ
+            
+            // Envelope cho tiếng Ting dứt khoát (Attack nhanh, Decay nhanh)
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.5);
+        } catch (e) {
+            console.error("Audio API Error", e);
+        }
+    };
+
+    const startExamFetch = () => {
+        if (!contestId) return;
+        setIsPendingManualStart(false);
+        contestService.getContestDetail(parseInt(contestId))
+            .then(data => {
+                setContest(data);
+                if (data?.problems) {
+                    const statusMap: Record<number, { submitCount: number, isAC: boolean }> = {};
+                    data.problems.forEach((p: any) => {
+                        statusMap[p.id] = { submitCount: p.submitCount ?? 0, isAC: !!p.isAC };
+                    });
+                    setProblemStatus(statusMap);
+                }
+                toast.success("Kỳ thi đã bắt đầu. Chúc bạn thi tốt!");
+            })
+            .catch(e => {
+                console.error("API Error", e);
+                toast.error("Vui lòng tải lại trang (F5)!");
+            });
+    };
+
     const { serverOffset, waitingTimeLeftStr, isWaitingEnded } = useWaitingRoomTimer({
         contest,
-        onTimeUp: () => {
-            if (contestId) {
-                contestService.getContestDetail(parseInt(contestId))
-                    .then(data => {
-                        setContest(data);
-                        if (data?.problems) {
-                            const statusMap: Record<number, { submitCount: number, isAC: boolean }> = {};
-                            data.problems.forEach((p: any) => {
-                                statusMap[p.id] = { submitCount: p.submitCount ?? 0, isAC: !!p.isAC };
-                            });
-                            setProblemStatus(statusMap);
-                        }
-                        toast.success("Kỳ thi đã bắt đầu. Chúc bạn thi tốt!");
-                    })
-                    .catch(e => {
-                        console.error("API Error", e);
-                        toast.error("Vui lòng tải lại trang (F5)!");
-                    });
+        onTimeUp: (isFocusReady) => {
+            if (isFocusReady) {
+                startExamFetch();
+            } else {
+                setIsPendingManualStart(true);
+                playNotifySound();
+                toast.info("Đã đến giờ làm bài! Vui lòng nhấn MỞ ĐỀ để vào thi.", { autoClose: false, position: "top-center" });
             }
         }
     });
 
-    const { initViolations, triggerViolation } = useAntiCheat({
+    const { initViolations, triggerViolation, AntiCheatOverlay } = useAntiCheat({
         isExamMode: isExamMode && !!contest && contest.status === 'active' && !isReadOnly && !examReadOnly,
         contestId: contestId || undefined,
         onDisqualified: async () => {
@@ -490,17 +526,44 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            <div className="mt-8 flex items-center gap-3 text-amber-500/80 bg-amber-500/10 px-6 py-3 rounded-full border border-amber-500/20 text-sm font-medium">
-                                <Clock size={20} weight="fill" className="animate-pulse" />
-                                <span>Hệ thống sẽ tự động tải lại khi đến giờ</span>
-                            </div>
+                            {isPendingManualStart ? (
+                                <div className="mt-8 flex flex-col items-center animate-in zoom-in duration-500">
+                                    <div className="bg-emerald-500/20 text-emerald-400 px-6 py-3 rounded-full border border-emerald-500/30 text-sm font-bold mb-6 flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                                        <Clock size={20} weight="fill" className="animate-bounce" />
+                                        <span>ĐÃ ĐẾN GIỜ LÀM BÀI!</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const elem = document.documentElement;
+                                            if (elem.requestFullscreen) elem.requestFullscreen();
+                                            else if ((elem as any).webkitRequestFullscreen) (elem as any).webkitRequestFullscreen();
+                                            else if ((elem as any).msRequestFullscreen) (elem as any).msRequestFullscreen();
+                                            startExamFetch();
+                                        }}
+                                        className="relative group overflow-hidden rounded-2xl p-0.5 outline-none"
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-green-400 to-emerald-600 rounded-2xl blur opacity-70 group-hover:opacity-100 transition duration-500 animate-[spin_3s_linear_infinite]" style={{ width: '200%', height: '200%', top: '-50%', left: '-50%' }}></div>
+                                        <div className="relative flex items-center gap-3 px-10 py-5 bg-[#0f172a] hover:bg-[#1e293b] rounded-2xl transition-all font-black text-xl text-white shadow-[0_0_30px_rgba(16,185,129,0.5)] group-hover:scale-105">
+                                            <PlayCircle weight="fill" className="text-3xl text-emerald-500 group-hover:text-green-400 transition-colors" /> 
+                                            NHẤN ĐỂ MỞ ĐỀ THI!
+                                        </div>
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="mt-8 flex items-center gap-3 text-amber-500/80 bg-amber-500/10 px-6 py-3 rounded-full border border-amber-500/20 text-sm font-medium">
+                                        <Clock size={20} weight="fill" className="animate-pulse" />
+                                        <span>Hệ thống sẽ tự động tải lại khi đến giờ</span>
+                                    </div>
 
-                            <button
-                                onClick={() => navigate('/tutorial')}
-                                className="mt-6 flex items-center gap-2 px-6 py-2.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-xl border border-blue-500/30 transition-all font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105"
-                            >
-                                <PlayCircle weight="fill" className="text-xl animate-pulse" /> Xem hướng dẫn thi giả lập
-                            </button>
+                                    <button
+                                        onClick={() => navigate('/tutorial')}
+                                        className="mt-6 flex items-center gap-2 px-6 py-2.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-xl border border-blue-500/30 transition-all font-bold text-sm shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:scale-105"
+                                    >
+                                        <PlayCircle weight="fill" className="text-xl animate-pulse" /> Xem hướng dẫn thi giả lập
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 ) : (
@@ -654,6 +717,8 @@ export default function Home() {
             {isExamMode && contestId && (contest?.isRegistered || contest?.participantStatus !== undefined || isModerator) && user && (isWaitingRoom || contest?.status === 'finished' || isModerator) && (
                 <GroupChat contestId={parseInt(contestId)} currentUser={{ id: user.id, username: user.username, fullName: user.fullName || '' }} contestTitle={contest?.title} />
             )}
+
+            {AntiCheatOverlay}
         </div>
     );
 }

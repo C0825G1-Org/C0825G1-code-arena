@@ -1,23 +1,5 @@
 import React from 'react';
-import { Trophy } from '@phosphor-icons/react';
-
-interface RankTier {
-    name: string;
-    min: number;
-    max: number;
-    color: string;
-    bgGradient: string;
-    textShadow: string;
-}
-
-const RANK_TIERS: RankTier[] = [
-    { name: 'Tân binh (Newbie)', min: 0, max: 99, color: 'text-slate-400', bgGradient: 'from-slate-500 to-slate-400', textShadow: 'shadow-slate-500/50' },
-    { name: 'Học viên (Pupil)', min: 100, max: 249, color: 'text-green-400', bgGradient: 'from-green-600 to-green-400', textShadow: 'shadow-green-500/50' },
-    { name: 'Chuyên gia (Expert)', min: 250, max: 449, color: 'text-blue-400', bgGradient: 'from-blue-600 to-blue-400', textShadow: 'shadow-blue-500/50' },
-    { name: 'Bậc thầy (Master)', min: 450, max: 699, color: 'text-purple-400', bgGradient: 'from-purple-600 to-purple-400', textShadow: 'shadow-purple-500/50' },
-    { name: 'Đại sư (Grandmaster)', min: 700, max: 999, color: 'text-yellow-400', bgGradient: 'from-yellow-600 to-yellow-400', textShadow: 'shadow-yellow-500/50' },
-    { name: 'Huyền thoại (Legendary)', min: 1000, max: 10000, color: 'text-red-400', bgGradient: 'from-red-600 to-red-400', textShadow: 'shadow-red-500/50' },
-];
+import { RANK_TIERS } from '../../shared/utils/rankUtils';
 
 interface Props {
     rating: number;
@@ -29,7 +11,6 @@ const RankProgression: React.FC<Props> = ({ rating }) => {
     const nextTier = RANK_TIERS[currentTierIndex + 1];
 
     const range = tier.max - tier.min;
-    // Nếu là cấp tối cao (không có cấp tiếp theo), luôn hiển thị full thanh progress
     const progress = !nextTier ? 100 : (range > 0 ? ((rating - tier.min) / range) * 100 : 100);
 
     return (
@@ -38,8 +19,11 @@ const RankProgression: React.FC<Props> = ({ rating }) => {
             <div className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${tier.bgGradient} opacity-5 blur-3xl group-hover:opacity-10 transition-opacity`}></div>
 
             <div className="flex items-center gap-3 mb-6 relative">
-                <div className={`p-2 rounded-xl bg-slate-900/50 border border-slate-700/80 ${tier.color}`}>
-                    <Trophy size={20} weight="fill" />
+                <div
+                    className={`p-2 rounded-xl bg-slate-900/50 border border-slate-700/80`}
+                    style={{ filter: `drop-shadow(0 0 8px ${tier.glowColor})` }}
+                >
+                    <span style={{ fontSize: '20px', lineHeight: 1 }}>{tier.iconEmoji}</span>
                 </div>
                 <h3 className="text-sm font-bold text-slate-200 uppercase tracking-widest">Xếp Hạng Đấu Trường</h3>
             </div>
