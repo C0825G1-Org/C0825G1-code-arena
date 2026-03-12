@@ -70,7 +70,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
         { path: '/problems', label: 'Bài tập' },
         { path: '/contests', label: 'Cuộc thi' },
         { path: '/leaderboard', label: 'Bảng xếp hạng' },
-        { path: '/pricing', label: 'Nâng cấp', icon: <Crown size={20} className="text-purple-400" />, className: "font-medium bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20", textClassName: "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400" },
+        { path: '/pricing', label: 'Nâng cấp', icon: <Crown size={20} className="text-purple-400" />, className: "flex items-center gap-1.5 font-medium bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20", textClassName: "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400" },
     ];
 
     const isPathActive = (path: string) => {
