@@ -25,6 +25,7 @@ public class AuthService {
         private final AuthenticationManager authenticationManager;
         private final com.codegym.spring_boot.repository.OtpRepository otpRepository;
         private final EmailService emailService;
+        private final SessionManager sessionManager;
 
         @Transactional
         public AuthResponse register(RegisterRequest request) {
@@ -66,13 +67,19 @@ public class AuthService {
         }
 
         public AuthResponse authenticate(LoginRequest request) {
+                User user = userRepository.findByUsernameAndIsDeletedFalse(request.getUsername())
+                                .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Tên đăng nhập không tồn tại"));
+
+                // Chặn đăng nhập nếu tài khoản đang được sử dụng ở nơi khác
+                if (sessionManager.isUserLoggedIn(user.getId())) {
+                        throw new com.codegym.spring_boot.exception.ConcurrentLoginException(
+                                        "Tài khoản của bạn đang được đăng nhập ở một nơi khác. Vui lòng đổi tài khoản!");
+                }
+
                 authenticationManager.authenticate(
                                 new UsernamePasswordAuthenticationToken(
                                                 request.getUsername(),
                                                 request.getPassword()));
-
-                User user = userRepository.findByUsernameAndIsDeletedFalse(request.getUsername())
-                                .orElseThrow();
 
                 String jwtToken = jwtService.generateToken(user);
 

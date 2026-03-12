@@ -24,6 +24,7 @@ public class SocketIOConfig {
     private final JwtService jwtService;
     private final ContestParticipantRepository participantRepository;
     private final com.codegym.spring_boot.repository.UserRepository userRepository;
+    private final com.codegym.spring_boot.service.SessionManager sessionManager;
 
     @Bean
     public SocketIOServer socketIOServer() {
@@ -62,6 +63,7 @@ public class SocketIOConfig {
                     if (userId != null) {
                         String roomName = "user_" + userId;
                         client.joinRoom(roomName);
+                        sessionManager.addSession(userId); // Mark user as online
                         log.info("Client {} (User {}) CONNECTED and joined room: {}", client.getSessionId(), userId,
                                 roomName);
                     } else {
@@ -72,6 +74,18 @@ public class SocketIOConfig {
                 }
             } catch (Exception e) {
                 log.error("Error in Socket.IO ConnectListener", e);
+            }
+        });
+
+        server.addDisconnectListener(client -> {
+            try {
+                Integer userId = extractUserIdFromClient(client);
+                if (userId != null) {
+                    sessionManager.removeSession(userId); // Mark user as offline
+                    log.info("Client {} (User {}) DISCONNECTED", client.getSessionId(), userId);
+                }
+            } catch (Exception e) {
+                log.error("Error in Socket.IO DisconnectListener", e);
             }
         });
 

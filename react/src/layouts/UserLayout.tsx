@@ -17,9 +17,10 @@ import { Avatar } from '../shared/components/Avatar';
 
 interface UserLayoutProps {
     children: React.ReactNode;
+    hideChrome?: boolean;
 }
 
-export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
+export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = false }) => {
     const { user } = useSelector((state: RootState) => state.auth);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -70,7 +71,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full pointer-events-none z-0" />
 
             {/* Navbar */}
-            <nav className="sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
+            <nav className={`sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl ${hideChrome ? 'hidden' : ''}`}>
                 <div className="flex items-center gap-8">
                     <Link to="/home" className="flex items-center gap-2 text-2xl font-bold tracking-tighter shrink-0">
                         <Code weight="fill" className="text-blue-500 text-3xl" />
@@ -147,7 +148,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
             </main>
 
             {/* Footer */}
-            <footer className="bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6">
+            <footer className={`bg-slate-900/60 backdrop-blur-xl border-t border-slate-800 py-8 px-6 z-10 relative ${hideChrome ? 'hidden' : ''}`}>
                 <div className="container mx-auto max-w-7xl flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter">
                         <Code weight="fill" className="text-blue-500 text-3xl" />

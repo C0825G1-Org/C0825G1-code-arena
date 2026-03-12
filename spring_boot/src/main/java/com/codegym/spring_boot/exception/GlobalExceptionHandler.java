@@ -42,6 +42,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(buildError(HttpStatus.BAD_REQUEST, ex.getMessage()));
     }
 
+    // 409: Tài khoản đang được đăng nhập ở nơi khác
+    @ExceptionHandler(ConcurrentLoginException.class)
+    public ResponseEntity<Map<String, Object>> handleConcurrentLogin(ConcurrentLoginException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(buildError(HttpStatus.CONFLICT, ex.getMessage()));
+    }
+
     // 400: Vi phạm State Machine
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalState(IllegalStateException ex) {

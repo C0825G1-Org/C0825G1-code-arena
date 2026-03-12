@@ -57,6 +57,7 @@ export const MonitorPanelPage = () => {
     const [actionUser, setActionUser] = useState<any | null>(null);
 
     const [isKickConfirmOpen, setIsKickConfirmOpen] = useState(false);
+    const [isRefreshingLeaderboard, setIsRefreshingLeaderboard] = useState(false);
 
     useEffect(() => {
         if (streamToPlay && videoRef.current) {
@@ -126,7 +127,7 @@ export const MonitorPanelPage = () => {
         });
 
         socket.on('monitor_camera_violation', (data: { userId: number, isCameraViolating: boolean }) => {
-            setLeaderboard(prev => prev.map(u => 
+            setLeaderboard(prev => prev.map(u =>
                 u.userId === data.userId ? { ...u, isCameraViolating: data.isCameraViolating } : u
             ));
             if (data.isCameraViolating) {
@@ -260,12 +261,15 @@ export const MonitorPanelPage = () => {
 
     const fetchLeaderboard = async (pageNumber: number) => {
         try {
+            setIsRefreshingLeaderboard(true);
             const res: any = await axiosClient.get(`/moderator/dashboard/contests/${id}/monitor/leaderboard?page=${pageNumber}&size=${size}`);
             setLeaderboard(res.content || []);
             setTotalPages(res.totalPages || 1);
             setPage(pageNumber);
         } catch (error) {
             console.error("Failed to load monitor leaderboard", error);
+        } finally {
+            setIsRefreshingLeaderboard(false);
         }
     };
 
@@ -465,9 +469,23 @@ export const MonitorPanelPage = () => {
 
                 {/* LEADERBOARD (Top 5) */}
                 <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                    <h2 className="text-lg flex items-center gap-2 font-bold text-white mb-6 border-b border-slate-800 pb-4">
-                        <i className="ph-duotone ph-trophy text-yellow-500"></i> Bảng xếp hạng (Live)
-                    </h2>
+                    <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                        <h2 className="text-lg flex items-center gap-2 font-bold text-white">
+                            <i className="ph-duotone ph-trophy text-yellow-500"></i> Bảng xếp hạng (Live)
+                        </h2>
+                        <button 
+                            onClick={() => fetchLeaderboard(page)}
+                            disabled={isRefreshingLeaderboard}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                                isRefreshingLeaderboard 
+                                ? 'bg-slate-800 border-slate-700 text-slate-500 cursor-not-allowed' 
+                                : 'bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white hover:border-blue-500'
+                            }`}
+                        >
+                            <i className={`ph-bold ph-arrows-clockwise ${isRefreshingLeaderboard ? 'animate-spin' : ''}`}></i>
+                            {isRefreshingLeaderboard ? 'Đang cập nhật...' : 'Làm mới'}
+                        </button>
+                    </div>
 
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -478,7 +496,7 @@ export const MonitorPanelPage = () => {
                                     <th className="py-4 px-4 font-semibold text-center">Tỉ lệ AC</th>
                                     <th className="py-4 px-4 font-semibold text-center">Penalty</th>
                                     <th className="py-4 px-4 font-semibold text-center">Tổng điểm</th>
-                                    <th className="py-4 px-4 font-semibold text-center rounded-r-lg">Ghi hình</th>
+                                    <th className="py-4 px-4 font-semibold text-center rounded-r-lg">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -493,7 +511,7 @@ export const MonitorPanelPage = () => {
                                             <div className="flex items-center gap-2">
                                                 <div className="font-medium text-white group-hover:text-blue-400 transition-colors">{user.fullname}</div>
                                                 {user.isCameraViolating && (
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             setActionUser(user);
                                                             setIsActionModalOpen(true);
@@ -542,6 +560,18 @@ export const MonitorPanelPage = () => {
                                                     title="Xem Lịch sử Hình ảnh (Snapshots)"
                                                 >
                                                     <i className="ph-bold ph-images"></i>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => {
+                                                        setActionUser(user);
+                                                        setIsKickConfirmOpen(true);
+                                                    }}
+                                                    disabled={user.status === 'DISQUALIFIED'}
+                                                    className="p-2 rounded-lg transition-colors border bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border-rose-500/20 flex items-center justify-center w-9 h-9 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    title="Kick thí sinh khỏi cuộc thi"
+                                                >
+                                                    <i className="ph-bold ph-user-minus"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -686,9 +716,9 @@ export const MonitorPanelPage = () => {
                             <p className="text-slate-400 text-sm mb-6">
                                 Thí sinh <strong>{actionUser.fullname}</strong> đang từ chối bật camera. Bạn muốn làm gì?
                             </p>
-                            
+
                             <div className="grid grid-cols-2 gap-4 w-full">
-                                <button 
+                                <button
                                     onClick={() => {
                                         socket.emit('moderator-warn-participant', { toUserId: actionUser.userId });
                                         toast.success('Đã gửi cảnh báo tới thí sinh');
@@ -698,7 +728,7 @@ export const MonitorPanelPage = () => {
                                 >
                                     Cảnh báo
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setIsKickConfirmOpen(true);
                                     }}
@@ -707,8 +737,8 @@ export const MonitorPanelPage = () => {
                                     Kick
                                 </button>
                             </div>
-                            
-                            <button 
+
+                            <button
                                 onClick={() => setIsActionModalOpen(false)}
                                 className="mt-4 text-slate-500 hover:text-slate-300 text-sm font-medium"
                             >
@@ -731,15 +761,19 @@ export const MonitorPanelPage = () => {
                             <p className="text-slate-400 leading-relaxed mb-8">
                                 Bạn có chắc chắn muốn kick thí sinh <strong className="text-white bg-slate-800 px-2 py-0.5 rounded">{actionUser.fullname}</strong> khỏi cuộc thi? Hành động này <strong className="text-rose-400">không thể hoàn tác</strong>.
                             </p>
-                            
+
                             <div className="grid grid-cols-2 gap-4 w-full">
-                                <button 
-                                    onClick={() => setIsKickConfirmOpen(false)}
+                                <button
+                                    onClick={() => {
+                                        setIsKickConfirmOpen(false);
+                                        // If this was opened from the camera action modal, we don't want to close that one yet? 
+                                        // Actually, let's just clear actionUser if needed, but the current UI flow is fine.
+                                    }}
                                     className="py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl transition-all border border-slate-700"
                                 >
                                     Hủy bỏ
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         socket.emit('moderator-kick-participant', { toUserId: actionUser.userId, contestId: parseInt(id!) });
                                         toast.error('Đã truất quyền thi thí sinh', {
