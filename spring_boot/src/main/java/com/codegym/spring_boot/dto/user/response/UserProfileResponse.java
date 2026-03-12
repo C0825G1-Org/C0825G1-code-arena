@@ -17,5 +17,6 @@ public class UserProfileResponse {
     private String avatarUrl;
     private String bio;
     private String githubLink;
+    private String avatarFrame;
     private java.time.LocalDateTime createdAt;
 }

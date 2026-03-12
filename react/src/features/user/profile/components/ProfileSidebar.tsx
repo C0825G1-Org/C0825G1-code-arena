@@ -23,6 +23,7 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
                 <div className="mt-4 mb-4">
                     <Avatar
                         src={profile?.avatarUrl}
+                        frameUrl={profile?.avatarFrame}
                         userId={profile?.id}
                         size="2xl"
                         borderColor="border-slate-900"

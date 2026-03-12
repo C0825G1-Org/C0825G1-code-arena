@@ -47,6 +47,7 @@ export interface UserProfileResponse {
     fullName: string;
     email: string;
     avatarUrl?: string;
+    avatarFrame?: string | null;
     bio?: string;
     githubLink?: string;
     createdAt?: string; // ISO String

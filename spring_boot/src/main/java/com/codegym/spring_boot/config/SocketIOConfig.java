@@ -21,6 +21,7 @@ import java.util.Map;
 // @RequiredArgsConstructor
 public class SocketIOConfig {
 
+    private final JwtService jwtService;
     private final ContestParticipantRepository participantRepository;
     private final com.codegym.spring_boot.repository.UserRepository userRepository;
     private com.codegym.spring_boot.service.IChatService chatService;
@@ -188,6 +189,12 @@ public class SocketIOConfig {
 
                                 com.codegym.spring_boot.entity.mongo.ChatMessage savedMsg = chatService
                                         .saveMessage(contestId, userId, content);
+
+                                if (savedMsg == null) {
+                                    log.warn("Failed to save/process chat message from User {}", userId);
+                                    return;
+                                }
+
                                 String room = "contest_chat_" + contestId;
 
                                 // Tránh lỗi Jackson không thể serialize LocalDateTime của netty-socketio

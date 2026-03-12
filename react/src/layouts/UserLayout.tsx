@@ -11,7 +11,8 @@ import {
     ShieldStar,
     FacebookLogo,
     TwitterLogo,
-    GithubLogo
+    GithubLogo,
+    ShoppingCart
 } from '@phosphor-icons/react';
 import { Avatar } from '../shared/components/Avatar';
 
@@ -111,6 +112,14 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                             <NotificationBell />
 
                             <Link
+                                to="/shop"
+                                title="Cửa hàng"
+                                className="hidden sm:flex items-center justify-center p-2 text-yellow-400 hover:bg-yellow-500/10 rounded-xl transition-colors border border-yellow-500/20 bg-yellow-500/5 hover:border-yellow-500/50 shrink-0"
+                            >
+                                <ShoppingCart weight="bold" className="text-xl" />
+                            </Link>
+
+                            <Link
                                 to="/profile"
                                 className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
                             >
@@ -124,6 +133,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children }) => {
                                 </div>
                                 <Avatar
                                     src={user?.avatarUrl}
+                                    frameUrl={user?.avatarFrame}
                                     userId={user?.id}
                                     size="md"
                                 />

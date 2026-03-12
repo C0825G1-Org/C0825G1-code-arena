@@ -80,6 +80,7 @@ export const LeaderboardPage: React.FC = () => {
                         </div>
                         <Avatar
                             src={secondPlace.avatarUrl}
+                            frameUrl={secondPlace.avatarFrame}
                             userId={secondPlace.userId}
                             size="xl"
                             alt={secondPlace.username}
@@ -108,6 +109,7 @@ export const LeaderboardPage: React.FC = () => {
                         </div>
                         <Avatar
                             src={firstPlace.avatarUrl}
+                            frameUrl={firstPlace.avatarFrame}
                             userId={firstPlace.userId}
                             size={80} // md:w-24 would be 96, handling responsive with custom size if needed, but keeping it simple
                             alt={firstPlace.username}
@@ -141,6 +143,7 @@ export const LeaderboardPage: React.FC = () => {
                         </div>
                         <Avatar
                             src={thirdPlace.avatarUrl}
+                            frameUrl={thirdPlace.avatarFrame}
                             userId={thirdPlace.userId}
                             size="xl"
                             alt={thirdPlace.username}
@@ -255,6 +258,7 @@ export const LeaderboardPage: React.FC = () => {
                                             <div className="relative">
                                                 <Avatar
                                                     src={u.avatarUrl}
+                                                    frameUrl={u.avatarFrame}
                                                     userId={u.userId}
                                                     size="md"
                                                     alt={u.username}

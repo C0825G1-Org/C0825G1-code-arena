@@ -17,6 +17,7 @@ public class LeaderboardDTO {
     private String username;
     private String fullName;
     private String avatarUrl;
+    private String avatarFrame;
     private Integer totalScore; // Number of AC problems
     private Integer totalPenalty; // Total time penalty
     private Integer totalSolved; // Added

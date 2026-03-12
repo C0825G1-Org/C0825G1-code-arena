@@ -92,6 +92,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
                     .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
+                    .avatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
                     .build();
         });
     }

@@ -24,6 +24,7 @@ import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.SubmissionRepository;
 import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.service.ISubmissionService;
+import com.codegym.spring_boot.service.IShopService;
 import com.codegym.spring_boot.service.JudgeQueueService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class SubmissionService implements ISubmissionService {
         private final ContestParticipantRepository contestParticipantRepository;
         private final NotificationService notificationService;
         private final com.codegym.spring_boot.service.ILeaderboardService leaderboardService;
+        private final IShopService shopService; // Added IShopService dependency
 
         @Override
         @Transactional
@@ -391,7 +393,7 @@ public class SubmissionService implements ISubmissionService {
         }
 
         private void updatePracticeRating(User user, Problem problem) {
-                double userRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
+                int currentRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
                 double problemRating = switch (problem.getDifficulty()) {
                         case easy -> 800.0;
                         case medium -> 1200.0;
@@ -399,17 +401,21 @@ public class SubmissionService implements ISubmissionService {
                 };
 
                 double kFactor = 16.0;
-                double expectedScore = 1.0 / (1.0 + Math.pow(10, (problemRating - userRating) / 400.0));
+                double diff = problemRating - currentRating;
+                double expectedScore = 1.0 / (1.0 + Math.pow(10, diff / 400.0));
                 
                 int ratingChange = (int) Math.round(kFactor * (1.0 - expectedScore));
                 if (ratingChange < 1) ratingChange = 1; // Tối thiểu cộng 1 điểm khi giải quyết được bài tập mới
 
-                int newRating = (int) (userRating + ratingChange);
+                int newRating = currentRating + ratingChange;
                 user.setPracticeRating(newRating);
                 userRepository.save(user);
                 
+                // Add same amount to shopBalance (Total ELO = contest*2 + practice, so practice gives 1x)
+                shopService.addToBalance(user.getId(), ratingChange);
+                
                 log.info("Practice Rating updated for user {}: {} -> {} (+{}) by solving problem {} ({})", 
-                        user.getUsername(), (int)userRating, newRating, ratingChange, problem.getId(), problem.getDifficulty());
+                        user.getUsername(), currentRating, newRating, ratingChange, problem.getId(), problem.getDifficulty());
         }
 
         private SubmissionStatus mapDockerStatusToTestCaseStatus(String status) {

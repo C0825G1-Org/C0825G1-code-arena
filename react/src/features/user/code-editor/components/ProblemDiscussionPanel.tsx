@@ -22,6 +22,7 @@ interface DiscussionMessage {
     userFullName: string;
     userUsername: string;
     userAvatar: string | null;
+    userAvatarFrame?: string | null;
     content: string;
     userIsDiscussionLocked?: boolean;
     createdAt: string;
@@ -218,6 +219,7 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                             <div key={msg.id} className="flex gap-3 items-start group relative">
                                 <Avatar
                                     src={msg.userAvatar}
+                                    frameUrl={msg.userAvatarFrame}
                                     userId={msg.userId}
                                     size="md"
                                     alt={msg.userFullName}
@@ -322,6 +324,7 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                     <div className="flex items-start gap-3">
                         <Avatar
                             src={user?.avatarUrl}
+                            frameUrl={user?.avatarFrame}
                             userId={user?.id}
                             size="md"
                             alt="Me"

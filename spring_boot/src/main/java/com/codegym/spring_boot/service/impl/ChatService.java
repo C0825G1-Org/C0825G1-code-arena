@@ -25,9 +25,8 @@ public class ChatService implements IChatService {
     private final UserRepository userRepository;
 
     @Override
-    public Object saveMessage(Integer contestId, Integer userId, String content) {
+    public com.codegym.spring_boot.entity.mongo.ChatMessage saveMessage(Integer contestId, Integer userId, String content) {
         return null;
-    }
     }
 
     @Override

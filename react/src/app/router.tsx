@@ -20,6 +20,7 @@ import { AdminProblemPage } from '../features/admin/problem/page/AdminProblemPag
 import { AdminProblemCreatePage } from '../features/admin/problem/page/AdminProblemCreatePage';
 import { AdminProblemEditPage } from '../features/admin/problem/page/AdminProblemEditPage';
 import { AdminTestcaseCreatePage } from '../features/admin/testcase/page/AdminTestcaseCreatePage';
+import { AdminShopPage } from '../features/admin/shop/pages/AdminShopPage';
 import { MonitorPanelPage } from '../features/moderator/contests/pages/MonitorPanelPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -33,6 +34,7 @@ import { UserContestResultsPage } from '../features/user/contests/pages/UserCont
 import { LeaderboardPage } from '../features/user/leaderboard/pages/LeaderboardPage';
 import { ProfilePage } from '../features/user/profile/pages/ProfilePage';
 import { SettingsPage } from '../features/user/settings/pages/SettingsPage';
+import { ShopPage } from '../features/user/shop/pages/ShopPage';
 import TutorialEditorPage from '../features/user/code-editor/pages/TutorialEditorPage';
 
 // Error Pages
@@ -166,6 +168,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
                 <LeaderboardPage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/shop',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <ShopPage />
             </ProtectedRoute>
         )
     },
@@ -319,6 +329,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminTestcaseCreatePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/shop',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminShopPage />
             </ProtectedRoute>
         )
     },

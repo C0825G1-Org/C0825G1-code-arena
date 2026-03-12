@@ -180,6 +180,7 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setStatus(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name());
             if (p.getUser().getProfile() != null) {
                 dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
+                dto.setAvatarFrame(p.getUser().getProfile().getAvatarFrame());
             }
 
             // totalPenalty từ DB (đã tích lũy đúng: thời gian + 20ph*lần_sai + 1000ph nếu

@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -94,6 +95,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleNoResult(jakarta.persistence.NoResultException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildError(HttpStatus.NOT_FOUND, ex.getMessage()));
+    }
+
+    // 400: File quá lớn
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildError(HttpStatus.BAD_REQUEST, "Kích thước tệp tải lên vượt quá giới hạn cho phép (tối đa 10MB)"));
     }
 
     // 500: Lỗi không mong đợi

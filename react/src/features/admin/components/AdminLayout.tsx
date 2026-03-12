@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import {
-    HardDrives, SquaresFour, Users, Tag, SignOut, FileText, Trophy, Flask, Cpu
+    HardDrives, SquaresFour, Users, Tag, SignOut, FileText, Trophy, Flask, Cpu, ShoppingCart
 } from '@phosphor-icons/react';
 import { Avatar } from '../../../shared/components/Avatar';
 
@@ -28,7 +28,7 @@ const SidebarLink = ({
 
 export interface AdminLayoutProps {
     title: string;
-    activeTab: 'dashboard' | 'users' | 'tags' | 'problems' | 'contests' | 'testcases';
+    activeTab: 'dashboard' | 'users' | 'tags' | 'problems' | 'contests' | 'testcases' | 'shop';
     children: React.ReactNode;
     contentClassName?: string;
 }
@@ -68,6 +68,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     <SidebarLink href="/admin/problems"  icon={FileText}    label="Quản lý Bài tập" active={activeTab === 'problems'} />
                     <SidebarLink href="/admin/testcases" icon={Flask}       label="Quản lý Testcases" active={activeTab === 'testcases'} />
                     <SidebarLink href="/admin/contests"  icon={Trophy}      label="Quản lý Cuộc thi" active={activeTab === 'contests'} />
+                    <SidebarLink href="/admin/shop"      icon={ShoppingCart}  label="Quản lý Cửa hàng" active={activeTab === 'shop'} />
                 </nav>
 
                 {/* Logout */}
