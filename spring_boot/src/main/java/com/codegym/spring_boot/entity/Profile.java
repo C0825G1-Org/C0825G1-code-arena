@@ -28,4 +28,7 @@ public class Profile {
     @Pattern(regexp = "^(|(https?://)?(www\\.)?github\\.com/.*)$", message = "Link Github không hợp lệ")
     @Column(name = "github_link")
     private String githubLink;
+
+    @Column(name = "avatar_frame")
+    private String avatarFrame;
 }

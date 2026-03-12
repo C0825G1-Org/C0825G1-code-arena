@@ -190,6 +190,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                             <div className="flex items-center gap-3">
                                                 <Avatar
                                                     src={user.avatarUrl}
+                                                    frameUrl={user.avatarFrame}
                                                     userId={user.userId}
                                                     size="md"
                                                     borderColor="border-blue-500/40"

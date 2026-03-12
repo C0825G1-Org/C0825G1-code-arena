@@ -13,7 +13,8 @@ export interface TopCoder {
     username: string;
     fullName: string;
     globalRating: number;
-    avatarUrl?: string;
+    avatarUrl: string | null;
+    avatarFrame?: string | null;
 }
 
 export const userDashboardService = {

@@ -28,7 +28,17 @@ public interface UserRepository extends JpaRepository<User, Integer> {
                          @Param("rating") int rating,
                          @Param("userId") int userId);
 
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND (u.practiceRating > :rating OR (u.practiceRating = :rating AND u.id < :userId))")
+    long countPracticeRank(@Param("role") UserRole role,
+                         @Param("rating") int rating,
+                         @Param("userId") int userId);
+
     List<User> findTop3ByRoleOrderByGlobalRatingDescIdAsc(UserRole role);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND ((u.globalRating * 2 + u.practiceRating) > :score OR ((u.globalRating * 2 + u.practiceRating) = :score AND u.id < :userId))")
+    long countTotalRank(@Param("role") UserRole role, @Param("score") int score, @Param("userId") int userId);
+
+    List<User> findTop3ByRoleOrderByPracticeRatingDescIdAsc(UserRole role);
 
     Page<User> findByRoleAndEmailContainingIgnoreCaseOrRoleAndFullNameContainingIgnoreCase(
             UserRole role1, String email, UserRole role2, String fullName, Pageable pageable);

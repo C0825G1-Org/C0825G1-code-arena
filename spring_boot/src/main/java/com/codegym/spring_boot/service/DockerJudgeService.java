@@ -91,41 +91,65 @@ public class DockerJudgeService {
             Volume appVolume = new Volume("/app");
             Volume testcaseVolume = new Volume("/testcases");
 
-            String hostAppPath = new File(submissionDir).getAbsolutePath().replace("\\", "/");
-            String hostTestcasePath = getProblemsPath(problemId).replace("\\", "/");
+            String hostAppPath = new File(submissionDir).getAbsolutePath();
+            String hostTestcasePath = getProblemsPath(problemId);
 
             // Xử lý isRunOnly: tạo thư mục tạm và copy riêng các sample test case
             if (Boolean.TRUE.equals(isRunOnly) && sampleFilenames != null && !sampleFilenames.isEmpty()) {
+                log.info(">>> [JUDGE] isRunOnly is true, copying samples: {}", sampleFilenames);
                 String tempTestcaseDir = submissionDir + "/testcases";
                 Files.createDirectories(Path.of(tempTestcaseDir));
+                int copiedCount = 0;
                 for (String inFileName : sampleFilenames) {
                     if (inFileName == null)
                         continue;
                     try {
                         String outFileName = inFileName.replace(".in", ".out");
-                        Files.copy(Path.of(hostTestcasePath, inFileName), Path.of(tempTestcaseDir, inFileName));
-                        Files.copy(Path.of(hostTestcasePath, outFileName), Path.of(tempTestcaseDir, outFileName));
+                        Path srcIn = Path.of(getProblemsPath(problemId), inFileName);
+                        Path srcOut = Path.of(getProblemsPath(problemId), outFileName);
+                        if (Files.exists(srcIn)) {
+                            Files.copy(srcIn, Path.of(tempTestcaseDir, inFileName));
+                            copiedCount++;
+                        }
+                        if (Files.exists(srcOut)) {
+                            Files.copy(srcOut, Path.of(tempTestcaseDir, outFileName));
+                        }
                     } catch (Exception ex) {
-                        log.warn(">>> [JUDGE] Cound not copy sample testcase file: {}", inFileName);
+                        log.warn(">>> [JUDGE] Could not copy sample testcase file {}: {}", inFileName, ex.getMessage());
                     }
                 }
-                hostTestcasePath = new File(tempTestcaseDir).getAbsolutePath().replace("\\", "/");
+                log.info(">>> [JUDGE] Copied {} sample test cases to {}", copiedCount, tempTestcaseDir);
+                hostTestcasePath = new File(tempTestcaseDir).getAbsolutePath();
             }
 
+            // Kiểm tra xem thư mục testcases có file nào không trước khi mount
+            File testcaseDir = new File(hostTestcasePath);
+            if (!testcaseDir.exists()) {
+                log.error(">>> [JUDGE] hostTestcasePath DOES NOT EXIST: {}", hostTestcasePath);
+            }
+            File[] files = testcaseDir.listFiles((dir, name) -> name.endsWith(".in"));
+            int inFilesCount = (files != null) ? files.length : 0;
+            log.info(">>> [JUDGE] Final hostTestcasePath: {} (Contains {} .in files)", hostTestcasePath, inFilesCount);
             log.info(">>> [JUDGE] hostAppPath: {}", hostAppPath);
-            log.info(">>> [JUDGE] hostTestcasePath: {}", hostTestcasePath);
+
+            // Chuyển đổi đường dẫn sang định dạng Docker trên Windows (/c/path/...)
+            String dockerAppPath = formatPathForDocker(hostAppPath);
+            String dockerTestcasePath = formatPathForDocker(hostTestcasePath);
+            log.info(">>> [JUDGE] Dockerized hostAppPath: {}", dockerAppPath);
+            log.info(">>> [JUDGE] Dockerized hostTestcasePath: {}", dockerTestcasePath);
 
             HostConfig hostConfig = HostConfig.newHostConfig()
                     .withBinds(
-                            new Bind(hostAppPath, appVolume, AccessMode.rw),
-                            new Bind(hostTestcasePath, testcaseVolume, AccessMode.ro))
-                    .withMemory(256 * 1024 * 1024L) // 256MB
-                    .withMemorySwap(256 * 1024 * 1024L)
+                            new Bind(dockerAppPath, appVolume, AccessMode.rw),
+                            new Bind(dockerTestcasePath, testcaseVolume, AccessMode.ro))
+                    .withMemory(512 * 1024 * 1024L) // Tăng lên 512MB cho ổn định (đặc biệt là Java)
+                    .withMemorySwap(512 * 1024 * 1024L)
                     .withCpuCount(1L)
                     .withNetworkMode("none")
                     .withAutoRemove(false);
 
             // 4. Tạo và chạy container
+            log.info(">>> [JUDGE] Creating container from image: {}", imageName);
             CreateContainerResponse container = dockerClient.createContainerCmd(imageName)
                     .withHostConfig(hostConfig)
                     .withTty(false)
@@ -165,9 +189,9 @@ public class DockerJudgeService {
             // Đo thời gian thực thi
             long startTime = System.currentTimeMillis();
 
-            // Đợi container chạy xong (Thêm timeout 15s để tránh treo hệ thống)
-            log.info(">>> [JUDGE] Waiting for container {} to finish...", containerId);
-            dockerClient.waitContainerCmd(containerId).start().awaitCompletion(15,
+            // Đợi container chạy xong (Thêm timeout 30s để tránh treo hệ thống)
+            log.info(">>> [JUDGE] Waiting for container {} to finish (max 30s)...", containerId);
+            dockerClient.waitContainerCmd(containerId).start().awaitCompletion(30,
                     java.util.concurrent.TimeUnit.SECONDS);
 
             long executionTimeMs = System.currentTimeMillis() - startTime;
@@ -263,5 +287,16 @@ public class DockerJudgeService {
         if (lower.contains("python"))
             return "python";
         return lower.split(" ")[0];
+    }
+
+    private String formatPathForDocker(String path) {
+        if (path == null)
+            return null;
+        String p = path.replace("\\", "/");
+        // Windows path like C:/Users/... -> /c/Users/...
+        if (p.length() >= 2 && p.charAt(1) == ':') {
+            return "/" + Character.toLowerCase(p.charAt(0)) + p.substring(2);
+        }
+        return p;
     }
 }

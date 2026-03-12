@@ -23,6 +23,7 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
                 <div className="mt-4 mb-4">
                     <Avatar
                         src={profile?.avatarUrl}
+                        frameUrl={profile?.avatarFrame}
                         userId={profile?.id}
                         size="2xl"
                         borderColor="border-slate-900"
@@ -42,8 +43,15 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
                     {profile?.bio ? `"${profile.bio}"` : "Chưa cập nhật tiểu sử."}
                 </p>
 
-                <div className="w-full mb-6">
-                    <RankProgression rating={stats?.eloRanking || 0} />
+                <div className="w-full mb-6 space-y-4">
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Hệ Cuộc Thi</p>
+                        <RankProgression rating={stats?.eloRanking || 0} />
+                    </div>
+                    <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Hệ Bài Tập</p>
+                        <RankProgression rating={stats?.practiceRating || 0} />
+                    </div>
                 </div>
 
                 {isOwnProfile && (

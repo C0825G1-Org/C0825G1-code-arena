@@ -20,6 +20,7 @@ import { AdminProblemPage } from '../features/admin/problem/page/AdminProblemPag
 import { AdminProblemCreatePage } from '../features/admin/problem/page/AdminProblemCreatePage';
 import { AdminProblemEditPage } from '../features/admin/problem/page/AdminProblemEditPage';
 import { AdminTestcaseCreatePage } from '../features/admin/testcase/page/AdminTestcaseCreatePage';
+import { AdminShopPage } from '../features/admin/shop/pages/AdminShopPage';
 import { MonitorPanelPage } from '../features/moderator/contests/pages/MonitorPanelPage';
 import { ContestResultsPage } from '../features/moderator/contests/pages/result/ContestResultsPage';
 import { OAuth2RedirectHandler } from '../features/auth/pages/OAuth2RedirectHandler';
@@ -35,6 +36,7 @@ import { ProfilePage } from '../features/user/profile/pages/ProfilePage';
 import { SettingsPage } from '../features/user/settings/pages/SettingsPage';
 import { PricingPage } from '../features/user/subscriptions/pages/PricingPage';
 import { PaymentResultPage } from '../features/user/subscriptions/pages/PaymentResultPage';
+import { ShopPage } from '../features/user/shop/pages/ShopPage';
 import TutorialEditorPage from '../features/user/code-editor/pages/TutorialEditorPage';
 import { UserLayout } from '../layouts/UserLayout';
 
@@ -192,6 +194,14 @@ export const router = createBrowserRouter([
         )
     },
     {
+        path: '/shop',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <ShopPage />
+            </ProtectedRoute>
+        )
+    },
+    {
         path: '/profile',
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
@@ -341,6 +351,14 @@ export const router = createBrowserRouter([
         element: (
             <ProtectedRoute allowedRoles={['ADMIN']}>
                 <AdminTestcaseCreatePage />
+            </ProtectedRoute>
+        )
+    },
+    {
+        path: '/admin/shop',
+        element: (
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminShopPage />
             </ProtectedRoute>
         )
     },

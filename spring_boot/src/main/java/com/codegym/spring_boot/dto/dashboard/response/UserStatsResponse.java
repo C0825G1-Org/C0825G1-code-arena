@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserStatsResponse {
     private int eloRanking;
+    private int practiceRating;
     private double topPercent;
     private long solvedCount;
     private double acRate;

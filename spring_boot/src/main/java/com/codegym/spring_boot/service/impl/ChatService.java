@@ -2,11 +2,11 @@ package com.codegym.spring_boot.service.impl;
 
 import com.codegym.spring_boot.entity.Contest;
 import com.codegym.spring_boot.entity.User;
-import com.codegym.spring_boot.entity.mongo.ChatMessage;
+// import com.codegym.spring_boot.entity.mongo.ChatMessage;
 import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.repository.ContestRepository;
 import com.codegym.spring_boot.repository.UserRepository;
-import com.codegym.spring_boot.repository.mongo.ChatMessageRepository;
+// import com.codegym.spring_boot.repository.mongo.ChatMessageRepository;
 import com.codegym.spring_boot.service.IChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,16 +14,18 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Service
+// @Service
 @RequiredArgsConstructor
 public class ChatService implements IChatService {
+/*
     private final ChatMessageRepository chatMessageRepository;
+*/
     private final ContestRepository contestRepository;
     private final ContestParticipantRepository contestParticipantRepository;
     private final UserRepository userRepository;
 
     @Override
-    public ChatMessage saveMessage(Integer contestId, Integer userId, String content) {
+    public com.codegym.spring_boot.entity.mongo.ChatMessage saveMessage(Integer contestId, Integer userId, String content) {
         if (!canUserChat(contestId, userId)) {
             throw new RuntimeException("Bạn không có quyền chat trong cuộc thi này hoặc thời gian chat đã hết.");
         }
@@ -31,7 +33,7 @@ public class ChatService implements IChatService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại"));
 
-        ChatMessage message = ChatMessage.builder()
+        com.codegym.spring_boot.entity.mongo.ChatMessage message = com.codegym.spring_boot.entity.mongo.ChatMessage.builder()
                 .contestId(contestId)
                 .senderId(userId)
                 .senderName(user.getFullName() != null ? user.getFullName() : user.getUsername())
@@ -47,8 +49,8 @@ public class ChatService implements IChatService {
     }
 
     @Override
-    public List<ChatMessage> getChatHistory(Integer contestId) {
-        return chatMessageRepository.findByContestIdOrderByTimestampAsc(contestId);
+    public List<Object> getChatHistory(Integer contestId) {
+        return java.util.Collections.emptyList();
     }
 
     @Override

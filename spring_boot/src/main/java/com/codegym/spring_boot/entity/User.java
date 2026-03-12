@@ -48,6 +48,12 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "global_rating")
     private Integer globalRating = 0;
 
+    @Column(name = "practice_rating")
+    private Integer practiceRating = 0;
+
+    @Column(name = "shop_balance")
+    private Integer shopBalance = 0;
+
     @Column(name = "is_contest_chat_locked")
     @Builder.Default
     private Boolean isContestChatLocked = false;

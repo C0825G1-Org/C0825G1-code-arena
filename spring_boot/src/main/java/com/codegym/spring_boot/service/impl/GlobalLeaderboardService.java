@@ -22,11 +22,18 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
     private final SubmissionRepository submissionRepository;
 
     @Override
-    public Page<LeaderboardUserResponse> getGlobalLeaderboard(String search, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by("globalRating").descending().and(Sort.by("id").ascending()));
-        Page<User> userPage;
+    public Page<LeaderboardUserResponse> getGlobalLeaderboard(String search, String type, int page, int size) {
+        boolean isTotal = "total".equalsIgnoreCase(type);
+        boolean isPractice = "practice".equalsIgnoreCase(type);
 
+        // For "total", sort by globalRating as the best approximation (DB can't sort by derived expression easily)
+        // True rank will be calculated correctly using countTotalRank query
+        String sortField = isPractice ? "practiceRating" : "globalRating";
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(sortField).descending().and(Sort.by("id").ascending()));
+
+        Page<User> userPage;
         if (search != null && !search.trim().isEmpty()) {
             userPage = userRepository.findByRoleAndEmailContainingIgnoreCaseOrRoleAndFullNameContainingIgnoreCase(
                     UserRole.user, search.trim(), UserRole.user, search.trim(), pageable);
@@ -37,12 +44,42 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
 
         return userPage.map(user -> {
             Integer userId = user.getId();
-            int rating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
-            long trueRank = userRepository.countGlobalRank(UserRole.user, rating, userId) + 1;
+            int contestRating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
+            int practiceRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
 
-            long solvedCount = submissionRepository.countDistinctAcceptedProblemsByUserId(userId, SubmissionStatus.AC);
-            long totalSubs = submissionRepository.countTotalSubmissionsByUserId(userId);
-            long acSubs = submissionRepository.countAcceptedSubmissionsByUserId(userId, SubmissionStatus.AC);
+            int rating;
+            long trueRank;
+
+            if (isTotal) {
+                rating = contestRating * 2 + practiceRating;
+                trueRank = userRepository.countTotalRank(UserRole.user, rating, userId) + 1;
+            } else if (isPractice) {
+                rating = practiceRating;
+                trueRank = userRepository.countPracticeRank(UserRole.user, rating, userId) + 1;
+            } else {
+                rating = contestRating;
+                trueRank = userRepository.countGlobalRank(UserRole.user, rating, userId) + 1;
+            }
+
+            long solvedCount;
+            long totalSubs;
+            long acSubs;
+
+            if (isTotal) {
+                // Tổng hợp: cộng gộp cả bài tập và cuộc thi
+                solvedCount = submissionRepository.countDistinctAcceptedProblemsByUserId(userId, SubmissionStatus.AC);
+                totalSubs = submissionRepository.countTotalSubmissionsByUserId(userId);
+                acSubs = submissionRepository.countAcceptedSubmissionsByUserId(userId, SubmissionStatus.AC);
+            } else if (isPractice) {
+                solvedCount = submissionRepository.countDistinctAcceptedProblemsPractice(userId, SubmissionStatus.AC);
+                totalSubs = submissionRepository.countTotalSubmissionsPractice(userId);
+                acSubs = submissionRepository.countAcceptedSubmissionsPractice(userId, SubmissionStatus.AC);
+            } else {
+                solvedCount = submissionRepository.countDistinctAcceptedProblemsContest(userId, SubmissionStatus.AC);
+                totalSubs = submissionRepository.countTotalSubmissionsContest(userId);
+                acSubs = submissionRepository.countAcceptedSubmissionsContest(userId, SubmissionStatus.AC);
+            }
+
             double acRate = totalSubs > 0 ? ((double) acSubs / totalSubs) * 100 : 0.0;
 
             return LeaderboardUserResponse.builder()
@@ -51,10 +88,11 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .username(user.getUsername())
                     .fullName(user.getFullName())
                     .email(user.getEmail())
-                    .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
+                    .globalRating(rating)
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
                     .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
+                    .avatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
                     .build();
         });
     }
