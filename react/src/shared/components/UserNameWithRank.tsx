@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { getRankByRating } from '../../features/user/shared/utils/rankUtils';
+import { getRankByRating, RankType } from '../../features/user/shared/utils/rankUtils';
 
 interface Props {
     username: string;
     globalRating?: number;
+    type?: RankType;
     className?: string;
 }
 
-const UserNameWithRank: React.FC<Props> = ({ username, globalRating, className = '' }) => {
-    const tier = getRankByRating(globalRating || 0);
+const UserNameWithRank: React.FC<Props> = ({ username, globalRating, type = 'contest', className = '' }) => {
+    const tier = getRankByRating(globalRating || 0, type);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const badgeRef = useRef<HTMLSpanElement>(null);
 

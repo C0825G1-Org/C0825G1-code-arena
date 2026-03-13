@@ -46,15 +46,18 @@ public class User extends BaseEntity implements UserDetails {
     private UserRole role = UserRole.user;
 
     @Column(name = "global_rating")
+    @Builder.Default
     private Integer globalRating = 0;
 
     @Column(name = "previous_global_rating")
     private Integer previousGlobalRating = 0;
 
     @Column(name = "practice_rating")
+    @Builder.Default
     private Integer practiceRating = 0;
 
     @Column(name = "shop_balance")
+    @Builder.Default
     private Integer shopBalance = 0;
 
     @Column(name = "is_contest_chat_locked")

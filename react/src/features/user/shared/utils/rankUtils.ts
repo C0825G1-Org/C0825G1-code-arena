@@ -13,6 +13,8 @@ export interface RankTier {
     badgeBg: string;         // tailwind bg class cho badge nền
 }
 
+export type RankType = 'contest' | 'practice' | 'total';
+
 export const RANK_TIERS: RankTier[] = [
     {
         name: 'Tân binh (Newbie)',
@@ -76,8 +78,25 @@ export const RANK_TIERS: RankTier[] = [
     },
 ];
 
-export const getRankByRating = (rating: number): RankTier => {
+export const CONTEST_RANK_TIERS: RankTier[] = [...RANK_TIERS];
+
+export const PRACTICE_RANK_TIERS: RankTier[] = [...RANK_TIERS];
+
+export const TOTAL_RANK_TIERS: RankTier[] = [
+    { ...RANK_TIERS[0], min: 0, max: 99 },
+    { ...RANK_TIERS[1], min: 100, max: 299 },
+    { ...RANK_TIERS[2], min: 300, max: 749 },
+    { ...RANK_TIERS[3], min: 750, max: 1499 },
+    { ...RANK_TIERS[4], min: 1500, max: 2499 },
+    { ...RANK_TIERS[5], min: 2500, max: 20000 },
+];
+
+export const getRankByRating = (rating: number, type: RankType = 'contest'): RankTier => {
     const val = rating || 0;
-    const tier = RANK_TIERS.find(t => val >= t.min && val <= t.max);
-    return tier || RANK_TIERS[0];
+    let tiers = CONTEST_RANK_TIERS;
+    if (type === 'practice') tiers = PRACTICE_RANK_TIERS;
+    if (type === 'total') tiers = TOTAL_RANK_TIERS;
+    
+    const tier = tiers.find(t => val >= t.min && val <= t.max);
+    return tier || tiers[0];
 };

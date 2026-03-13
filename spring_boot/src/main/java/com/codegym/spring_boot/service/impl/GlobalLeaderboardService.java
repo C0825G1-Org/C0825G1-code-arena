@@ -47,18 +47,22 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
             int contestRating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
             int practiceRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
 
-            int rating;
+            int displayRating;
+            int rankRating; // Dùng để tính hạng
             long trueRank;
 
             if (isTotal) {
-                rating = contestRating * 2 + practiceRating;
-                trueRank = userRepository.countTotalRank(UserRole.user, rating, userId) + 1;
+                rankRating = contestRating * 2 + practiceRating;
+                displayRating = rankRating; // Hiển thị tổng ELO cho bảng Tổng
+                trueRank = userRepository.countTotalRank(UserRole.user, rankRating, userId) + 1;
             } else if (isPractice) {
-                rating = practiceRating;
-                trueRank = userRepository.countPracticeRank(UserRole.user, rating, userId) + 1;
+                rankRating = practiceRating;
+                displayRating = practiceRating;
+                trueRank = userRepository.countPracticeRank(UserRole.user, rankRating, userId) + 1;
             } else {
-                rating = contestRating;
-                trueRank = userRepository.countGlobalRank(UserRole.user, rating, userId) + 1;
+                rankRating = contestRating;
+                displayRating = contestRating;
+                trueRank = userRepository.countGlobalRank(UserRole.user, rankRating, userId) + 1;
             }
 
             long solvedCount;
@@ -88,7 +92,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .username(user.getUsername())
                     .fullName(user.getFullName())
                     .email(user.getEmail())
-                    .globalRating(rating)
+                    .globalRating(displayRating)
                     .previousGlobalRating(user.getPreviousGlobalRating() != null ? user.getPreviousGlobalRating() : 0)
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
