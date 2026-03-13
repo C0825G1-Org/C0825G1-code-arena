@@ -11,10 +11,7 @@ import java.util.TimeZone;
 @EnableAsync
 @EnableScheduling
 @EnableJpaAuditing
-@SpringBootApplication(exclude = {
-        org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration.class,
-        org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration.class
-})
+@SpringBootApplication
 public class Application {
 
     public static void main(String[] args) {
