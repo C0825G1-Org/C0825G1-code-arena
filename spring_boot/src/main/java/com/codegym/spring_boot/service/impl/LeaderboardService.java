@@ -180,6 +180,7 @@ public class LeaderboardService implements ILeaderboardService {
             dto.setStatus(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name());
             if (p.getUser().getProfile() != null) {
                 dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
+                dto.setAvatarFrame(p.getUser().getProfile().getAvatarFrame());
             }
             dto.setGlobalRating(p.getUser().getGlobalRating());
             dto.setPreviousGlobalRating(p.getUser().getPreviousGlobalRating());

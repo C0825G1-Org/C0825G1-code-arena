@@ -68,4 +68,14 @@ public class UserSettingsController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @Operation(summary = "Equip avatar frame", description = "Equips a purchased avatar frame.")
+    @PatchMapping("/equip-frame/{itemId}")
+    public ResponseEntity<UserProfileResponse> equipFrame(
+            @AuthenticationPrincipal User user,
+            @PathVariable Integer itemId) {
+        if (user == null)
+            return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(userSettingsService.equipFrame(user, itemId));
+    }
 }

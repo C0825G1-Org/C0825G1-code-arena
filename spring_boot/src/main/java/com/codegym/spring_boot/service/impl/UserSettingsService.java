@@ -5,6 +5,9 @@ import com.codegym.spring_boot.dto.user.request.UpdateProfileRequest;
 import com.codegym.spring_boot.dto.user.response.UserProfileResponse;
 import com.codegym.spring_boot.entity.Profile;
 import com.codegym.spring_boot.entity.User;
+import com.codegym.spring_boot.entity.ShopItem;
+import com.codegym.spring_boot.repository.ShopItemRepository;
+import com.codegym.spring_boot.repository.ShopPurchaseRepository;
 import com.codegym.spring_boot.repository.ProfileRepository;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.service.CloudinaryService;
@@ -27,6 +30,8 @@ public class UserSettingsService implements IUserSettingsService {
     private final ProfileRepository profileRepository;
     private final CloudinaryService cloudinaryService;
     private final PasswordEncoder passwordEncoder;
+    private final ShopPurchaseRepository shopPurchaseRepository;
+    private final ShopItemRepository shopItemRepository;
 
     @Override
     public UserProfileResponse getUserProfile(User user) {
@@ -44,6 +49,7 @@ public class UserSettingsService implements IUserSettingsService {
                 .avatarUrl(profile != null ? profile.getAvatarUrl() : null)
                 .bio(profile != null ? profile.getBio() : null)
                 .githubLink(profile != null ? profile.getGithubLink() : null)
+                .avatarFrame(profile != null ? profile.getAvatarFrame() : null)
                 .createdAt(freshUser.getCreatedAt())
                 .build();
     }
@@ -107,5 +113,35 @@ public class UserSettingsService implements IUserSettingsService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return getUserProfile(user);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse equipFrame(User user, Integer itemId) {
+        // 1. Check if user owns the item
+        if (!shopPurchaseRepository.existsByUserIdAndItemId(user.getId(), itemId)) {
+            throw new RuntimeException("Bạn không sở hữu vật phẩm này.");
+        }
+
+        // 2. Check if item is an avatar frame
+        ShopItem item = shopItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Vật phẩm không tồn tại."));
+
+        if (!"avatar_frame".equalsIgnoreCase(item.getCategory())) {
+            throw new RuntimeException("Vật phẩm không phải là khung avatar.");
+        }
+
+        // 3. Update profile
+        User freshUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại."));
+        Profile profile = freshUser.getProfile();
+        if (profile == null) {
+            profile = new Profile();
+            profile.setUser(freshUser);
+        }
+        profile.setAvatarFrame(item.getImageUrl());
+        profileRepository.save(profile);
+
+        return getUserProfile(freshUser);
     }
 }

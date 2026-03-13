@@ -385,9 +385,10 @@ export const UserHomePage: React.FC = () => {
                                                 </div>
                                                 <Avatar
                                                     src={coder.avatarUrl}
+                                                    frameUrl={coder.avatarFrame}
                                                     userId={coder.userId}
-                                                    size="sm"
-                                                    borderColor="border-slate-700"
+                                                    size="md"
+                                                    borderColor="border-yellow-500/30"
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <div className={`font-semibold truncate ${index === 0 ? 'text-yellow-400' : 'text-white'}`}>

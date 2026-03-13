@@ -20,4 +20,5 @@ public class LeaderboardUserResponse {
     private Double acRate;
     private String avatarUrl;
     private Integer previousGlobalRating;
+    private String avatarFrame;
 }

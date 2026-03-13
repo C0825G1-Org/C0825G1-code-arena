@@ -8,6 +8,7 @@ interface AvatarProps {
     className?: string;
     borderColor?: string;
     showOnlineStatus?: boolean;
+    frameUrl?: string | null;
     onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -19,6 +20,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     className = '',
     borderColor = 'border-blue-500/50',
     showOnlineStatus = false,
+    frameUrl,
     onClick
 }) => {
     // Definining standard sizes
@@ -39,7 +41,7 @@ export const Avatar: React.FC<AvatarProps> = ({
 
     return (
         <div
-            className={`relative flex-shrink-0 rounded-full ${onClick ? 'cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all' : ''} ${className}`}
+            className={`relative flex-shrink-0 rounded-full overflow-visible ${onClick ? 'cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all' : ''} ${className}`}
             onClick={onClick}
             style={customStyle}
         >
@@ -55,9 +57,18 @@ export const Avatar: React.FC<AvatarProps> = ({
                     }
                 }}
             />
+            {frameUrl && (
+                <div className="absolute inset-[-12%] pointer-events-none z-10 flex items-center justify-center">
+                    <img 
+                        src={frameUrl} 
+                        alt="Frame" 
+                        className="w-[124%] h-[124%] max-w-none object-contain animate-pulse-subtle"
+                    />
+                </div>
+            )}
             {showOnlineStatus && (
                 <span
-                    className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full"
+                    className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full z-20"
                     title="Online"
                 ></span>
             )}

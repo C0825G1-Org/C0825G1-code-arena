@@ -15,4 +15,5 @@ public class TopCoderResponse {
     private String fullName;
     private Integer globalRating;
     private String avatarUrl;
+    private String avatarFrame;
 }

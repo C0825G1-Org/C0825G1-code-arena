@@ -34,6 +34,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
      boolean existsByUserIdAndProblemIdAndContestIdAndStatusAndIdLessThan(Integer userId, Integer problemId,
                Integer contestId, SubmissionStatus status, Integer submissionId);
 
+     boolean existsByUserIdAndProblemIdAndContestIsNullAndStatus(Integer userId, Integer problemId, SubmissionStatus status);
+
+     List<Submission> findByContestIsNullAndStatusOrderByIdAsc(SubmissionStatus status);
+
      // Đếm số lần Failed (Status NOT AC) trước cái Submission ID hiện tại của kỳ thi
      // đó
      int countByUserIdAndProblemIdAndContestIdAndIdLessThanAndStatusNot(Integer userId, Integer problemId,
@@ -71,6 +75,28 @@ public interface SubmissionRepository extends JpaRepository<Submission, Integer>
 
      @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = :status")
      long countAcceptedSubmissionsByUserId(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+     // --- Independent Stats (Contest vs Practice) ---
+
+     @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status AND s.contest IS NULL")
+     long countDistinctAcceptedProblemsPractice(@Param("userId") Integer userId,
+               @Param("status") SubmissionStatus status);
+
+     @Query("SELECT COUNT(DISTINCT s.problem.id) FROM Submission s WHERE s.user.id = :userId AND s.status = :status AND s.contest IS NOT NULL")
+     long countDistinctAcceptedProblemsContest(@Param("userId") Integer userId,
+               @Param("status") SubmissionStatus status);
+
+     @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.contest IS NULL")
+     long countTotalSubmissionsPractice(@Param("userId") Integer userId);
+
+     @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.contest IS NOT NULL")
+     long countTotalSubmissionsContest(@Param("userId") Integer userId);
+
+     @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = :status AND s.contest IS NULL")
+     long countAcceptedSubmissionsPractice(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
+
+     @Query("SELECT COUNT(s) FROM Submission s WHERE s.user.id = :userId AND s.status = :status AND s.contest IS NOT NULL")
+     long countAcceptedSubmissionsContest(@Param("userId") Integer userId, @Param("status") SubmissionStatus status);
 
      @Query("SELECT DISTINCT CAST(s.createdAt AS DATE) FROM Submission s WHERE s.user.id = :userId AND s.status = :status ORDER BY CAST(s.createdAt AS DATE) DESC")
      List<java.sql.Date> findDistinctAcceptedDatesByUserIdDesc(@Param("userId") Integer userId,

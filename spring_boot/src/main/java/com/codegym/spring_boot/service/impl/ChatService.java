@@ -17,13 +17,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ChatService implements IChatService {
+
     private final ChatMessageRepository chatMessageRepository;
     private final ContestRepository contestRepository;
     private final ContestParticipantRepository contestParticipantRepository;
     private final UserRepository userRepository;
 
     @Override
-    public ChatMessage saveMessage(Integer contestId, Integer userId, String content) {
+    public com.codegym.spring_boot.entity.mongo.ChatMessage saveMessage(Integer contestId, Integer userId, String content) {
         if (!canUserChat(contestId, userId)) {
             throw new RuntimeException("Bạn không có quyền chat trong cuộc thi này hoặc thời gian chat đã hết.");
         }
@@ -47,8 +48,8 @@ public class ChatService implements IChatService {
     }
 
     @Override
-    public List<ChatMessage> getChatHistory(Integer contestId) {
-        return chatMessageRepository.findByContestIdOrderByTimestampAsc(contestId);
+    public List<Object> getChatHistory(Integer contestId) {
+        return java.util.Collections.emptyList();
     }
 
     @Override

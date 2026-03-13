@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module version="4">
-  <component name="TemplatesService">
-    <option name="TEMPLATE_CONFIGURATION" value="Chameleon" />
-    <option name="TEMPLATE_FOLDERS">
-      <list>
-        <option value="$MODULE_DIR$/spring_boot/bin/main/templates" />
-      </list>
-    </option>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/react/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/spring_boot/.gradle" />
+      <excludeFolder url="file://$MODULE_DIR$/spring_boot/build" />
+      <excludeFolder url="file://$MODULE_DIR$/spring_boot/out" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
