@@ -24,4 +24,6 @@ public interface ITestCaseRepository extends JpaRepository<TestCase, Integer> {
     // maxScore)
     @Query("SELECT COALESCE(SUM(COALESCE(t.scoreWeight, 1)), 0) FROM TestCase t WHERE t.problem.id = :problemId")
     int sumScoreWeightByProblemId(@Param("problemId") Integer problemId);
+
+    void deleteByProblemId(Integer problemId);
 }

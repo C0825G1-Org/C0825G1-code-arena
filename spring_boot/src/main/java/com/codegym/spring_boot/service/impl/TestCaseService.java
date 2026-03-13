@@ -12,6 +12,7 @@ import com.codegym.spring_boot.repository.ITestCaseRepository;
 import com.codegym.spring_boot.repository.UserRepository;
 import com.codegym.spring_boot.repository.ContestParticipantRepository;
 import com.codegym.spring_boot.repository.ContestProblemRepository;
+import com.codegym.spring_boot.repository.ISubmissionTestResultRepository;
 import com.codegym.spring_boot.service.ContestService;
 import com.codegym.spring_boot.service.ITestCaseService;
 import com.codegym.spring_boot.entity.ContestProblem;
@@ -49,6 +50,7 @@ public class TestCaseService implements ITestCaseService {
     private final ContestProblemRepository contestProblemRepository;
     private final ContestParticipantRepository contestParticipantRepository;
     private final ContestService contestService;
+    private final ISubmissionTestResultRepository submissionTestResultRepository;
 
     @Value("${storage.testcases.path:./data/testcases}")
     private String storagePathBase;
@@ -58,13 +60,15 @@ public class TestCaseService implements ITestCaseService {
             UserRepository userRepository,
             ContestProblemRepository contestProblemRepository,
             ContestParticipantRepository contestParticipantRepository,
-            ContestService contestService) {
+            ContestService contestService,
+            ISubmissionTestResultRepository submissionTestResultRepository) {
         this.testCaseRepository = testCaseRepository;
         this.problemRepository = problemRepository;
         this.userRepository = userRepository;
         this.contestProblemRepository = contestProblemRepository;
         this.contestParticipantRepository = contestParticipantRepository;
         this.contestService = contestService;
+        this.submissionTestResultRepository = submissionTestResultRepository;
     }
 
     @Override
@@ -255,6 +259,35 @@ public class TestCaseService implements ITestCaseService {
         if (count == 0) {
             problem.setTestcaseStatus(TestCaseStatus.not_uploaded);
             problemRepository.save(problem);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteByProblemId(Integer problemId) {
+        // 1. Xóa tất cả SubmissionTestResult liên quan đến các TestCase của Problem này
+        submissionTestResultRepository.deleteByProblemId(problemId);
+
+        // 2. Xóa tất cả TestCase trong DB
+        testCaseRepository.deleteByProblemId(problemId);
+
+        // 3. Xóa thư mục test case vật lý
+        try {
+            Path problemDir = Paths.get(storagePathBase, "problem_" + problemId);
+            if (Files.exists(problemDir)) {
+                // Sử dụng walk để xóa đệ quy (thư mục và files bên trong)
+                Files.walk(problemDir)
+                        .sorted((p1, p2) -> p2.compareTo(p1)) // Xóa file trước, folder sau
+                        .forEach(p -> {
+                            try {
+                                Files.delete(p);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

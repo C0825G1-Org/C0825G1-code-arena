@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Question, Star
+    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Question, Star,
+    ArrowUp, ArrowDown, Minus
 } from '@phosphor-icons/react';
 import { RootState } from '../../../../app/store';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
@@ -103,7 +104,12 @@ export const LeaderboardPage: React.FC = () => {
                         <div className="flex justify-center mb-1">
                             <UserNameWithRank username={secondPlace.username} globalRating={secondPlace.globalRating} type={type} className="text-xs" />
                         </div>
-                        <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs text-blue-400 font-mono">{secondPlace.globalRating} ELO</span>
+                            <div className="flex-shrink-0">
+                                {renderRatingChange(secondPlace.globalRating, secondPlace.previousGlobalRating)}
+                            </div>
+                        </div>
                         <div className="w-full h-[100px] border-t-2 border-slate-400 bg-gradient-to-b from-slate-400/20 to-transparent rounded-t-xl flex justify-center items-start pt-4 shadow-xl">
                             <span className="text-4xl font-black text-slate-500/50">2</span>
                         </div>
@@ -135,10 +141,13 @@ export const LeaderboardPage: React.FC = () => {
                         <div className="flex justify-center mb-1">
                             <UserNameWithRank username={firstPlace.username} globalRating={firstPlace.globalRating} type={type} className="text-sm" />
                         </div>
-                        <div className="flex justify-center mb-2">
+                        <div className="flex justify-center items-center gap-2 mb-2">
                             <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
                                 {firstPlace.globalRating} ELO
                             </span>
+                            <div className="flex-shrink-0 scale-90">
+                                {renderRatingChange(firstPlace.globalRating, firstPlace.previousGlobalRating)}
+                            </div>
                         </div>
                         <div className="w-full h-[140px] border-t-2 border-yellow-500 bg-gradient-to-b from-yellow-500/20 to-transparent rounded-t-xl flex justify-center items-start pt-6 shadow-xl relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-t from-transparent to-yellow-500/10 w-full h-full"></div>
@@ -172,12 +181,38 @@ export const LeaderboardPage: React.FC = () => {
                         <div className="flex justify-center mb-1">
                             <UserNameWithRank username={thirdPlace.username} globalRating={thirdPlace.globalRating} type={type} className="text-xs" />
                         </div>
-                        <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs text-blue-400 font-mono">{thirdPlace.globalRating} ELO</span>
+                            <div className="flex-shrink-0">
+                                {renderRatingChange(thirdPlace.globalRating, thirdPlace.previousGlobalRating)}
+                            </div>
+                        </div>
                         <div className="w-full h-[80px] border-t-2 border-orange-600 bg-gradient-to-b from-orange-600/20 to-transparent rounded-t-xl flex justify-center items-start pt-2 shadow-xl">
                             <span className="text-4xl font-black text-orange-700/50">3</span>
                         </div>
                     </div>
                 )}
+            </div>
+        );
+    };
+
+    const renderRatingChange = (current: number, previous: number | undefined | null) => {
+        if (previous === undefined || previous === null || current === previous) {
+            return <Minus weight="bold" className="text-slate-500" />;
+        }
+        const diff = current - previous;
+        if (diff > 0) {
+            return (
+                <div className="flex items-center text-emerald-500 gap-0.5 animate-pulse">
+                    <ArrowUp weight="bold" />
+                    <span className="text-[10px] font-bold">+{diff}</span>
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center text-rose-500 gap-0.5">
+                <ArrowDown weight="bold" />
+                <span className="text-[10px] font-bold">{diff}</span>
             </div>
         );
     };
@@ -324,11 +359,16 @@ export const LeaderboardPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
-                                                ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
-                                                    : getRankByRating(u.globalRating, type).color}`}>
-                                                {u.globalRating}
-                                            </span>
+                                            <div className="flex flex-col items-end">
+                                                <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
+                                                    ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
+                                                        : getRankByRating(u.globalRating, type).color}`}>
+                                                    {u.globalRating}
+                                                </span>
+                                                <div className="flex justify-end mt-1">
+                                                    {renderRatingChange(u.globalRating, u.previousGlobalRating)}
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 )) : !loading && (

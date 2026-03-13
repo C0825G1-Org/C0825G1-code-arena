@@ -61,4 +61,10 @@ public class ProblemController {
         problemService.deleteProblem(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/restore")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
+    public ResponseEntity<Boolean> restoreProblem(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(problemService.restoreProblem(id));
+    }
 }

@@ -4,11 +4,13 @@ import { toast } from 'react-toastify';
 import { AdminLayout } from '../../components/AdminLayout';
 import { adminProblemApi, AdminProblemResponseDTO } from '../services/adminProblemApi';
 import { DeleteModal } from '../../../moderator/problem/DeleteModal';
+import { RestoreModal } from '../../../moderator/problem/RestoreModal';
 
 export const AdminProblemPage = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [difficulty, setDifficulty] = useState('');
+    const [testcaseFilter, setTestcaseFilter] = useState('');
     const [problems, setProblems] = useState<AdminProblemResponseDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -38,6 +40,7 @@ export const AdminProblemPage = () => {
         }
     };
 
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -58,14 +61,15 @@ export const AdminProblemPage = () => {
     // Reset pages on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, difficulty]);
+    }, [searchTerm, difficulty, testcaseFilter]);
 
     // Derived states for pagination & filter
     const filteredProblemsList = problems.filter((prob) => {
         const term = searchTerm.toLowerCase();
         const matchesSearch = prob.title.toLowerCase().includes(term) || String(prob.id) === term || (prob.authorName && prob.authorName.toLowerCase().includes(term)) || (prob.authorUsername && prob.authorUsername.toLowerCase().includes(term));
         const matchesDifficulty = difficulty ? prob.difficulty === difficulty : true;
-        return matchesSearch && matchesDifficulty;
+        const matchesTestcase = testcaseFilter ? prob.testcaseStatus === testcaseFilter : true;
+        return matchesSearch && matchesDifficulty && matchesTestcase;
     });
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -111,6 +115,15 @@ export const AdminProblemPage = () => {
                             <option value="medium">Medium</option>
                             <option value="hard">Hard</option>
                         </select>
+                        <select
+                            value={testcaseFilter}
+                            onChange={(e) => setTestcaseFilter(e.target.value)}
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-full md:w-auto"
+                        >
+                            <option value="">Tất cả trạng thái Test</option>
+                            <option value="ready">Đã có Testcase</option>
+                            <option value="not_uploaded">Chưa có Testcase</option>
+                        </select>
                     </div>
 
                     <button
@@ -155,7 +168,7 @@ export const AdminProblemPage = () => {
                                 <tr key={prob.id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
                                     <td className="px-6 py-4 font-mono">#{prob.id}</td>
                                     <td className="px-6 py-4 font-medium text-white max-w-[200px] truncate" title={prob.title}>
-                                        {prob.title}
+                                        <span>{prob.title}</span>
                                     </td>
                                     <td className="px-6 py-4 min-w-[150px]">
                                         {prob.authorUsername ? (

@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { ModeratorLayout } from '../components/ModeratorLayout';
 import { problemApi, ProblemResponseDTO } from '../services/problemApi';
 import { DeleteModal } from './DeleteModal';
+import { RestoreModal } from './RestoreModal';
 import { RootState } from '../../../app/store';
 import { DiscussionModal } from './DiscussionModal';
 
@@ -13,6 +14,7 @@ export const ListPage = () => {
     const currentUser = useSelector((state: RootState) => state.auth.user);
     const [searchTerm, setSearchTerm] = useState('');
     const [difficulty, setDifficulty] = useState('');
+    const [testcaseFilter, setTestcaseFilter] = useState('');
     const [difficulties, setDifficulties] = useState<string[]>([]);
     const [problems, setProblems] = useState<ProblemResponseDTO[]>([]);
     const [loading, setLoading] = useState(false);
@@ -48,6 +50,7 @@ export const ListPage = () => {
         }
     };
 
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -77,14 +80,15 @@ export const ListPage = () => {
     // Reset pages on filter change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, difficulty]);
+    }, [searchTerm, difficulty, testcaseFilter]);
 
     // Derived states for pagination & filter
     const filteredProblemsList = problems.filter((prob) => {
         const term = searchTerm.toLowerCase();
         const matchesSearch = prob.title.toLowerCase().includes(term) || String(prob.id) === term;
         const matchesDifficulty = difficulty ? prob.difficulty === difficulty : true;
-        return matchesSearch && matchesDifficulty;
+        const matchesTestcase = testcaseFilter ? prob.testcaseStatus === testcaseFilter : true;
+        return matchesSearch && matchesDifficulty && matchesTestcase;
     });
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -134,6 +138,15 @@ export const ListPage = () => {
                                 </option>
                             ))}
                         </select>
+                        <select
+                            value={testcaseFilter}
+                            onChange={(e) => setTestcaseFilter(e.target.value)}
+                            className="bg-[#1e293b] border border-[#334155] text-slate-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none w-full md:w-auto"
+                        >
+                            <option value="">Tất cả trạng thái Test</option>
+                            <option value="ready">Đã có Testcase</option>
+                            <option value="not_uploaded">Chưa có Testcase</option>
+                        </select>
                     </div>
 
                     <button
@@ -177,7 +190,7 @@ export const ListPage = () => {
                                 <tr key={prob.id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
                                     <td className="px-6 py-4 font-mono">#{prob.id}</td>
                                     <td className="px-6 py-4 font-medium text-white max-w-[250px] truncate" title={prob.title}>
-                                        {prob.title}
+                                        <span>{prob.title}</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`${getDifficultyClass(prob.difficulty)} border px-2 py-1 rounded text-xs font-semibold`}>

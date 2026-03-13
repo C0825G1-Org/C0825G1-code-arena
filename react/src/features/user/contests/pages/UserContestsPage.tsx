@@ -245,26 +245,13 @@ export const UserContestsPage = () => {
             );
         }
 
-        if (contest.status === 'upcoming') {
+        if (contest.status === 'upcoming' || contest.status === 'active') {
             return (
                 <button
-                    disabled
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg font-medium bg-slate-800 text-slate-400 border border-slate-700/50 cursor-not-allowed flex justify-center items-center"
+                    onClick={() => navigate(`/contests/${contest.id}`)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition-colors flex justify-center items-center"
                 >
-                    Chờ bắt đầu
-                </button>
-            );
-        }
-
-        if (contest.status === 'active') {
-            const destUrl = `/contests/${contest.id}`;
-
-            return (
-                <button
-                    onClick={() => navigate(destUrl)}
-                    className="w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2"
-                >
-                    Vào Thi <ArrowRight weight="bold" />
+                    Xem chi tiết
                 </button>
             );
         }

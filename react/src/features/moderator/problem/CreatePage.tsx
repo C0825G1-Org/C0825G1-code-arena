@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ModeratorLayout } from '../components/ModeratorLayout';
-import { problemApi, TagDTO, LanguageDTO } from '../services/problemApi';
+import { problemApi, TagDTO, LanguageDTO, ProblemResponseDTO } from '../services/problemApi';
+import { RestoreModal } from './RestoreModal';
 
 export const CreatePage = () => {
     const navigate = useNavigate();
@@ -24,6 +25,11 @@ export const CreatePage = () => {
     const [allLanguages, setAllLanguages] = useState<LanguageDTO[]>([]);
     const [ioTemplates, setIoTemplates] = useState<{ languageId: number, templateCode: string }[]>([]);
     const [selectedLangId, setSelectedLangId] = useState<number | ''>('');
+
+    // Restore context
+    const [restoreModalOpen, setRestoreModalOpen] = useState(false);
+    const [problemToRestore, setProblemToRestore] = useState<ProblemResponseDTO | null>(null);
+    const [isRestoring, setIsRestoring] = useState(false);
 
     useEffect(() => {
         const fetchFormData = async () => {
@@ -54,8 +60,33 @@ export const CreatePage = () => {
             return;
         }
 
+        if (timeLimit < 100 || timeLimit > 5000) {
+            toast.warning('Giới hạn thời gian phải từ 100ms đến 5000ms!');
+            return;
+        }
+
+        if (memoryLimit < 16 || memoryLimit > 1024) {
+            toast.warning('Giới hạn bộ nhớ phải từ 16MB đến 1024MB!');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
+            // Check slug existence first
+            const existingProb = await problemApi.getProblemBySlug(slug);
+            if (existingProb) {
+                if (existingProb.isDeleted) {
+                    setProblemToRestore(existingProb);
+                    setRestoreModalOpen(true);
+                    setIsSubmitting(false);
+                    return;
+                } else {
+                    toast.error('Slug đã tồn tại trên một bài tập khác. Vui lòng chọn slug khác!');
+                    setIsSubmitting(false);
+                    return;
+                }
+            }
+
             await problemApi.createProblem({
                 title,
                 slug,
@@ -70,9 +101,25 @@ export const CreatePage = () => {
             navigate('/moderator/problems');
         } catch (error) {
             console.error('Lỗi khi tạo bài tập', error);
-            toast.error('Có lỗi xảy ra khi tạo bài tập! Vui lòng kiểm tra lại (có thể do trùng Slug).');
+            toast.error('Có lỗi xảy ra khi tạo bài tập! Vui lòng kiểm tra lại.');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleRestoreConfirm = async () => {
+        if (!problemToRestore) return;
+        setIsRestoring(true);
+        try {
+            await problemApi.restoreProblem(problemToRestore.id);
+            toast.success('Khôi phục bài tập thành công!');
+            navigate('/moderator/problems');
+        } catch (error) {
+            console.error('Lỗi khi khôi phục', error);
+            toast.error('Không thể khôi phục bài tập!');
+        } finally {
+            setIsRestoring(false);
+            setRestoreModalOpen(false);
         }
     };
 
@@ -330,6 +377,7 @@ export const CreatePage = () => {
                                         />
                                         <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">ms</span>
                                     </div>
+                                    <p className="mt-1 text-xs text-slate-500 italic">Giới hạn: 100ms - 5000ms</p>
                                 </div>
 
                                 <div>
@@ -343,6 +391,7 @@ export const CreatePage = () => {
                                         />
                                         <span className="shrink-0 bg-[#334155] border border-l-0 border-[#334155] text-slate-300 px-3 py-2.5 rounded-r-lg font-mono text-sm">MB</span>
                                     </div>
+                                    <p className="mt-1 text-xs text-slate-500 italic">Giới hạn: 16MB - 1024MB</p>
                                 </div>
                             </div>
                         </div>
@@ -350,6 +399,15 @@ export const CreatePage = () => {
 
                 </div>
             </div>
+            
+            <RestoreModal
+                isOpen={restoreModalOpen}
+                onClose={() => setRestoreModalOpen(false)}
+                onConfirm={handleRestoreConfirm}
+                title="Slug đã tồn tại trong thùng rác"
+                description={`Slug "${slug}" thuộc về bài tập "${problemToRestore?.title}" đã bị xóa. Bạn có muốn khôi phục bài tập này không?`}
+                isRestoring={isRestoring}
+            />
         </ModeratorLayout>
     );
 };

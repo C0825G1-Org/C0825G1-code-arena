@@ -12,4 +12,6 @@ public interface IProblemService {
     ProblemResponseDTO createProblem(ProblemRequestDTO requestDTO);
     ProblemResponseDTO updateProblem(Integer id, ProblemRequestDTO requestDTO);
     Boolean deleteProblem(Integer id);
+    Boolean restoreProblem(Integer id);
+    ProblemResponseDTO getProblemBySlug(String slug);
 }

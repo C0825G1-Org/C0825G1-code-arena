@@ -10,6 +10,7 @@ export interface LeaderboardUserResponse {
     solvedCount: number;
     acRate: number;
     avatarUrl?: string;
+    previousGlobalRating?: number;
     avatarFrame?: string | null;
 }
 

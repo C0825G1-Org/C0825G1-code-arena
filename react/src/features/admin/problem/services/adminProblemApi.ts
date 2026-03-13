@@ -18,6 +18,7 @@ export interface AdminProblemResponseDTO {
     authorId?: number;
     authorUsername?: string;
     authorName?: string;
+    isDeleted?: boolean;
 }
 
 export const adminProblemApi = {
@@ -27,5 +28,12 @@ export const adminProblemApi = {
 
     deleteProblem: async (id: number): Promise<void> => {
         return await axiosClient.delete(`/problems/${id}`);
+    },
+    restoreProblem: async (id: number): Promise<void> => {
+        return await axiosClient.post(`/problems/${id}/restore`);
+    },
+
+    getProblemBySlug: async (slug: string): Promise<AdminProblemResponseDTO | null> => {
+        return await axiosClient.get(`/problems/slug/${slug}`);
     }
 };

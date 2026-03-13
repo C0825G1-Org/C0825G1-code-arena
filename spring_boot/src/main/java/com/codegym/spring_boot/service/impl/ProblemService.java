@@ -12,9 +12,11 @@ import com.codegym.spring_boot.dto.problem.ProblemIOTemplateDTO;
 import com.codegym.spring_boot.entity.ProblemIOTemplate;
 import com.codegym.spring_boot.repository.*;
 import com.codegym.spring_boot.service.ContestService;
+import com.codegym.spring_boot.service.ITestCaseService;
 import com.codegym.spring_boot.service.IProblemService;
 import com.codegym.spring_boot.entity.ContestProblem;
 import com.codegym.spring_boot.entity.enums.ContestStatus;
+import com.codegym.spring_boot.entity.enums.TestCaseStatus;
 import jakarta.persistence.NoResultException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,19 +38,28 @@ public class ProblemService implements IProblemService {
     private final ContestProblemRepository contestProblemRepository;
     private final ContestService contestService;
     private final LanguageRepository languageRepository;
+    private final ITestCaseService testCaseService;
+    private final FavoriteProblemRepository favoriteProblemRepository;
+    private final ProblemDiscussionRepository problemDiscussionRepository;
 
     public ProblemService(IProblemRepository problemRepository,
             ITagRepository tagRepository,
             UserRepository userRepository,
             ContestProblemRepository contestProblemRepository,
             ContestService contestService,
-            LanguageRepository languageRepository) {
+            LanguageRepository languageRepository,
+            ITestCaseService testCaseService,
+            FavoriteProblemRepository favoriteProblemRepository,
+            ProblemDiscussionRepository problemDiscussionRepository) {
         this.problemRepository = problemRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.contestProblemRepository = contestProblemRepository;
         this.contestService = contestService;
         this.languageRepository = languageRepository;
+        this.testCaseService = testCaseService;
+        this.favoriteProblemRepository = favoriteProblemRepository;
+        this.problemDiscussionRepository = problemDiscussionRepository;
     }
 
     @Override
@@ -59,6 +70,12 @@ public class ProblemService implements IProblemService {
 
             if (currentUser != null && currentUser.getRole() == UserRole.moderator) {
                 return problemRepository.findAllByCreatedByAndIsDeletedFalse(currentUser).stream()
+                        .map(this::mapToResponseDTO)
+                        .collect(Collectors.toList());
+            }
+
+            if (currentUser != null && currentUser.getRole() == UserRole.admin) {
+                return problemRepository.findAllByIsDeletedFalse().stream()
                         .map(this::mapToResponseDTO)
                         .collect(Collectors.toList());
             }
@@ -139,7 +156,37 @@ public class ProblemService implements IProblemService {
 
         problem.setIsDeleted(true);
         problemRepository.save(problem);
+
+        // Cleanup related data
+        testCaseService.deleteByProblemId(id);
+        favoriteProblemRepository.deleteAllByProblemId(id);
+        problemDiscussionRepository.deleteByProblemId(id);
+        contestProblemRepository.deleteByIdProblemId(id);
+
         return true;
+    }
+
+    @Override
+    public Boolean restoreProblem(Integer id) {
+        Problem problem = problemRepository.findById(id).orElse(null);
+        if (problem == null || !Boolean.TRUE.equals(problem.getIsDeleted())) {
+            return false;
+        }
+
+        checkModifyPermission(problem);
+
+        problem.setIsDeleted(false);
+        // Reset status vì testcase đã bị xóa cứng khi delete
+        problem.setTestcaseStatus(TestCaseStatus.not_uploaded);
+        problemRepository.save(problem);
+        return true;
+    }
+
+    @Override
+    public ProblemResponseDTO getProblemBySlug(String slug) {
+        return problemRepository.findBySlug(slug)
+                .map(this::mapToResponseDTO)
+                .orElse(null);
     }
 
     private void checkIfProblemInActiveContest(Integer problemId) {
@@ -257,6 +304,9 @@ public class ProblemService implements IProblemService {
                     .collect(Collectors.toSet());
             response.setIoTemplates(ioTemplateDTOs);
         }
+
+        response.setIsDeleted(problem.getIsDeleted());
+
         return response;
     }
 }
