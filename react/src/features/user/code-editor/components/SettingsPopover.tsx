@@ -71,7 +71,7 @@ export default function SettingsPopover({ settings, updateSettings, onClose }: P
     return (
         <div
             ref={popoverRef}
-            className="absolute top-full right-0 mt-2 bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 w-[420px] z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+            className="absolute top-full right-0 mt-3 bg-slate-800 border border-slate-600 rounded-lg shadow-2xl p-4 w-[420px] z-[100] animate-in fade-in slide-in-from-top-2 duration-200"
             role="dialog"
             aria-label="Editor Settings"
         >

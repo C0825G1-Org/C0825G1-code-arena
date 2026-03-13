@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal,
+    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Question,
     ArrowUp, ArrowDown, Minus
 } from '@phosphor-icons/react';
 import { RootState } from '../../../../app/store';
@@ -12,6 +12,7 @@ import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
 import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 import { getRankByRating, RankType } from '../../shared/utils/rankUtils';
+import EloExplainingModal from '../components/EloExplainingModal';
 
 export const LeaderboardPage: React.FC = () => {
     const navigate = useNavigate();
@@ -24,6 +25,7 @@ export const LeaderboardPage: React.FC = () => {
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(true);
     const [type, setType] = useState<RankType>('total'); // 'contest', 'practice', or 'total'
+    const [isEloModalOpen, setIsEloModalOpen] = useState(false);
 
     const size = 10;
 
@@ -216,8 +218,17 @@ export const LeaderboardPage: React.FC = () => {
     return (
         <UserLayout>
             <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl w-full flex flex-col z-10 relative">
-                <div className="text-center mb-8">
-                    <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 pb-3 pt-3 mb-3 uppercase tracking-wider">Bảng Vàng</h1>
+                <div className="text-center mb-8 relative">
+                    <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 pb-3 pt-3 mb-3 uppercase tracking-wider">
+                        Bảng Vàng
+                    </h1>
+                    <button
+                        onClick={() => setIsEloModalOpen(true)}
+                        className="absolute top-1/2 -translate-y-1/2 right-0 md:right-4 w-10 h-10 rounded-full bg-slate-800/50 hover:bg-slate-700 text-slate-400 hover:text-blue-400 border border-slate-700/50 transition-all flex items-center justify-center group mb-8"
+                        title="Xem giải thích cách tính điểm Elo"
+                    >
+                        <Question size={24} weight="bold" className="group-hover:rotate-12 transition-transform" />
+                    </button>
                     <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
                 </div>
 
@@ -423,6 +434,11 @@ export const LeaderboardPage: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            <EloExplainingModal
+                isOpen={isEloModalOpen}
+                onClose={() => setIsEloModalOpen(false)}
+            />
         </UserLayout>
     );
 };
