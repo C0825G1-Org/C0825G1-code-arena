@@ -393,12 +393,18 @@ public class SubmissionService implements ISubmissionService {
         }
 
         private void updatePracticeRating(User user, Problem problem) {
-                int currentRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
-                double problemRating = switch (problem.getDifficulty()) {
-                        case easy -> 800.0;
-                        case medium -> 1200.0;
-                        case hard -> 1800.0;
-                };
+        int currentRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
+        int contestRating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
+        
+        // Snapshot current ratings for history
+        user.setPreviousPracticeRating(currentRating);
+        user.setPreviousTotalRating(contestRating * 2 + currentRating);
+
+        double problemRating = switch (problem.getDifficulty()) {
+                case easy -> 800.0;
+                case medium -> 1200.0;
+                case hard -> 1800.0;
+        };
 
                 double kFactor = 16.0;
                 double diff = problemRating - currentRating;

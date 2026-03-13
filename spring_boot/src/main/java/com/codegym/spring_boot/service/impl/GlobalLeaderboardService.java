@@ -86,6 +86,15 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
 
             double acRate = totalSubs > 0 ? ((double) acSubs / totalSubs) * 100 : 0.0;
 
+            int previousRating;
+            if (isTotal) {
+                previousRating = user.getPreviousTotalRating() != null ? user.getPreviousTotalRating() : 0;
+            } else if (isPractice) {
+                previousRating = user.getPreviousPracticeRating() != null ? user.getPreviousPracticeRating() : 0;
+            } else {
+                previousRating = user.getPreviousGlobalRating() != null ? user.getPreviousGlobalRating() : 0;
+            }
+
             return LeaderboardUserResponse.builder()
                     .rank((int) trueRank)
                     .userId(userId)
@@ -93,7 +102,7 @@ public class GlobalLeaderboardService implements IGlobalLeaderboardService {
                     .fullName(user.getFullName())
                     .email(user.getEmail())
                     .globalRating(displayRating)
-                    .previousGlobalRating(user.getPreviousGlobalRating() != null ? user.getPreviousGlobalRating() : 0)
+                    .previousGlobalRating(previousRating)
                     .solvedCount(solvedCount)
                     .acRate(Math.round(acRate * 100.0) / 100.0)
                     .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)

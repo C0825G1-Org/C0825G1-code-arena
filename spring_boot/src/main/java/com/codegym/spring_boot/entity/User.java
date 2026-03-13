@@ -50,11 +50,20 @@ public class User extends BaseEntity implements UserDetails {
     private Integer globalRating = 0;
 
     @Column(name = "previous_global_rating")
+    @Builder.Default
     private Integer previousGlobalRating = 0;
 
     @Column(name = "practice_rating")
     @Builder.Default
     private Integer practiceRating = 0;
+
+    @Column(name = "previous_practice_rating")
+    @Builder.Default
+    private Integer previousPracticeRating = 0;
+
+    @Column(name = "previous_total_rating")
+    @Builder.Default
+    private Integer previousTotalRating = 0;
 
     @Column(name = "shop_balance")
     @Builder.Default

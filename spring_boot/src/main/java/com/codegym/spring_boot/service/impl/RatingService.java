@@ -99,11 +99,13 @@ public class RatingService implements IRatingService {
         for (int i = 0; i < n; i++) {
             User user = participants.get(i).getUser();
             int oldRating = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
+            int practiceRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
             
             int finalChange = (int) Math.round(deltas[i] - adjustment);
             int newRating = Math.max(0, oldRating + finalChange);
             
             user.setPreviousGlobalRating(oldRating);
+            user.setPreviousTotalRating(oldRating * 2 + practiceRating);
             user.setGlobalRating(newRating);
             // Add to shopBalance (Contest gives 2x points to Total ELO)
             if (finalChange > 0) {
