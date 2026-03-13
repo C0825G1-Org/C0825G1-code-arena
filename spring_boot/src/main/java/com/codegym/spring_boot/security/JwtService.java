@@ -60,6 +60,7 @@ public class JwtService {
             extraClaims.put("role", user.getRole().name());
             if (user.getProfile() != null) {
                 extraClaims.put("avatarUrl", user.getProfile().getAvatarUrl());
+                extraClaims.put("avatarFrame", user.getProfile().getAvatarFrame());
             }
         }
 

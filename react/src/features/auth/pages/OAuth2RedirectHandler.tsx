@@ -28,7 +28,8 @@ export const OAuth2RedirectHandler = () => {
                     email: decoded.email || '',
                     fullName: decoded.fullName || '',
                     role: decoded.authorities ? decoded.authorities[0].authority : (decoded.role || 'user'),
-                    avatarUrl: decoded.avatarUrl || null
+                    avatarUrl: decoded.avatarUrl || null,
+                    avatarFrame: decoded.avatarFrame || null
                 };
 
                 handleLoginSuccess({ ...userObj, token }, `Welcome back, ${userObj.fullName}!`);
