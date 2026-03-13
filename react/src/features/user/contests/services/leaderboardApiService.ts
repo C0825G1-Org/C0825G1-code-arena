@@ -17,11 +17,14 @@ export interface LeaderboardDTO {
     username: string;
     fullName: string;
     avatarUrl?: string;
+    avatarFrame?: string | null;
     totalScore: number;   // = tổng điểm thực tế từ các bài đã AC
     totalPenalty: number; // = tổng penalty phút (ranking key tie-breaker)
     totalSolved: number;  // = số bài AC
     hasScorePenalty?: boolean; // Added
     status?: 'JOINED' | 'FINISHED' | 'DISQUALIFIED'; // Added
+    globalRating?: number; // Added
+    previousGlobalRating?: number; // Added
     problemDetails: LeaderboardProblemDetail[];
 }
 

@@ -11,6 +11,7 @@ import { chatService } from '../../../chat/services/chatService';
 import { useRef } from 'react';
 import { ConfirmModal } from '../../../../shared/components/ConfirmModal';
 import { Avatar } from '../../../../shared/components/Avatar';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -22,8 +23,10 @@ interface DiscussionMessage {
     userFullName: string;
     userUsername: string;
     userAvatar: string | null;
+    userAvatarFrame?: string | null;
     content: string;
     userIsDiscussionLocked?: boolean;
+    userGlobalRating?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -218,6 +221,7 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                             <div key={msg.id} className="flex gap-3 items-start group relative">
                                 <Avatar
                                     src={msg.userAvatar}
+                                    frameUrl={msg.userAvatarFrame}
                                     userId={msg.userId}
                                     size="md"
                                     alt={msg.userFullName}
@@ -225,13 +229,10 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                                     onClick={(e) => handleUserClick(e, msg)}
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span
-                                            className="font-bold text-slate-200 text-sm cursor-pointer hover:text-blue-400 transition-colors"
-                                            onClick={(e) => handleUserClick(e, msg)}
-                                        >
-                                            {msg.userFullName}
-                                        </span>
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <div onClick={(e) => handleUserClick(e, msg)} className="cursor-pointer">
+                                            <UserNameWithRank username={msg.userFullName} globalRating={msg.userGlobalRating} className="text-sm" />
+                                        </div>
                                         <span className="text-xs text-slate-500">@{msg.userUsername}</span>
                                         <span className="text-xs text-slate-500">• {dayjs(msg.createdAt).fromNow()}</span>
                                         {msg.updatedAt && dayjs(msg.updatedAt).isAfter(dayjs(msg.createdAt).add(1, 'second')) && (
@@ -322,6 +323,7 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                     <div className="flex items-start gap-3">
                         <Avatar
                             src={user?.avatarUrl}
+                            frameUrl={user?.avatarFrame}
                             userId={user?.id}
                             size="md"
                             alt="Me"

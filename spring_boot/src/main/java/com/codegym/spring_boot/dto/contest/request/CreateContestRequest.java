@@ -26,4 +26,6 @@ public class CreateContestRequest {
 
     @NotEmpty(message = "Cuộc thi phải có ít nhất 1 bài tập")
     private List<Integer> problemIds;
+
+    private Integer maxParticipants = 10;
 }

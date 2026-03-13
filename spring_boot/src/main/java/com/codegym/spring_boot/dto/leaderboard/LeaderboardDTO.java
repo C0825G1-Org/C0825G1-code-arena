@@ -17,11 +17,14 @@ public class LeaderboardDTO {
     private String username;
     private String fullName;
     private String avatarUrl;
+    private String avatarFrame;
     private Integer totalScore; // Number of AC problems
     private Integer totalPenalty; // Total time penalty
     private Integer totalSolved; // Added
     private Boolean hasScorePenalty; // Added
     private String status; // Added
+    private Integer globalRating; // Added for User Rank Display
+    private Integer previousGlobalRating; // Added for Rank Change
     private List<ProblemDetail> problemDetails;
 
     @Data

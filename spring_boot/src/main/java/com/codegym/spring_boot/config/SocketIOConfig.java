@@ -5,11 +5,7 @@ import com.corundumstudio.socketio.AuthorizationResult;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketIOServer;
-import com.codegym.spring_boot.dto.chat.request.SocketChatMessageRequest;
-import com.codegym.spring_boot.entity.mongo.ChatMessage;
 import com.codegym.spring_boot.repository.ContestParticipantRepository;
-import com.codegym.spring_boot.service.IChatService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 
@@ -18,12 +14,26 @@ import java.util.Map;
 
 @Slf4j
 @org.springframework.context.annotation.Configuration
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 public class SocketIOConfig {
 
     private final JwtService jwtService;
     private final ContestParticipantRepository participantRepository;
     private final com.codegym.spring_boot.repository.UserRepository userRepository;
+    private final com.codegym.spring_boot.service.SessionManager sessionManager;
+    private com.codegym.spring_boot.service.IChatService chatService;
+
+    public SocketIOConfig(JwtService jwtService,
+                          ContestParticipantRepository participantRepository,
+                          com.codegym.spring_boot.repository.UserRepository userRepository,
+                          com.codegym.spring_boot.service.SessionManager sessionManager,
+                          @org.springframework.beans.factory.annotation.Autowired(required = false) com.codegym.spring_boot.service.IChatService chatService) {
+        this.jwtService = jwtService;
+        this.participantRepository = participantRepository;
+        this.userRepository = userRepository;
+        this.sessionManager = sessionManager;
+        this.chatService = chatService;
+    }
 
     @Bean
     public SocketIOServer socketIOServer() {
@@ -62,6 +72,7 @@ public class SocketIOConfig {
                     if (userId != null) {
                         String roomName = "user_" + userId;
                         client.joinRoom(roomName);
+                        sessionManager.addSession(userId); // Mark user as online
                         log.info("Client {} (User {}) CONNECTED and joined room: {}", client.getSessionId(), userId,
                                 roomName);
                     } else {
@@ -72,6 +83,18 @@ public class SocketIOConfig {
                 }
             } catch (Exception e) {
                 log.error("Error in Socket.IO ConnectListener", e);
+            }
+        });
+
+        server.addDisconnectListener(client -> {
+            try {
+                Integer userId = extractUserIdFromClient(client);
+                if (userId != null) {
+                    sessionManager.removeSession(userId); // Mark user as offline
+                    log.info("Client {} (User {}) DISCONNECTED", client.getSessionId(), userId);
+                }
+            } catch (Exception e) {
+                log.error("Error in Socket.IO DisconnectListener", e);
             }
         });
 
@@ -162,39 +185,49 @@ public class SocketIOConfig {
 
                     if (userId != null && data instanceof java.util.Map) {
                         try {
-                            java.util.Map<?, ?> map = (java.util.Map<?, ?>) data;
-                            Integer contestId = Integer.parseInt(map.get("contestId").toString());
-                            String content = (String) map.get("content");
+                            if (chatService != null) {
+                                java.util.Map<?, ?> map = (java.util.Map<?, ?>) data;
+                                Integer contestId = Integer.parseInt(map.get("contestId").toString());
+                                String content = (String) map.get("content");
 
-                            // KIỂM TRA KHÓA CHAT
-                            com.codegym.spring_boot.entity.User user = userRepository.findById(userId).orElse(null);
-                            if (user != null && Boolean.TRUE.equals(user.getIsContestChatLocked())) {
-                                log.warn("User {} is LOCKED from contest chat. Message rejected.", userId);
-                                client.sendEvent("chat_error",
-                                        "Tài khoản của bạn đã bị khóa tính năng chat trong cuộc thi.");
-                                return;
+                                // KIỂM TRA KHÓA CHAT
+                                com.codegym.spring_boot.entity.User user = userRepository.findById(userId).orElse(null);
+                                if (user != null && Boolean.TRUE.equals(user.getIsContestChatLocked())) {
+                                    log.warn("User {} is LOCKED from contest chat. Message rejected.", userId);
+                                    client.sendEvent("chat_error",
+                                            "Tài khoản của bạn đã bị khóa tính năng chat trong cuộc thi.");
+                                    return;
+                                }
+
+                                com.codegym.spring_boot.entity.mongo.ChatMessage savedMsg = chatService
+                                        .saveMessage(contestId, userId, content);
+
+                                if (savedMsg == null) {
+                                    log.warn("Failed to save/process chat message from User {}", userId);
+                                    return;
+                                }
+
+                                String room = "contest_chat_" + contestId;
+
+                                // Tránh lỗi Jackson không thể serialize LocalDateTime của netty-socketio
+                                java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                                payload.put("id", savedMsg.getId());
+                                payload.put("contestId", savedMsg.getContestId());
+                                payload.put("senderId", savedMsg.getSenderId());
+                                payload.put("senderName", savedMsg.getSenderName());
+                                payload.put("senderAvatar", savedMsg.getSenderAvatar());
+                                payload.put("content", savedMsg.getContent());
+                                payload.put("timestamp",
+                                        savedMsg.getTimestamp() != null ? savedMsg.getTimestamp().toString() : null);
+                                payload.put("isSystem", savedMsg.isSystem());
+
+                                // Gửi lại cho tất cả mọi người trong room "contest_chat_{id}"
+                                server.getRoomOperations(room).sendEvent("new_chat_message", payload);
+                                log.info("Chat message from User {} SAVED and BROADCASTED to room {}", userId, room);
+                            } else {
+                                log.warn("Chat feature is currently disabled (No MongoDB)");
+                                client.sendEvent("chat_error", "Tính năng chat hiện đang tạm tắt.");
                             }
-
-                            com.codegym.spring_boot.entity.mongo.ChatMessage savedMsg = chatService
-                                    .saveMessage(contestId, userId, content);
-                            String room = "contest_chat_" + contestId;
-
-                            // Tránh lỗi Jackson không thể serialize LocalDateTime của netty-socketio
-                            java.util.Map<String, Object> payload = new java.util.HashMap<>();
-                            payload.put("id", savedMsg.getId());
-                            payload.put("contestId", savedMsg.getContestId());
-                            payload.put("senderId", savedMsg.getSenderId());
-                            payload.put("senderName", savedMsg.getSenderName());
-                            payload.put("senderAvatar", savedMsg.getSenderAvatar());
-                            payload.put("content", savedMsg.getContent());
-                            payload.put("timestamp",
-                                    savedMsg.getTimestamp() != null ? savedMsg.getTimestamp().toString() : null);
-                            payload.put("isSystem", savedMsg.isSystem());
-
-                            // Gửi lại cho tất cả mọi người trong room "contest_chat_{id}"
-                            server.getRoomOperations(room).sendEvent("new_chat_message", payload);
-
-                            log.info("Chat message from User {} SAVED and BROADCASTED to room {}", userId, room);
                         } catch (Exception e) {
                             log.error("Failed to process chat message from user {}: {}", userId, e.getMessage(), e);
                             client.sendEvent("chat_error", e.getMessage());
@@ -277,7 +310,7 @@ public class SocketIOConfig {
         return server;
     }
 
-    private final com.codegym.spring_boot.service.IChatService chatService;
+//    private final com.codegym.spring_boot.service.IChatService chatService;
 
     private Integer extractUserIdFromClient(com.corundumstudio.socketio.SocketIOClient client) {
         List<String> tokens = client.getHandshakeData().getUrlParams().get("token");

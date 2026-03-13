@@ -44,7 +44,7 @@ export const ActionToolbar: React.FC<ActionToolbarProps> = ({
     const submitDisabled = disabled || limitReached;
 
     return (
-        <div className="tour-action-toolbar flex justify-between items-center px-4 py-2 bg-[#0f172a]/80 backdrop-blur border-b border-white/5 z-20">
+        <div className="tour-action-toolbar flex flex-wrap justify-between items-center px-4 py-2 bg-[#0f172a]/80 backdrop-blur border-b border-white/5 z-20 overflow-x-auto">
             {/* Cụm chức năng trái */}
             <div className="flex items-center gap-4">
                 <div className="tour-language-selector flex items-center gap-2">

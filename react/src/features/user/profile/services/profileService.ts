@@ -2,6 +2,7 @@ import axiosInstance from '../../../../shared/services/axiosClient';
 
 export interface UserStats {
     eloRanking: number;
+    practiceRating: number;
     topPercent: number;
     solvedCount: number;
     acRate: number;
@@ -46,6 +47,7 @@ export interface UserProfileResponse {
     fullName: string;
     email: string;
     avatarUrl?: string;
+    avatarFrame?: string | null;
     bio?: string;
     githubLink?: string;
     createdAt?: string; // ISO String

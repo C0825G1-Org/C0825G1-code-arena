@@ -25,4 +25,5 @@ public class ChatMessage {
     private LocalDateTime timestamp;
     private boolean isSystem;
     private Boolean userIsChatLocked;
+    private Integer senderGlobalRating;
 }

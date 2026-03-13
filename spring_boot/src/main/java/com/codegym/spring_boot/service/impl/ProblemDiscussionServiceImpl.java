@@ -118,8 +118,12 @@ public class ProblemDiscussionServiceImpl implements ProblemDiscussionService {
                                 .userAvatar(discussion.getUser().getProfile() != null
                                                 ? discussion.getUser().getProfile().getAvatarUrl()
                                                 : null)
+                                .userAvatarFrame(discussion.getUser().getProfile() != null
+                                                ? discussion.getUser().getProfile().getAvatarFrame()
+                                                : null)
                                 .content(discussion.getContent())
                                 .userIsDiscussionLocked(discussion.getUser().getIsDiscussionLocked())
+                                .userGlobalRating(discussion.getUser().getGlobalRating())
                                 .createdAt(discussion.getCreatedAt())
                                 .updatedAt(discussion.getUpdatedAt())
                                 .build();

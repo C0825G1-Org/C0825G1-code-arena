@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'motion/react';
 import { Eye, EyeOff, Lock, User, LogIn, ShieldAlert } from 'lucide-react';
@@ -17,6 +17,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export const LoginPage = () => {
     const { login, isLoading } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
 
     const { register, handleSubmit, setError, formState: { errors } } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema)
@@ -26,9 +27,14 @@ export const LoginPage = () => {
         try {
             await login(data);
         } catch (error: any) {
+            console.error('Login error:', error);
+            if (error.response?.status === 409) {
+                navigate('/err/concurrent-login');
+                return;
+            }
             setError('password', {
                 type: 'server',
-                message: 'Tên đăng nhập hoặc mật khẩu không chính xác'
+                message: error.response?.data?.message || 'Tên đăng nhập hoặc mật khẩu không chính xác'
             });
         }
     };

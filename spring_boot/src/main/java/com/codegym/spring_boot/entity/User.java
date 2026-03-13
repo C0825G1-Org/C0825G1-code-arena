@@ -48,6 +48,15 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "global_rating")
     private Integer globalRating = 0;
 
+    @Column(name = "previous_global_rating")
+    private Integer previousGlobalRating = 0;
+
+    @Column(name = "practice_rating")
+    private Integer practiceRating = 0;
+
+    @Column(name = "shop_balance")
+    private Integer shopBalance = 0;
+
     @Column(name = "is_contest_chat_locked")
     @Builder.Default
     private Boolean isContestChatLocked = false;
@@ -59,6 +68,26 @@ public class User extends BaseEntity implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     private Profile profile;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserSubscription> userSubscriptions;
+
+    /**
+     * Helper method để lấy ra gói cước đang Active của User.
+     * Nếu không có gói nào thì trả về null (sẽ rơi vào logic fallback lấy gói Free).
+     */
+    public UserSubscription getActiveSubscription() {
+        if (userSubscriptions == null || userSubscriptions.isEmpty()) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        return userSubscriptions.stream()
+                .filter(sub -> "ACTIVE".equals(sub.getStatus()) 
+                        && sub.getStartDate().isBefore(now) 
+                        && sub.getEndDate().isAfter(now))
+                .findFirst()
+                .orElse(null);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

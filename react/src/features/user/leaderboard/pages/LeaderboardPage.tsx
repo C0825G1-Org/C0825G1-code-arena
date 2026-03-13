@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal
+    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal,
+    ArrowUp, ArrowDown, Minus
 } from '@phosphor-icons/react';
 import { RootState } from '../../../../app/store';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
 import toast from 'react-hot-toast';
 import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 
 export const LeaderboardPage: React.FC = () => {
     const navigate = useNavigate();
@@ -20,13 +22,14 @@ export const LeaderboardPage: React.FC = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [type, setType] = useState('total'); // 'contest', 'practice', or 'total'
 
     const size = 10;
 
     const fetchLeaderboard = async () => {
         setLoading(true);
         try {
-            const data = await getLeaderboard(search, page, size);
+            const data = await getLeaderboard(search, type, page, size);
             setUsers(data.content);
             setTotalPages(data.totalPages);
             setTotalElements(data.totalElements);
@@ -37,7 +40,7 @@ export const LeaderboardPage: React.FC = () => {
                     setTop3(data.content.slice(0, 3));
                 } else if (top3.length === 0) {
                     // If we start on a page other than 0, fetch the top 3 separately
-                    const topData = await getLeaderboard('', 0, 3);
+                    const topData = await getLeaderboard('', type, 0, 3);
                     setTop3(topData.content);
                 }
             }
@@ -55,7 +58,7 @@ export const LeaderboardPage: React.FC = () => {
         }, 500);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [search, page]);
+    }, [search, page, type]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
@@ -79,6 +82,7 @@ export const LeaderboardPage: React.FC = () => {
                         </div>
                         <Avatar
                             src={secondPlace.avatarUrl}
+                            frameUrl={secondPlace.avatarFrame}
                             userId={secondPlace.userId}
                             size="xl"
                             alt={secondPlace.username}
@@ -90,8 +94,11 @@ export const LeaderboardPage: React.FC = () => {
                             className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center cursor-pointer hover:text-blue-400 transition-colors"
                             onClick={() => navigate(`/profile/${secondPlace.userId}`)}
                         >
-                            {secondPlace.fullName}
+                            {secondPlace.fullName || secondPlace.username}
                         </span>
+                        <div className="flex justify-center mb-1">
+                            <UserNameWithRank username={secondPlace.username} globalRating={secondPlace.globalRating} className="text-xs" />
+                        </div>
                         <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
                         <div className="w-full h-[100px] border-t-2 border-slate-400 bg-gradient-to-b from-slate-400/20 to-transparent rounded-t-xl flex justify-center items-start pt-4 shadow-xl">
                             <span className="text-4xl font-black text-slate-500/50">2</span>
@@ -107,6 +114,7 @@ export const LeaderboardPage: React.FC = () => {
                         </div>
                         <Avatar
                             src={firstPlace.avatarUrl}
+                            frameUrl={firstPlace.avatarFrame}
                             userId={firstPlace.userId}
                             size={80} // md:w-24 would be 96, handling responsive with custom size if needed, but keeping it simple
                             alt={firstPlace.username}
@@ -118,8 +126,11 @@ export const LeaderboardPage: React.FC = () => {
                             className="font-bold text-white text-base md:text-lg truncate w-full px-2 cursor-pointer hover:text-yellow-400 transition-colors"
                             onClick={() => navigate(`/profile/${firstPlace.userId}`)}
                         >
-                            {firstPlace.fullName}
+                            {firstPlace.fullName || firstPlace.username}
                         </span>
+                        <div className="flex justify-center mb-1">
+                            <UserNameWithRank username={firstPlace.username} globalRating={firstPlace.globalRating} className="text-sm" />
+                        </div>
                         <div className="flex justify-center mb-2">
                             <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
                                 {firstPlace.globalRating} ELO
@@ -140,6 +151,7 @@ export const LeaderboardPage: React.FC = () => {
                         </div>
                         <Avatar
                             src={thirdPlace.avatarUrl}
+                            frameUrl={thirdPlace.avatarFrame}
                             userId={thirdPlace.userId}
                             size="xl"
                             alt={thirdPlace.username}
@@ -151,8 +163,11 @@ export const LeaderboardPage: React.FC = () => {
                             className="font-bold text-white text-sm md:text-base truncate w-full px-2 text-center cursor-pointer hover:text-blue-400 transition-colors"
                             onClick={() => navigate(`/profile/${thirdPlace.userId}`)}
                         >
-                            {thirdPlace.fullName}
+                            {thirdPlace.fullName || thirdPlace.username}
                         </span>
+                        <div className="flex justify-center mb-1">
+                            <UserNameWithRank username={thirdPlace.username} globalRating={thirdPlace.globalRating} className="text-xs" />
+                        </div>
                         <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
                         <div className="w-full h-[80px] border-t-2 border-orange-600 bg-gradient-to-b from-orange-600/20 to-transparent rounded-t-xl flex justify-center items-start pt-2 shadow-xl">
                             <span className="text-4xl font-black text-orange-700/50">3</span>
@@ -163,12 +178,57 @@ export const LeaderboardPage: React.FC = () => {
         );
     };
 
+    const renderRatingChange = (current: number, previous: number | undefined | null) => {
+        if (previous === undefined || previous === null || current === previous) {
+            return <Minus weight="bold" className="text-slate-500" />;
+        }
+        const diff = current - previous;
+        if (diff > 0) {
+            return (
+                <div className="flex items-center text-emerald-500 gap-0.5 animate-pulse">
+                    <ArrowUp weight="bold" />
+                    <span className="text-[10px] font-bold">+{diff}</span>
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-center text-rose-500 gap-0.5">
+                <ArrowDown weight="bold" />
+                <span className="text-[10px] font-bold">{diff}</span>
+            </div>
+        );
+    };
+
     return (
         <UserLayout>
             <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl w-full flex flex-col z-10 relative">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 pb-3 pt-3 mb-3 uppercase tracking-wider">Bảng Vàng</h1>
                     <p className="text-slate-400 text-lg mb-10">Vinh danh những lập trình viên xuất sắc nhất trên CodeArena</p>
+                </div>
+
+                {/* Type Switcher */}
+                <div className="flex justify-center mb-12">
+                    <div className="bg-slate-800/80 p-1 rounded-2xl border border-slate-700/50 flex gap-1 shadow-xl box-content">
+                        <button
+                            onClick={() => { setType('total'); setPage(0); setTop3([]); }}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'total' ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                        >
+                            Bảng Tổng
+                        </button>
+                        <button
+                            onClick={() => { setType('contest'); setPage(0); setTop3([]); }}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'contest' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                        >
+                            Hệ Cuộc Thi
+                        </button>
+                        <button
+                            onClick={() => { setType('practice'); setPage(0); setTop3([]); }}
+                            className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'practice' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                        >
+                            Hệ Bài Tập
+                        </button>
+                    </div>
                 </div>
 
                 {/* Show podium only if no search filter */}
@@ -205,9 +265,13 @@ export const LeaderboardPage: React.FC = () => {
                                 <tr>
                                     <th className="px-6 py-5 text-center w-20 font-bold tracking-wider">Hạng</th>
                                     <th className="px-6 py-5 font-bold tracking-wider">Lập trình viên</th>
-                                    <th className="px-6 py-5 font-bold tracking-wider text-center hidden md:table-cell">AC / Số Bài</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-center hidden md:table-cell">
+                                        {type === 'practice' ? 'Bài Tập AC' : type === 'total' ? 'Tổng Bài AC' : 'Bài Thi AC'}
+                                    </th>
                                     <th className="px-6 py-5 font-bold tracking-wider text-center hidden sm:table-cell">Tỉ lệ AC</th>
-                                    <th className="px-6 py-5 font-bold tracking-wider text-right">Điểm ELO</th>
+                                    <th className="px-6 py-5 font-bold tracking-wider text-right">
+                                        {type === 'practice' ? 'ELO Bài Tập' : type === 'total' ? 'ELO Tổng' : 'ELO Cuộc Thi'}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
@@ -226,6 +290,7 @@ export const LeaderboardPage: React.FC = () => {
                                             <div className="relative">
                                                 <Avatar
                                                     src={u.avatarUrl}
+                                                    frameUrl={u.avatarFrame}
                                                     userId={u.userId}
                                                     size="md"
                                                     alt={u.username}
@@ -235,12 +300,14 @@ export const LeaderboardPage: React.FC = () => {
                                                 {u.rank === 1 && <Crown weight="fill" className="absolute -top-2 -right-2 text-yellow-500 text-lg drop-shadow-md" />}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span
-                                                    className={`font-semibold text-base transition-colors cursor-pointer hover:text-blue-400 ${u.userId === user?.id ? 'text-blue-400' : 'text-slate-200'}`}
-                                                    onClick={() => navigate(`/profile/${u.userId}`)}
-                                                >
-                                                    {u.fullName || u.username} {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
-                                                </span>
+                                                <div className="flex items-center gap-1 flex-wrap">
+                                                    <UserNameWithRank
+                                                        username={u.fullName || u.username}
+                                                        globalRating={u.globalRating}
+                                                        className={`text-base transition-colors cursor-pointer hover:text-blue-400 ${u.userId === user?.id ? 'text-blue-400' : ''}`}
+                                                    />
+                                                    {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
+                                                </div>
                                                 <span className="text-xs text-slate-500 font-mono">{u.email}</span>
                                             </div>
                                         </td>
@@ -256,11 +323,20 @@ export const LeaderboardPage: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
-                                                ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
-                                                    : u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300'}`}>
-                                                {u.globalRating}
-                                            </span>
+                                            <div className="flex flex-col items-end">
+                                                <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
+                                                    ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
+                                                        : type === 'practice'
+                                                            ? (u.globalRating >= 800 ? 'text-red-400' : u.globalRating >= 500 ? 'text-yellow-400' : u.globalRating >= 250 ? 'text-purple-400' : u.globalRating >= 100 ? 'text-blue-400' : u.globalRating >= 30 ? 'text-green-400' : 'text-slate-300')
+                                                            : type === 'total'
+                                                                ? (u.globalRating >= 2500 ? 'text-red-400' : u.globalRating >= 1500 ? 'text-yellow-400' : u.globalRating >= 750 ? 'text-purple-400' : u.globalRating >= 300 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300')
+                                                                : (u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300')}`}>
+                                                    {u.globalRating}
+                                                </span>
+                                                <div className="flex justify-end mt-1">
+                                                    {renderRatingChange(u.globalRating, u.previousGlobalRating)}
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 )) : !loading && (

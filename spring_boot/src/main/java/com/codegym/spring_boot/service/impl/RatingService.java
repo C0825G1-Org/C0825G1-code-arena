@@ -23,6 +23,7 @@ public class RatingService implements IRatingService {
     private final ContestRepository contestRepository;
     private final ContestParticipantRepository participantRepository;
     private final UserRepository userRepository;
+    private final com.codegym.spring_boot.service.IShopService shopService;
 
     // K-factor determines how volatile the ratings are
     private static final double K_FACTOR = 16.0;
@@ -102,7 +103,13 @@ public class RatingService implements IRatingService {
             int finalChange = (int) Math.round(deltas[i] - adjustment);
             int newRating = Math.max(0, oldRating + finalChange);
             
+            user.setPreviousGlobalRating(oldRating);
             user.setGlobalRating(newRating);
+            // Add to shopBalance (Contest gives 2x points to Total ELO)
+            if (finalChange > 0) {
+                int shopBalanceCurrent = user.getShopBalance() != null ? user.getShopBalance() : 0;
+                user.setShopBalance(shopBalanceCurrent + (finalChange * 2));
+            }
             usersToUpdate.add(user);
 
             log.info("Contest {}: User {} (Rank {}) Rating updated: {} -> {} (Change: {})", 

@@ -7,6 +7,7 @@ export interface User {
     email: string;
     role: string;
     avatarUrl?: string;
+    avatarFrame?: string | null;
     isContestChatLocked?: boolean;
     isDiscussionLocked?: boolean;
 }
@@ -51,8 +52,14 @@ export const authSlice = createSlice({
                 localStorage.setItem('user', JSON.stringify(state.user));
             }
         },
+        updateProfile: (state, action: PayloadAction<Partial<User>>) => {
+            if (state.user) {
+                state.user = { ...state.user, ...action.payload };
+                localStorage.setItem('user', JSON.stringify(state.user));
+            }
+        },
     },
 });
 
-export const { loginSuccess, logout, updateLockStatus } = authSlice.actions;
+export const { loginSuccess, logout, updateLockStatus, updateProfile } = authSlice.actions;
 export default authSlice.reducer;

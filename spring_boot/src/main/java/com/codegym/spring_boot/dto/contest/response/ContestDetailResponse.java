@@ -25,8 +25,7 @@ public class ContestDetailResponse {
     private LocalDateTime serverTime;
     private String createdBy;
     private long participantCount;
-    @Builder.Default
-    private final int maxParticipants = 10;
+    private int maxParticipants;
     private ParticipantStatus participantStatus; // Trạng thái của user hiện tại
     private Integer violationCount;
     private Boolean hasScorePenalty;

@@ -17,4 +17,6 @@ public interface IUserSettingsService {
     void changePassword(User user, ChangePasswordRequest request);
 
     UserProfileResponse getUserProfileById(Integer userId);
+
+    UserProfileResponse equipFrame(User user, Integer itemId);
 }

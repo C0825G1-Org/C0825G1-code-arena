@@ -17,10 +17,11 @@ public class LeaderboardController {
     @GetMapping
     public ResponseEntity<Page<LeaderboardUserResponse>> getLeaderboard(
             @RequestParam(required = false, defaultValue = "") String search,
+            @RequestParam(defaultValue = "contest") String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         
-        Page<LeaderboardUserResponse> response = globalLeaderboardService.getGlobalLeaderboard(search, page, size);
+        Page<LeaderboardUserResponse> response = globalLeaderboardService.getGlobalLeaderboard(search, type, page, size);
         return ResponseEntity.ok(response);
     }
 }

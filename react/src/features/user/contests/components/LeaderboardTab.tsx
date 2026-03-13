@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { LeaderboardDTO, leaderboardApiService } from '../services/leaderboardApiService';
 import { useLeaderboardSocket } from '../hooks/useLeaderboardSocket';
-import { Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info } from '@phosphor-icons/react';
+import {
+    Trophy, Medal, CircleNotch, Timer, CheckCircle, Star, Info,
+    ArrowUp, ArrowDown, Minus
+} from '@phosphor-icons/react';
 import { toast } from 'react-hot-toast';
 import { Avatar } from '../../../../shared/components/Avatar';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 
 interface LeaderboardTabProps {
     contestId: number;
@@ -57,6 +61,27 @@ const getRankStyle = (rank: number) => {
         badge: 'text-slate-400',
         medal: false
     };
+};
+
+const renderRatingChange = (current: number | undefined, previous: number | undefined | null) => {
+    if (current === undefined || previous === undefined || previous === null || current === previous) {
+        return <Minus weight="bold" className="text-slate-500" />;
+    }
+    const diff = current - previous;
+    if (diff > 0) {
+        return (
+            <div className="flex items-center text-emerald-500 gap-0.5 animate-pulse">
+                <ArrowUp weight="bold" />
+                <span className="text-[10px] font-bold">+{diff}</span>
+            </div>
+        );
+    }
+    return (
+        <div className="flex items-center text-rose-500 gap-0.5">
+            <ArrowDown weight="bold" />
+            <span className="text-[10px] font-bold">{diff}</span>
+        </div>
+    );
 };
 
 export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => {
@@ -161,9 +186,10 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                     <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">giải đúng</div>
                                 </th>
                                 <th className="py-3 px-4 text-center w-40">
-                                    <div className="flex items-center gap-1 justify-center"><Timer size={11} />Thời gian tích lũy</div>
-                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">ít hơn = tốt hơn</div>
+                                    <div className="flex items-center gap-1 justify-center"><Timer size={11} />Thời gian</div>
+                                    <div className="text-[10px] text-slate-600 normal-case tracking-normal font-normal">tích lũy</div>
                                 </th>
+                                <th className="py-3 px-4 text-right pr-6 w-32">ELO / Thay đổi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-700/40">
@@ -189,12 +215,13 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                             <div className="flex items-center gap-3">
                                                 <Avatar
                                                     src={user.avatarUrl}
+                                                    frameUrl={user.avatarFrame}
                                                     userId={user.userId}
                                                     size="md"
                                                     borderColor="border-blue-500/40"
                                                 />
                                                 <div>
-                                                    <div className="font-semibold text-slate-100">{user.username}</div>
+                                                    <UserNameWithRank username={user.username} globalRating={user.globalRating} className="text-base" />
                                                     {user.fullName && (
                                                         <div className="text-xs text-slate-500">{user.fullName}</div>
                                                     )}
@@ -227,6 +254,7 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                         </td>
 
                                         {/* Thời gian tích lũy */}
+                                        {/* Thời gian tích lũy */}
                                         <td className="py-4 px-4 text-center">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span
@@ -256,6 +284,18 @@ export const LeaderboardTab: React.FC<LeaderboardTabProps> = ({ contestId }) => 
                                                             })}
                                                     </div>
                                                 )}
+                                            </div>
+                                        </td>
+
+                                        {/* ELO / Thay đổi */}
+                                        <td className="py-4 px-4 text-right pr-6">
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-base font-black font-mono tracking-wider drop-shadow-sm text-slate-200">
+                                                    {user.globalRating ?? 0}
+                                                </span>
+                                                <div className="flex justify-end mt-1">
+                                                    {renderRatingChange(user.globalRating, user.previousGlobalRating)}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>

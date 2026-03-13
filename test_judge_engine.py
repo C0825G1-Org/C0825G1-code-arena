@@ -11,15 +11,21 @@ def send_result(user_id, submission_id, test_case_id, status, stdout=""):
     payload = {
         "userId": user_id,
         "submissionId": submission_id,
-        "testCaseId": test_case_id,
         "status": status,
-        "stdout": stdout,
-        "stderr": "",
-        "exitCode": 0,
         "executionTime": 15,
         "memoryUsed": 5,
-        "isTimeout": False,
-        "isOOM": False
+        "score": 100 if status == "AC" else 0,
+        "compileMessage": "",
+        "testCaseResults": [
+            {
+                "testCaseNumber": test_case_id,
+                "passed": True if status == "AC" else False,
+                "message": status,
+                "executionTime": 15,
+                "memoryUsed": 5,
+                "userOutput": stdout
+            }
+        ]
     }
     
     r.publish(CHANNEL, json.dumps(payload))

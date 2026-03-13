@@ -195,26 +195,11 @@ export const UserHomePage: React.FC = () => {
             );
         }
 
-        if (contest.status === 'upcoming') {
+        if (contest.status === 'active' || contest.status === 'upcoming') {
             return (
                 <Link to={`/contests/${contest.id}`} className="px-5 py-2.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition-colors whitespace-nowrap">
                     Xem chi tiết
                 </Link>
-            );
-        }
-
-        if (contest.status === 'active') {
-            const destUrl = contest.firstProblemId
-                ? `/code-editor/${contest.firstProblemId}?contestId=${contest.id}`
-                : `/contests/${contest.id}`;
-
-            return (
-                <button
-                    onClick={() => navigate(destUrl)}
-                    className="px-6 py-2.5 rounded-lg font-bold bg-gradient-to-r from-blue-500 to-emerald-400 hover:from-blue-400 hover:to-emerald-300 text-slate-900 shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-all hover:scale-105 flex justify-center items-center gap-2 whitespace-nowrap"
-                >
-                    Vào Thi <ArrowRight weight="bold" />
-                </button>
             );
         }
         return null;
@@ -400,9 +385,10 @@ export const UserHomePage: React.FC = () => {
                                                 </div>
                                                 <Avatar
                                                     src={coder.avatarUrl}
+                                                    frameUrl={coder.avatarFrame}
                                                     userId={coder.userId}
-                                                    size="sm"
-                                                    borderColor="border-slate-700"
+                                                    size="md"
+                                                    borderColor="border-yellow-500/30"
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <div className={`font-semibold truncate ${index === 0 ? 'text-yellow-400' : 'text-white'}`}>

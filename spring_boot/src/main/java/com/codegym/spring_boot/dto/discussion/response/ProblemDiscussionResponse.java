@@ -14,6 +14,8 @@ public class ProblemDiscussionResponse {
     private String userFullName;
     private String userUsername;
     private String userAvatar;
+    private Integer userGlobalRating;
+    private String userAvatarFrame;
     private String content;
     private Boolean userIsDiscussionLocked;
     private LocalDateTime createdAt;

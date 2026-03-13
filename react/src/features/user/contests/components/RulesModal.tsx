@@ -13,7 +13,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onConfi
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
             <div className="bg-[#1e293b] border border-white/10 w-full max-w-3xl rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col max-h-[90vh] relative">
 
                 {/* Decorative background elements */}
@@ -191,7 +191,13 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onConfi
                             </button>
                             <button
                                 disabled={!agreed}
-                                onClick={onConfirm}
+                                onClick={() => {
+                                    const elem = document.documentElement;
+                                    if (elem.requestFullscreen) elem.requestFullscreen();
+                                    else if ((elem as any).webkitRequestFullscreen) (elem as any).webkitRequestFullscreen();
+                                    else if ((elem as any).msRequestFullscreen) (elem as any).msRequestFullscreen();
+                                    onConfirm();
+                                }}
                                 className={`flex-[2] py-4 px-6 rounded-2xl font-black transition-all shadow-[0_10px_30px_rgba(0,0,0,0.3)] flex items-center justify-center gap-2 ${agreed
                                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 active:scale-95'
                                     : 'bg-slate-900 text-slate-600 border border-white/5 cursor-not-allowed'
