@@ -70,6 +70,7 @@ public class AuthService {
                                 .build();
         }
 
+        @Transactional
         public AuthResponse authenticate(LoginRequest request) {
                 User user = userRepository.findByUsernameAndIsDeletedFalse(request.getUsername())
                                 .orElseThrow(() -> new org.springframework.security.authentication.BadCredentialsException("Tên đăng nhập không tồn tại"));
@@ -85,6 +86,8 @@ public class AuthService {
                                                 request.getUsername(),
                                                 request.getPassword()));
 
+                user = userRepository.findByUsernameWithProfile(request.getUsername())
+                                .orElseThrow();
                 // Đánh dấu online ngay lập tức (trước khi Socket kết nối) để tránh race condition
                 sessionManager.addSession(user.getId());
 

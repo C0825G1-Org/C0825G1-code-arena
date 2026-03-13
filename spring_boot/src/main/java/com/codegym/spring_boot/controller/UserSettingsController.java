@@ -81,4 +81,13 @@ public class UserSettingsController {
             return ResponseEntity.status(401).build();
         return ResponseEntity.ok(userSettingsService.equipFrame(user, itemId));
     }
+
+    @Operation(summary = "Unequip avatar frame", description = "Unequips the current avatar frame.")
+    @DeleteMapping("/unequip-frame")
+    public ResponseEntity<UserProfileResponse> unequipFrame(
+            @AuthenticationPrincipal User user) {
+        if (user == null)
+            return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(userSettingsService.unequipFrame(user));
+    }
 }

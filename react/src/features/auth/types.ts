@@ -18,6 +18,7 @@ export interface AuthResponse {
     email: string;
     role: string;
     avatarUrl?: string;
+    avatarFrame?: string | null;
 }
 
 export interface ForgotPasswordRequest {

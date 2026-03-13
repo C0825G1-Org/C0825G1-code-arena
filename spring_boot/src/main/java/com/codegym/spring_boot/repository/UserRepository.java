@@ -14,6 +14,9 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsernameAndIsDeletedFalse(String username);
+    
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.username = :username AND u.isDeleted = false")
+    Optional<User> findByUsernameWithProfile(@Param("username") String username);
 
     Optional<User> findByEmail(String email);
 

@@ -8,6 +8,8 @@ export interface UserProfileResponse {
     avatarUrl: string | null;
     bio: string | null;
     githubLink: string | null;
+    avatarFrame: string | null;
+    createdAt: string;
 }
 
 export interface UpdateProfileRequest {

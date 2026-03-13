@@ -19,4 +19,6 @@ public interface IUserSettingsService {
     UserProfileResponse getUserProfileById(Integer userId);
 
     UserProfileResponse equipFrame(User user, Integer itemId);
+
+    UserProfileResponse unequipFrame(User user);
 }
