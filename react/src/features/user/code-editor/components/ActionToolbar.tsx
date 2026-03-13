@@ -44,7 +44,7 @@ export const ActionToolbar: React.FC<ActionToolbarProps> = ({
     const submitDisabled = disabled || limitReached;
 
     return (
-        <div className="tour-action-toolbar flex flex-wrap justify-between items-center px-4 py-2 bg-[#0f172a]/80 backdrop-blur border-b border-white/5 z-20 overflow-x-auto">
+        <div className="tour-action-toolbar flex flex-wrap justify-between items-center px-4 py-2 bg-[#0f172a]/80 backdrop-blur border-b border-white/5 z-20">
             {/* Cụm chức năng trái */}
             <div className="flex items-center gap-4">
                 <div className="tour-language-selector flex items-center gap-2">
@@ -112,13 +112,11 @@ export const ActionToolbar: React.FC<ActionToolbarProps> = ({
 
                 {/* Settings Popover */}
                 {isSettingsOpen && (
-                    <div className="absolute top-full right-0 z-50 mt-1">
-                        <SettingsPopover
-                            settings={settings}
-                            updateSettings={onUpdateSettings}
-                            onClose={() => onToggleSettings(false)}
-                        />
-                    </div>
+                    <SettingsPopover
+                        settings={settings}
+                        updateSettings={onUpdateSettings}
+                        onClose={() => onToggleSettings(false)}
+                    />
                 )}
             </div>
 
