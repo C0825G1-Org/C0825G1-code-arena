@@ -115,8 +115,9 @@ export const AdminShopPage: React.FC = () => {
             }
             fetchItems();
             handleCloseModal();
-        } catch (error) {
-            toast.error('Có lỗi xảy ra khi lưu vật phẩm');
+        } catch (error: any) {
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi lưu vật phẩm';
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
