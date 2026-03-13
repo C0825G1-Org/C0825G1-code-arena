@@ -13,6 +13,7 @@ import { AdminLayout } from '../../../../admin/components/AdminLayout';
 import { GroupChat } from '../../../../chat/components/GroupChat';
 import { chatService, ChatMessage } from '../../../../chat/services/chatService';
 import dayjs from 'dayjs';
+import { SnapshotViewerModal } from '../../components/SnapshotViewerModal';
 
 /* ────── Types ────── */
 interface Problem {
@@ -182,6 +183,10 @@ export const ContestResultsPage = () => {
     const [contest, setContest] = useState<ContestDetails | null>(null);
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Snapshot Viewer State
+    const [isSnapshotModalOpen, setIsSnapshotModalOpen] = useState(false);
+    const [snapshotViewUser, setSnapshotViewUser] = useState<any | null>(null);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -575,6 +580,7 @@ export const ContestResultsPage = () => {
                                         Bài {i + 1}
                                     </th>
                                 ))}
+                                <th className="px-5 py-3 font-medium text-center">Giám sát</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -621,6 +627,22 @@ export const ContestResultsPage = () => {
                                             </td>
                                         );
                                     })}
+                                    <td className="px-5 py-3 text-center">
+                                        <button
+                                            onClick={() => {
+                                                setSnapshotViewUser({
+                                                    userId: entry.userId,
+                                                    fullname: entry.fullName,
+                                                    username: entry.username
+                                                });
+                                                setIsSnapshotModalOpen(true);
+                                            }}
+                                            className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-blue-400 hover:bg-slate-700 transition-all border border-slate-700 hover:border-blue-500/50"
+                                            title="Xem ảnh giám sát"
+                                        >
+                                            <i className="ph-bold ph-images text-lg"></i>
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -640,6 +662,17 @@ export const ContestResultsPage = () => {
                     />
                 </div>
             )}
+
+            {/* SNAPSHOT VIEWER MODAL */}
+            <SnapshotViewerModal
+                isOpen={isSnapshotModalOpen}
+                onClose={() => {
+                    setIsSnapshotModalOpen(false);
+                    setTimeout(() => setSnapshotViewUser(null), 300);
+                }}
+                contestId={Number(id)}
+                user={snapshotViewUser}
+            />
         </div>
     );
 
