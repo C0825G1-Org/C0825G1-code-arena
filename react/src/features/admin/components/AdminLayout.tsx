@@ -104,6 +104,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                             </div>
                             <Avatar
                                 src={user?.avatarUrl}
+                                frameUrl={user?.avatarFrame}
                                 userId={user?.id}
                                 size="md"
                                 borderColor="border-red-500"

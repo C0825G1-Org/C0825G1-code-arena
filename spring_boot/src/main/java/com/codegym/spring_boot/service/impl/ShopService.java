@@ -127,7 +127,7 @@ public class ShopService implements IShopService {
 
     @Override
     public List<ShopItem> getAdminItems() {
-        return shopItemRepository.findAll();
+        return shopItemRepository.findByIsDeletedFalse();
     }
 
     @Override

@@ -1,19 +1,16 @@
 import React from 'react';
-import { X, WarningCircle, Info, Trash, LockKey, LockKeyOpen } from '@phosphor-icons/react';
-
-export type ConfirmModalType = 'danger' | 'warning' | 'info' | 'success';
+import { X, WarningCircle, Trash, Info } from '@phosphor-icons/react';
 
 interface ConfirmModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    description: string;
+    message: string;
     confirmText?: string;
     cancelText?: string;
-    type?: ConfirmModalType;
     isLoading?: boolean;
-    icon?: 'trash' | 'lock' | 'unlock' | 'info' | 'warning';
+    type?: 'danger' | 'warning' | 'info';
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -21,89 +18,74 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     onClose,
     onConfirm,
     title,
-    description,
+    message,
     confirmText = 'Xác nhận',
     cancelText = 'Hủy',
-    type = 'warning',
     isLoading = false,
-    icon = 'warning'
+    type = 'danger'
 }) => {
     if (!isOpen) return null;
 
-    const getTypeClasses = () => {
-        switch (type) {
-            case 'danger': return 'bg-red-500/10 text-red-500 border-red-500/20';
-            case 'warning': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-            case 'success': return 'bg-green-500/10 text-green-500 border-green-500/20';
-            default: return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-        }
+    const iconMap = {
+        danger: <Trash size={32} className="text-red-400" />,
+        warning: <WarningCircle size={32} className="text-yellow-400" />,
+        info: <Info size={32} className="text-blue-400" />
     };
 
-    const getConfirmBtnClasses = () => {
-        switch (type) {
-            case 'danger': return 'bg-red-600 hover:bg-red-500 shadow-red-500/20';
-            case 'warning': return 'bg-yellow-600 hover:bg-yellow-500 shadow-yellow-500/20';
-            case 'success': return 'bg-green-600 hover:bg-green-500 shadow-green-500/20';
-            default: return 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20';
-        }
+    const colorMap = {
+        danger: 'bg-red-500 hover:bg-red-600 shadow-red-500/20',
+        warning: 'bg-yellow-500 hover:bg-yellow-600 shadow-yellow-500/20',
+        info: 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/20'
     };
 
-    const renderIcon = () => {
-        const size = 28;
-        const weight = "fill";
-        switch (icon) {
-            case 'trash': return <Trash size={size} weight={weight} />;
-            case 'lock': return <LockKey size={size} weight={weight} />;
-            case 'unlock': return <LockKeyOpen size={size} weight={weight} />;
-            case 'info': return <Info size={size} weight={weight} />;
-            default: return <WarningCircle size={size} weight={weight} />;
-        }
+    const bgMap = {
+        danger: 'bg-red-500/10 border-red-500/20',
+        warning: 'bg-yellow-500/10 border-yellow-500/20',
+        info: 'bg-blue-500/10 border-blue-500/20'
     };
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200"
-                onClick={onClose}
-            ></div>
-
-            {/* Modal Content */}
-            <div className="relative bg-[#1e293b] border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-md p-6 overflow-hidden animate-in fade-in zoom-in duration-200">
-                <div className="flex items-start gap-4">
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 border ${getTypeClasses()}`}>
-                        {renderIcon()}
-                    </div>
-                    <div className="flex-1 pt-1">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-xl font-bold text-white">{title}</h3>
-                            <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">
-                                <X size={20} weight="bold" />
-                            </button>
-                        </div>
-                        <p className="text-slate-300 text-sm leading-relaxed">
-                            {description}
-                        </p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div 
+                className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header-ish */}
+                <div className={`p-6 pb-2 flex justify-center`}>
+                    <div className={`p-4 rounded-2xl border ${bgMap[type]}`}>
+                        {iconMap[type]}
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-8 font-medium">
+                {/* Content */}
+                <div className="px-8 pt-4 pb-8 text-center space-y-2">
+                    <h3 className="text-xl font-bold text-white">{title}</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                        {message}
+                    </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 px-6 py-4 bg-slate-950/50 border-t border-slate-800">
                     <button
+                        type="button"
                         onClick={onClose}
                         disabled={isLoading}
-                        className="px-5 py-2.5 text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-xl transition-all disabled:opacity-50 border border-slate-700"
+                        className="flex-1 px-4 py-2.5 text-sm font-bold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all disabled:opacity-50"
                     >
                         {cancelText}
                     </button>
                     <button
+                        type="button"
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className={`px-5 py-2.5 text-white rounded-xl transition-all shadow-lg disabled:opacity-50 flex items-center gap-2 ${getConfirmBtnClasses()}`}
+                        className={`flex-1 px-4 py-2.5 text-sm font-bold text-white rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 ${colorMap[type]}`}
                     >
                         {isLoading ? (
-                            <>
-                                <i className="ph-bold ph-spinner animate-spin"></i> Xử lý...
-                            </>
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                <span>Đang xử lý...</span>
+                            </div>
                         ) : confirmText}
                     </button>
                 </div>

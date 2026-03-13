@@ -45,13 +45,17 @@ export const ProfileSettingsForm: React.FC = () => {
             const updatedProfile = await settingsService.updateProfile(data);
             setProfile(updatedProfile);
 
-            // Cập nhật Redux store để navbar/sidemenu tự động render tên mới
+            // Cập nhật Redux store để navbar/sidemenu tự động render thông tin mới
             if (user && token) {
                 dispatch(loginSuccess({
                     token,
                     user: {
                         ...user,
-                        fullName: updatedProfile.fullName || user.fullName
+                        fullName: updatedProfile.fullName || user.fullName,
+                        avatarUrl: updatedProfile.avatarUrl || user.avatarUrl,
+                        avatarFrame: updatedProfile.avatarFrame || user.avatarFrame,
+                        email: updatedProfile.email || user.email,
+                        username: updatedProfile.username || user.username
                     }
                 }));
             }
@@ -84,7 +88,7 @@ export const ProfileSettingsForm: React.FC = () => {
             const result = await settingsService.uploadAvatar(file);
             setProfile(prev => prev ? { ...prev, avatarUrl: result.avatarUrl } : null);
 
-            // Cập nhật Redux store cho avatar
+            // Cập nhật Redux store cho avatar và giữ lại frame
             if (user && token) {
                 dispatch(loginSuccess({
                     token,
@@ -117,6 +121,7 @@ export const ProfileSettingsForm: React.FC = () => {
                     <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
                         <Avatar
                             src={profile.avatarUrl}
+                            frameUrl={profile.avatarFrame}
                             userId={profile.id}
                             size={128}
                             borderColor="border-slate-700"

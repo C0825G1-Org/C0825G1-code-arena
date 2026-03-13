@@ -7,13 +7,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../../../store';
 import { updateProfile } from '../../../auth/store/authSlice';
 
-export const ShopPage: React.FC = () => {
+export const ShopPage = () => {
     const [items, setItems] = useState<ShopItem[]>([]);
     const [balance, setBalance] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [buyingId, setBuyingId] = useState<number | null>(null);
     const [purchasedIds, setPurchasedIds] = useState<number[]>([]);
     const [equippingId, setEquippingId] = useState<number | null>(null);
+    const [unequipping, setUnequipping] = useState(false);
     
     const user = useSelector((state: RootState) => state.auth.user);
     const dispatch = useDispatch();
@@ -26,9 +27,21 @@ export const ShopPage: React.FC = () => {
                 shopService.getBalance(),
                 shopService.getHistory()
             ]);
-            setItems(fetchedItems || []);
+            const sortedItems = (fetchedItems || []).sort((a, b) => {
+                const aEquipped = user?.avatarFrame === a.imageUrl;
+                const bEquipped = user?.avatarFrame === b.imageUrl;
+                if (aEquipped && !bEquipped) return -1;
+                if (!aEquipped && bEquipped) return 1;
+
+                const aPurchased = (fetchedHistory || []).some(p => p.item && Number(p.item.id) === Number(a.id));
+                const bPurchased = (fetchedHistory || []).some(p => p.item && Number(p.item.id) === Number(b.id));
+                if (aPurchased && !bPurchased) return -1;
+                if (!aPurchased && bPurchased) return 1;
+
+                return 0;
+            });
+            setItems(sortedItems);
             setBalance(fetchedBalance || 0);
-            // Ensure IDs are treated as numbers and handle missing items gracefully
             setPurchasedIds(fetchedHistory?.filter(p => p.item).map(p => Number(p.item.id)) || []);
         } catch (err: any) {
             console.error("Failed to load shop:", err);
@@ -52,7 +65,7 @@ export const ShopPage: React.FC = () => {
             setBuyingId(item.id);
             await shopService.purchaseItem(item.id, 1);
             showToast.success(`Mua thành công: ${item.name}!`);
-            fetchData(); // Reload balance, items, and history
+            fetchData();
         } catch (err: any) {
             console.error(err);
             showToast.error(err.response?.data?.error || "Mua hàng thất bại");
@@ -66,13 +79,26 @@ export const ShopPage: React.FC = () => {
             setEquippingId(item.id);
             const response = await shopService.equipFrame(item.id);
             showToast.success(`Đã trang bị: ${item.name}!`);
-            // Update the user profile in Redux store
             dispatch(updateProfile({ avatarFrame: response.avatarFrame }));
         } catch (err: any) {
             console.error(err);
             showToast.error(err.response?.data?.error || "Trang bị thất bại");
         } finally {
             setEquippingId(null);
+        }
+    };
+
+    const handleUnequip = async () => {
+        try {
+            setUnequipping(true);
+            const response = await shopService.unequipFrame();
+            showToast.success(`Đã gỡ khung avatar!`);
+            dispatch(updateProfile({ avatarFrame: response.avatarFrame }));
+        } catch (err: any) {
+            console.error(err);
+            showToast.error(err.response?.data?.error || "Gỡ thất bại");
+        } finally {
+            setUnequipping(false);
         }
     };
 
@@ -158,38 +184,44 @@ export const ShopPage: React.FC = () => {
                                         </div>
                                         
                                         {purchasedIds.includes(Number(item.id)) ? (
-                                            <button
-                                                onClick={() => handleEquip(item)}
-                                                disabled={equippingId === item.id || user?.avatarFrame === item.imageUrl}
-                                                className={`
-                                                    relative px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 overflow-hidden
-                                                    ${user?.avatarFrame === item.imageUrl
-                                                        ? 'bg-green-500/20 text-green-500 cursor-default border border-green-500/50'
-                                                        : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-95'
-                                                    }
-                                                `}
-                                            >
-                                                {equippingId === item.id ? (
-                                                    <Lightning weight="fill" className="animate-spin" />
-                                                ) : user?.avatarFrame === item.imageUrl ? (
-                                                    <><Check weight="bold" /> Đang dùng</>
-                                                ) : (
-                                                    <>Sử dụng</>
-                                                )}
-                                            </button>
+                                            user?.avatarFrame === item.imageUrl ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="bg-green-500/20 text-green-500 border border-green-500/50 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-sm ring-1 ring-green-500/20">
+                                                        <Check weight="bold" /> Đang dùng
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleUnequip()}
+                                                        disabled={unequipping}
+                                                        title="Gỡ khung avatar"
+                                                        className="bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2.5 rounded-xl font-bold border border-red-500/30 transition-all text-sm hover:scale-[1.05] active:scale-95 disabled:opacity-50 flex items-center justify-center min-w-[60px]"
+                                                    >
+                                                        {unequipping ? "..." : "Gỡ"}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleEquip(item)}
+                                                    disabled={equippingId === item.id}
+                                                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-purple-500/50 transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-2 border border-purple-400/20"
+                                                >
+                                                    {equippingId === item.id ? (
+                                                        <Lightning weight="fill" className="animate-spin" />
+                                                    ) : (
+                                                        <>Sử dụng</>
+                                                    )}
+                                                </button>
+                                            )
                                         ) : (
                                             <button
                                                 onClick={() => handlePurchase(item)}
-                                                disabled={buyingId === item.id || balance < item.price || item.stock === 0}
+                                                disabled={buyingId === item.id || item.stock === 0}
                                                 className={`
                                                     relative px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2 overflow-hidden
                                                     ${buyingId === item.id 
                                                         ? 'bg-purple-600 text-white cursor-wait' 
-                                                        : balance < item.price 
-                                                            ? 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'
-                                                            : item.stock === 0
-                                                                ? 'bg-red-500/20 text-red-500 cursor-not-allowed border border-red-500/50'
-                                                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95'
+                                                        : item.stock === 0
+                                                            ? 'bg-red-500/20 text-red-500 cursor-not-allowed border border-red-500/50'
+                                                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-500/50 hover:scale-[1.02] active:scale-95'
                                                     }
                                                 `}
                                             >

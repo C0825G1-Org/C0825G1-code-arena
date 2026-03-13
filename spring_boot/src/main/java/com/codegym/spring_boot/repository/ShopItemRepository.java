@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ShopItemRepository extends JpaRepository<ShopItem, Integer> {
     List<ShopItem> findByIsActiveTrueAndIsDeletedFalse();
+    List<ShopItem> findByIsDeletedFalse();
 }
