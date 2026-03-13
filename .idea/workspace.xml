@@ -5,124 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0cb36b43-53d7-4062-9b33-7959701a0008" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/b91577db-2289-4e32-8826-dd6117edba6e.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/b91577db-2289-4e32-8826-dd6117edba6e.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/3.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/3.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/4.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_12/4.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/10.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/10.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/11.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/11.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/12.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/12.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/3.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/3.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/4.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/4.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/5.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/5.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/6.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/6.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/7.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/7.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/8.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/8.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/9.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_15/9.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/10.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/10.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/11.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/11.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/3.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/3.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/4.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/4.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/5.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/5.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/6.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/6.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/7.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/7.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/8.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/8.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/9.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_16/9.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/10.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/10.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/11.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/11.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/3.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/3.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/4.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/4.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/5.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/5.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/6.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/6.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/7.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/7.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/8.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/8.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/9.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_17/9.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/1.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/1.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/10.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/10.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/11.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/11.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/2.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/2.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/3.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/3.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/4.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/4.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/5.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/5.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/6.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/6.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/7.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/7.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/8.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/8.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/9.in" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/testcases/problem_18/9.out" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemCreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemCreatePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/page/AdminProblemPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/admin/problem/services/adminProblemApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/admin/problem/services/adminProblemApi.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/CreatePage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/problem/ListPage.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/features/moderator/services/problemApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/features/moderator/services/problemApi.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/controller/ProblemController.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/controller/ProblemController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/problem/ProblemResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/dto/problem/ProblemResponseDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestProblemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ContestProblemRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/FavoriteProblemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/FavoriteProblemRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/IProblemRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/IProblemRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ISubmissionTestResultRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ISubmissionTestResultRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ITestCaseRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ITestCaseRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ProblemDiscussionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/repository/ProblemDiscussionRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/IProblemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/IProblemService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/ITestCaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/ITestCaseService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/ProblemService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" beforeDir="false" afterPath="$PROJECT_DIR$/spring_boot/src/main/java/com/codegym/spring_boot/service/impl/TestCaseService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/1.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/1.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/10.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/10.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/11.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/11.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/12.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/12.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/13.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/13.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/2.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/2.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/3.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/3.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/4.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/4.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/5.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/5.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/6.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/6.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/7.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/7.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/8.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/8.out" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/9.in" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/testcases/problem_1/9.out" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -304,7 +212,7 @@
       <workItem from="1773124429671" duration="2004000" />
       <workItem from="1773279054401" duration="5849000" />
       <workItem from="1773319448643" duration="9493000" />
-      <workItem from="1773365174907" duration="1550000" />
+      <workItem from="1773365174907" duration="1856000" />
     </task>
     <servers />
   </component>
