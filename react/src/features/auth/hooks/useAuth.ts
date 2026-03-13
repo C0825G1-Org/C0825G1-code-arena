@@ -20,7 +20,7 @@ export const useAuth = (): UseAuthReturn => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const handleLoginSuccess = (response: { id: number, username: string, fullName: string, email: string, role: string, token: string, avatarUrl?: string }, message?: string) => {
+    const handleLoginSuccess = (response: { id: number, username: string, fullName: string, email: string, role: string, token: string, avatarUrl?: string, avatarFrame?: string | null }, message?: string) => {
         dispatch(loginSuccess({
             user: {
                 id: response.id,
