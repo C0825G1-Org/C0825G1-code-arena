@@ -1,24 +1,16 @@
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
+import { useSelector } from 'react-redux';
 
 export const useSocket = (onMessage) => {
     const [socketInstance, setSocketInstance] = useState(null);
+    const token = useSelector(state => state.auth.token);
 
     useEffect(() => {
-        const tokenStr = localStorage.getItem('token');
-        let token = '';
-
-        if (tokenStr) {
-            try {
-                const parsedToken = JSON.parse(tokenStr);
-                token = typeof parsedToken === 'string' ? parsedToken : (parsedToken?.token || parsedToken?.accessToken || '');
-            } catch (e) {
-                token = tokenStr;
-            }
-        }
-
         if (!token) {
-            console.warn('Socket.IO: No token found. Connection might be rejected.');
+            console.warn('Socket.IO: No token found. Disconnecting/Aborting connection.');
+            setSocketInstance(null);
+            return;
         }
 
         const socket = io('/', {
@@ -59,7 +51,7 @@ export const useSocket = (onMessage) => {
             socket.off('user_lock_update');
             socket.disconnect();
         };
-    }, []);
+    }, [token, onMessage]);
 
     return socketInstance;
 };

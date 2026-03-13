@@ -81,7 +81,11 @@ export const useAuth = (): UseAuthReturn => {
     const logout = () => {
         dispatch(logoutAction());
         toast.info('Logged out successfully.');
-        navigate('/login');
+        // Using window.location.href instead of navigate() forces a full page reload.
+        // This is CRITICAL because it destroys the DOM and natively severs ALL open
+        // Socket.IO connections (useSocket, useChatSocket, etc.), reliably triggering the 
+        // backend disconnectListener to clear the user's session from SessionManager.
+        window.location.href = '/login';
     };
 
     return { login, register, logout, handleLoginSuccess, isLoading };

@@ -72,6 +72,7 @@ public class SocketIOConfig {
                     if (userId != null) {
                         String roomName = "user_" + userId;
                         client.joinRoom(roomName);
+                        client.set("userId", userId); // Critical for tracking the socket owner!
                         sessionManager.addSession(userId); // Mark user as online
                         log.info("Client {} (User {}) CONNECTED and joined room: {}", client.getSessionId(), userId,
                                 roomName);
@@ -88,10 +89,17 @@ public class SocketIOConfig {
 
         server.addDisconnectListener(client -> {
             try {
-                Integer userId = extractUserIdFromClient(client);
+                // Safely get userId from the socket state. If the JWT expired while connected, 
+                // extracting it from handshake data WILL fail here, leaving the session stuck!
+                Integer userId = client.get("userId");
+                if (userId == null) {
+                    userId = extractUserIdFromClient(client); // Fallback
+                }
                 if (userId != null) {
                     sessionManager.removeSession(userId); // Mark user as offline
                     log.info("Client {} (User {}) DISCONNECTED", client.getSessionId(), userId);
+                } else {
+                    log.warn("Client {} DISCONNECTED without a tracked userId!", client.getSessionId());
                 }
             } catch (Exception e) {
                 log.error("Error in Socket.IO DisconnectListener", e);

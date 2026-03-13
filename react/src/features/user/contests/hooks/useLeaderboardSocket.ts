@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useSelector } from 'react-redux';
 import { LeaderboardDTO } from '../services/leaderboardApiService';
 
 export const useLeaderboardSocket = (contestId: number, onUpdate: (data: LeaderboardDTO[]) => void) => {
     const callbackRef = useRef(onUpdate);
+    const token = useSelector((state: any) => state.auth.token);
 
     useEffect(() => {
         callbackRef.current = onUpdate;
@@ -12,15 +14,9 @@ export const useLeaderboardSocket = (contestId: number, onUpdate: (data: Leaderb
     useEffect(() => {
         if (!contestId) return;
 
-        let token = '';
-        const tokenStr = localStorage.getItem('token');
-        if (tokenStr) {
-            try {
-                const parsedToken = JSON.parse(tokenStr);
-                token = typeof parsedToken === 'string' ? parsedToken : (parsedToken?.token || parsedToken?.accessToken || '');
-            } catch (e) {
-                token = tokenStr;
-            }
+        if (!token) {
+            console.log('Socket.IO (Leaderboard) No token found. Connection aborted/disconnected.');
+            return;
         }
 
         const socket: Socket = io('/', {
@@ -48,5 +44,6 @@ export const useLeaderboardSocket = (contestId: number, onUpdate: (data: Leaderb
                 console.log('Socket.IO (Leaderboard) Disconnected');
             }
         };
-    }, [contestId]);
+    }, [contestId, token]);
 };
+

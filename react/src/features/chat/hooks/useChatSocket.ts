@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useSelector } from 'react-redux';
 import { ChatMessage } from '../services/chatService';
 
 export const useChatSocket = (
@@ -10,21 +11,16 @@ export const useChatSocket = (
     const socketRef = useRef<Socket | null>(null);
     const [connected, setConnected] = useState(false);
     const errorCallbackRef = useRef(onChatError);
+    const token = useSelector((state: any) => state.auth.token);
 
     useEffect(() => {
         errorCallbackRef.current = onChatError;
     }, [onChatError]);
 
     useEffect(() => {
-        let token = '';
-        const tokenStr = localStorage.getItem('token');
-        if (tokenStr) {
-            try {
-                const parsedToken = JSON.parse(tokenStr);
-                token = typeof parsedToken === 'string' ? parsedToken : (parsedToken?.token || parsedToken?.accessToken || '');
-            } catch (e) {
-                token = tokenStr;
-            }
+        if (!token) {
+            console.log('Socket.IO (Chat) No token found. Connection aborted/disconnected.');
+            return;
         }
 
         // Connect to Socket.IO server (same pattern as useSocket.js)
@@ -71,7 +67,7 @@ export const useChatSocket = (
             socket.disconnect();
             socketRef.current = null;
         };
-    }, [contestId]);
+    }, [contestId, token]);
 
     const sendMessage = (content: string) => {
         if (socketRef.current && connected) {

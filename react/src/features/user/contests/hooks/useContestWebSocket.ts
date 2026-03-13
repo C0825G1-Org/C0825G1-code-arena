@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useSelector } from 'react-redux';
 
 interface ContestReminderData {
     contestId: number;
@@ -15,6 +16,7 @@ export const useContestWebSocket = (
     const callbackRef = useRef(onContestUpdate);
     const reminderCallbackRef = useRef(onContestReminder);
     const userLockCallbackRef = useRef(onUserLockUpdate);
+    const token = useSelector((state: any) => state.auth.token);
 
     // Update ref when callback changes
     useEffect(() => {
@@ -31,16 +33,10 @@ export const useContestWebSocket = (
 
     useEffect(() => {
         let isActive = true;
-        let token = '';
 
-        const tokenStr = localStorage.getItem('token');
-        if (tokenStr) {
-            try {
-                const parsedToken = JSON.parse(tokenStr);
-                token = typeof parsedToken === 'string' ? parsedToken : (parsedToken?.token || parsedToken?.accessToken || '');
-            } catch (e) {
-                token = tokenStr;
-            }
+        if (!token) {
+            console.log('Socket.IO (Contest updates) No token found. Connection aborted/disconnected.');
+            return;
         }
 
         // Init Socket.IO Client
@@ -54,14 +50,6 @@ export const useContestWebSocket = (
 
         socket.on('connect', () => {
             console.log('Socket.IO (Contest updates) Connected to server!');
-            // Join user room for private notifications
-            try {
-                if (token) {
-                    // Extracting userId from token client-side is optional since server does it,
-                    // but we can just emit an event to be sure if server needs it.
-                    // Actually SocketIOConfig.java already joins the room on connect.
-                }
-            } catch (e) { }
         });
 
         socket.on('contest_reminder', (data: any) => {
@@ -105,5 +93,5 @@ export const useContestWebSocket = (
             socket.disconnect();
             console.log('Socket.IO (Contest updates) Disconnected');
         };
-    }, []);
+    }, [token]);
 };

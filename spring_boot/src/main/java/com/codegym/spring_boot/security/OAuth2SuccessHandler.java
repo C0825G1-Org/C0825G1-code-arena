@@ -46,9 +46,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                         }
                     }
 
-                    // Đánh dấu online ngay lập tức
-                    sessionManager.addSession(user.getId());
-
                     // Cũ -> Login thẳng
                     String token = jwtService.generateToken(user);
                     String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
