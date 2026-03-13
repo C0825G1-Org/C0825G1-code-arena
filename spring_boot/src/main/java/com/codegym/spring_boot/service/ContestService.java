@@ -51,7 +51,7 @@ public class ContestService {
         // Kiểm tra Plan quota
         SubscriptionPlan plan = subscriptionService.getUserActivePlan(currentUser.getId());
         LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        long contestCountThisMonth = contestRepository.countByCreatedByIdAndStartTimeAfter(currentUser.getId(), startOfMonth);
+        long contestCountThisMonth = contestRepository.countByCreatedByIdAndCreatedAtAfter(currentUser.getId(), startOfMonth);
         
         if (contestCountThisMonth >= plan.getMaxContestsPerMonth()) {
             throw new IllegalStateException("Bạn đã tạo tối đa " + plan.getMaxContestsPerMonth() + " cuộc thi trong tháng này theo gói cước hiện tại. Vui lòng nâng cấp gói để tiếp tục.");
