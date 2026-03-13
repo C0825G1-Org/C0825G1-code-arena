@@ -8,6 +8,7 @@ import com.codegym.spring_boot.service.IUserSettingsService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users/settings")
 @RequiredArgsConstructor
+@Slf4j
 public class UserSettingsController {
 
     private final IUserSettingsService userSettingsService;
@@ -50,7 +52,8 @@ public class UserSettingsController {
             String url = userSettingsService.uploadAvatar(user, file);
             return ResponseEntity.ok(Map.of("avatarUrl", url));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+            log.error("Lỗi khi upload avatar", e);
+            return ResponseEntity.internalServerError().body(Map.of("message", "Lỗi khi tải ảnh lên server: " + e.getMessage()));
         }
     }
 

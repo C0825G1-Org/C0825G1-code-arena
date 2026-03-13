@@ -41,7 +41,7 @@ public interface ContestRepository extends JpaRepository<Contest, Integer>, JpaS
     long countByCreatedById(Integer createdById);
     
     // Đếm số lượng cuộc thi đã tạo từ thời điểm cho trước (Dùng cho check Plan Quota)
-    long countByCreatedByIdAndStartTimeAfter(Integer createdById, LocalDateTime startTime);
+    long countByCreatedByIdAndCreatedAtAfter(Integer createdById, LocalDateTime createdAt);
 
     // Admin Dashboard: contest đang active hoặc upcoming chưa bắt đầu hôm nay
     @Query(

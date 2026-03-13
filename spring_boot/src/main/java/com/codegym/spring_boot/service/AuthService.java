@@ -66,6 +66,7 @@ public class AuthService {
                                 .email(user.getEmail())
                                 .role(user.getRole().name())
                                 .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
+                                .avatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
                                 .build();
         }
 
@@ -97,7 +98,9 @@ public class AuthService {
                                 .email(user.getEmail())
                                 .role(user.getRole().name())
                                 .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
+                                .avatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
                                 .build();
+
         }
 
         @Transactional
@@ -153,6 +156,7 @@ public class AuthService {
                                 .email(user.getEmail())
                                 .role(user.getRole().name())
                                 .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
+                                .avatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
                                 .build();
         }
 

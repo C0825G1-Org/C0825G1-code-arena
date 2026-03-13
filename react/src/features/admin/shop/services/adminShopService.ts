@@ -3,7 +3,7 @@ import { ShopItem } from "../../../user/shop/services/shopService";
 
 export const adminShopService = {
     getAllItems: async () => {
-        return axiosClient.get<ShopItem[]>('/admin/shop/items');
+        return axiosClient.get<ShopItem[]>('/admin/shop/items') as any;
     },
 
     createItem: async (formData: FormData) => {
@@ -11,7 +11,7 @@ export const adminShopService = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-        });
+        }) as any;
     },
 
     updateItem: async (id: number, formData: FormData) => {
@@ -19,7 +19,7 @@ export const adminShopService = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-        });
+        }) as any;
     },
 
     deleteItem: async (id: number) => {

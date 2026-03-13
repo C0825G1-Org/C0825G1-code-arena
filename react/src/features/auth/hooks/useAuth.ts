@@ -10,7 +10,7 @@ export interface UseAuthReturn {
     login: (data: LoginRequest) => Promise<void>;
     register: (data: RegisterRequest) => Promise<void>;
     logout: () => void;
-    handleLoginSuccess: (response: { id: number, username: string, fullName: string, email: string, role: string, token: string, avatarUrl?: string }, message?: string) => void;
+    handleLoginSuccess: (response: { id: number, username: string, fullName: string, email: string, role: string, token: string, avatarUrl?: string, avatarFrame?: string | null }, message?: string) => void;
     isLoading: boolean;
 }
 
@@ -20,7 +20,7 @@ export const useAuth = (): UseAuthReturn => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const handleLoginSuccess = (response: { id: number, username: string, fullName: string, email: string, role: string, token: string, avatarUrl?: string }, message?: string) => {
+    const handleLoginSuccess = (response: { id: number, username: string, fullName: string, email: string, role: string, token: string, avatarUrl?: string, avatarFrame?: string | null }, message?: string) => {
         dispatch(loginSuccess({
             user: {
                 id: response.id,
@@ -28,7 +28,8 @@ export const useAuth = (): UseAuthReturn => {
                 fullName: response.fullName,
                 email: response.email,
                 role: response.role,
-                avatarUrl: response.avatarUrl
+                avatarUrl: response.avatarUrl,
+                avatarFrame: response.avatarFrame
             },
             token: response.token
         }));

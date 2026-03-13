@@ -75,6 +75,12 @@ export const ProfileSettingsForm: React.FC = () => {
         setLoading(true);
         toast.loading('Đang upload ảnh...', { id: 'upload' });
         try {
+            // Check file size client-side for immediate feedback
+            if (file.size > 10 * 1024 * 1024) {
+                toast.error('Kích thước ảnh không được vượt quá 10MB', { id: 'upload' });
+                return;
+            }
+
             const result = await settingsService.uploadAvatar(file);
             setProfile(prev => prev ? { ...prev, avatarUrl: result.avatarUrl } : null);
 
@@ -89,8 +95,9 @@ export const ProfileSettingsForm: React.FC = () => {
                 }));
             }
             toast.success('Cập nhật Avatar thành công', { id: 'upload' });
-        } catch (error) {
-            toast.error('Lỗi khi tải ảnh lên.', { id: 'upload' });
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Lỗi khi tải ảnh lên. Vui lòng thử lại.';
+            toast.error(message, { id: 'upload' });
         } finally {
             setLoading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
