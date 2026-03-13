@@ -645,10 +645,12 @@ public class ContestService {
         Contest contest = findContestOrThrow(id);
         ContestStatus realStatus = computeRealTimeStatus(contest);
 
-        // Cập nhật status nếu khác DB
+        // Cập nhật status nếu khác DB (chỉ save nếu dữ liệu hợp lệ)
         if (contest.getStatus() != realStatus) {
             contest.setStatus(realStatus);
-            contestRepository.save(contest);
+            if (contest.getStartTime() != null && contest.getEndTime() != null) {
+                contestRepository.save(contest);
+            }
         }
 
         boolean isRegistered = false;
@@ -681,7 +683,7 @@ public class ContestService {
 
         // Kiểm tra quyền sở hữu (Admin hoặc Moderator tạo ra contest)
         boolean isOwner = false;
-        if (currentUser != null) {
+        if (currentUser != null && currentUser.getRole() != null) {
             String roleStr = currentUser.getRole().name();
             if (roleStr.equalsIgnoreCase("admin") ||
                     (roleStr.equalsIgnoreCase("moderator") && contest.getCreatedBy() != null
@@ -703,6 +705,7 @@ public class ContestService {
                 case upcoming:
                     // Cho xem List IDs bài tập nếu đang ở phòng chờ (15 phút trước giờ G)
                     if (isRegistered && currentUser != null
+                            && contest.getStartTime() != null
                             && LocalDateTime.now().isAfter(contest.getStartTime().minusMinutes(15))) {
                         response.setProblems(getContestProblems(id, currentUser.getId()));
                     } else {
@@ -747,6 +750,12 @@ public class ContestService {
         }
         if (contest.getStatus() == ContestStatus.finished) {
             return ContestStatus.finished;
+        }
+
+        // Safety check for null times (prevent 500 error on old data)
+        if (contest.getStartTime() == null || contest.getEndTime() == null) {
+            log.warn("Contest {} has null startTime or endTime. Defaulting to upcoming.", contest.getId());
+            return ContestStatus.upcoming;
         }
 
         // Chỉ tính theo thời gian cho upcoming/active
@@ -802,7 +811,10 @@ public class ContestService {
         Integer firstProblemId = null;
         var problems = problemRepository.findByIdContestIdOrderByOrderIndexAsc(contest.getId());
         if (problems != null && !problems.isEmpty()) {
-            firstProblemId = problems.get(0).getProblem().getId();
+            var firstCP = problems.get(0);
+            if (firstCP != null && firstCP.getProblem() != null) {
+                firstProblemId = firstCP.getProblem().getId();
+            }
         }
 
         return ContestListResponse.builder()
@@ -836,6 +848,10 @@ public class ContestService {
                 .map(cp -> {
                     Integer submitCount = null;
                     Boolean isAC = null;
+                    if (cp.getProblem() == null) {
+                        log.error("ContestProblem in contest {} has null problem!", contestId);
+                        return null;
+                    }
                     if (userId != null) {
                         submitCount = submissionRepository
                                 .countByUserIdAndProblemIdAndContestIdAndIsTestRunFalse(userId, cp.getProblem().getId(),
@@ -849,7 +865,7 @@ public class ContestService {
                             .id(cp.getProblem().getId())
                             .orderIndex(cp.getOrderIndex())
                             .title(cp.getProblem().getTitle())
-                            .difficulty(cp.getProblem().getDifficulty().name())
+                            .difficulty(cp.getProblem().getDifficulty() != null ? cp.getProblem().getDifficulty().name() : "easy")
                             .isFrozen(Boolean.TRUE.equals(cp.getIsFrozen()))
                             .frozenReason(cp.getFrozenReason())
                             .submitCount(submitCount)
@@ -857,6 +873,7 @@ public class ContestService {
                             .maxScore(testCaseRepository.sumScoreWeightByProblemId(cp.getProblem().getId()))
                             .build();
                 })
+                .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -869,12 +886,17 @@ public class ContestService {
 
         AtomicInteger rank = new AtomicInteger(1);
         return participants.stream()
-                .map(p -> ContestDetailResponse.RankingEntry.builder()
-                        .rank(rank.getAndIncrement())
-                        .username(p.getUser().getUsername())
-                        .totalScore(p.getTotalScore())
-                        .totalPenalty(p.getTotalPenalty())
-                        .build())
+                .map(p -> {
+                    if (p.getUser() == null)
+                        return null;
+                    return ContestDetailResponse.RankingEntry.builder()
+                            .rank(rank.getAndIncrement())
+                            .username(p.getUser().getUsername())
+                            .totalScore(p.getTotalScore() != null ? p.getTotalScore() : 0)
+                            .totalPenalty(p.getTotalPenalty() != null ? p.getTotalPenalty() : 0)
+                            .build();
+                })
+                .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

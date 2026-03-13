@@ -49,7 +49,8 @@ public class ChatService implements IChatService {
 
     @Override
     public List<Object> getChatHistory(Integer contestId) {
-        return java.util.Collections.emptyList();
+        List<com.codegym.spring_boot.entity.mongo.ChatMessage> messages = chatMessageRepository.findByContestIdOrderByTimestampAsc(contestId);
+        return messages.stream().map(m -> (Object) m).collect(java.util.stream.Collectors.toList());
     }
 
     @Override

@@ -51,6 +51,9 @@ public class AuthService {
 
                 userRepository.save(user);
 
+                // Đánh dấu online ngay lập tức để chặn người thứ 2
+                sessionManager.addSession(user.getId());
+
                 String jwtToken = jwtService.generateToken(user);
 
                 emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
@@ -80,6 +83,9 @@ public class AuthService {
                                 new UsernamePasswordAuthenticationToken(
                                                 request.getUsername(),
                                                 request.getPassword()));
+
+                // Đánh dấu online ngay lập tức (trước khi Socket kết nối) để tránh race condition
+                sessionManager.addSession(user.getId());
 
                 String jwtToken = jwtService.generateToken(user);
 
@@ -131,6 +137,9 @@ public class AuthService {
                 user.setProfile(profile);
 
                 userRepository.save(user);
+
+                // Đánh dấu online
+                sessionManager.addSession(user.getId());
 
                 String jwtToken = jwtService.generateToken(user);
 
