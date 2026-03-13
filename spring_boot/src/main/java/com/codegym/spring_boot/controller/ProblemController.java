@@ -40,6 +40,11 @@ public class ProblemController {
     public ResponseEntity<ProblemResponseDTO> getProblemById(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(problemService.getProblemById(id));
     }
+
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<ProblemResponseDTO> getProblemBySlug(@PathVariable("slug") String slug) {
+        return ResponseEntity.ok(problemService.getProblemBySlug(slug));
+    }
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MODERATOR')")
     public ResponseEntity<ProblemResponseDTO> createProblem(@Valid @RequestBody ProblemRequestDTO requestDTO) {

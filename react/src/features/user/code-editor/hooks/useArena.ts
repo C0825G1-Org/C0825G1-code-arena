@@ -40,6 +40,11 @@ export function useArena(problemId: number, contestId?: string | null, isReadOnl
         setIsUnsaved(false);
         setIsTemplatesLoading(true);
 
+        if (problemId <= 0) {
+            setIsTemplatesLoading(false);
+            return;
+        }
+
         // Fetch problem templates
         getProblem(problemId).then(data => {
             if (data.ioTemplates) {

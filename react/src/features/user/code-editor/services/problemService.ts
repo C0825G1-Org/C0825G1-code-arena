@@ -22,6 +22,20 @@ export async function getProblem(id: number): Promise<Problem> {
     return res.json();
 }
 
+export async function getProblemBySlug(slug: string): Promise<Problem> {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/problems/slug/${slug}`, {
+        headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
+    });
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
+    return res.json();
+}
+
 export type TestCase = {
     id: number;
     problemId: number;

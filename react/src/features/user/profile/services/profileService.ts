@@ -13,6 +13,7 @@ export interface UserStats {
 export interface RecentSubmission {
     id: number;
     problemTitle: string;
+    problemSlug: string;
     problemId: number;
     status: string;
     language: string;

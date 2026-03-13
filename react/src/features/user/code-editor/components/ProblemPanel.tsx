@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getProblem, Problem } from "../services/problemService";
+import { getProblem, getProblemBySlug, Problem } from "../services/problemService";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -8,20 +8,36 @@ import 'katex/dist/katex.min.css';
 
 type Props = {
     problemId: number;
+    problemSlug?: string;
     contestId?: string | null;
+    initialData?: Problem;
 };
 
-export default function ProblemPanel({ problemId, contestId }: Props) {
-    const [problem, setProblem] = useState<Problem | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function ProblemPanel({ problemId, problemSlug, contestId, initialData }: Props) {
+    const [problem, setProblem] = useState<Problem | null>(initialData || null);
+    const [loading, setLoading] = useState(!initialData);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (initialData) {
+            setProblem(initialData);
+            setLoading(false);
+            return;
+        }
+
         let isMounted = true;
 
         async function fetchProblem() {
+            setLoading(true);
             try {
-                const data = await getProblem(problemId);
+                let data: Problem;
+                if (problemSlug) {
+                    data = await getProblemBySlug(problemSlug);
+                } else if (problemId > 0) {
+                    data = await getProblem(problemId);
+                } else {
+                    return;
+                }
                 if (isMounted) setProblem(data);
             } catch (err: any) {
                 if (isMounted) {
@@ -38,7 +54,7 @@ export default function ProblemPanel({ problemId, contestId }: Props) {
         return () => {
             isMounted = false;
         };
-    }, [problemId]);
+    }, [problemId, problemSlug, initialData]);
 
     if (loading) return <p className="p-6 text-slate-400 animate-pulse font-mono">Loading problem description...</p>;
     if (error) return <p className="text-red-400 p-4 font-mono text-sm bg-red-500/10 border border-red-500/20 rounded-lg whitespace-pre-wrap">{error}</p>;
@@ -51,9 +67,10 @@ export default function ProblemPanel({ problemId, contestId }: Props) {
                     <span className="animate-pulse">🔴</span> Đang Trong Khảo Thí
                 </div>
             )}
-            <h2 className="text-2xl font-bold mb-6 text-white border-b border-slate-800 pb-4">
+            {/* Ẩn tiêu đề bài tập lặp lại vì đã có trên Breadcrumb */}
+            {/* <h2 className="text-2xl font-bold mb-6 text-white border-b border-slate-800 pb-4">
                 {problem.title}
-            </h2>
+            </h2> */}
 
             <div className="prose-markdown">
                 <ReactMarkdown
