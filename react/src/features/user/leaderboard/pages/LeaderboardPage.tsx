@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { UserLayout } from '../../../../layouts/UserLayout';
 import { Avatar } from '../../../../shared/components/Avatar';
 import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
+import { getRankByRating, RankType } from '../../shared/utils/rankUtils';
 
 export const LeaderboardPage: React.FC = () => {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ export const LeaderboardPage: React.FC = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [type, setType] = useState('total'); // 'contest', 'practice', or 'total'
+    const [type, setType] = useState<RankType>('total'); // 'contest', 'practice', or 'total'
 
     const size = 10;
 
@@ -96,7 +97,7 @@ export const LeaderboardPage: React.FC = () => {
                             {secondPlace.fullName || secondPlace.username}
                         </span>
                         <div className="flex justify-center mb-1">
-                            <UserNameWithRank username={secondPlace.username} globalRating={secondPlace.globalRating} className="text-xs" />
+                            <UserNameWithRank username={secondPlace.username} globalRating={secondPlace.globalRating} type={type} className="text-xs" />
                         </div>
                         <span className="text-xs text-blue-400 font-mono mb-2">{secondPlace.globalRating} ELO</span>
                         <div className="w-full h-[100px] border-t-2 border-slate-400 bg-gradient-to-b from-slate-400/20 to-transparent rounded-t-xl flex justify-center items-start pt-4 shadow-xl">
@@ -128,7 +129,7 @@ export const LeaderboardPage: React.FC = () => {
                             {firstPlace.fullName || firstPlace.username}
                         </span>
                         <div className="flex justify-center mb-1">
-                            <UserNameWithRank username={firstPlace.username} globalRating={firstPlace.globalRating} className="text-sm" />
+                            <UserNameWithRank username={firstPlace.username} globalRating={firstPlace.globalRating} type={type} className="text-sm" />
                         </div>
                         <div className="flex justify-center mb-2">
                             <span className="text-xs text-yellow-400 font-bold font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
@@ -165,7 +166,7 @@ export const LeaderboardPage: React.FC = () => {
                             {thirdPlace.fullName || thirdPlace.username}
                         </span>
                         <div className="flex justify-center mb-1">
-                            <UserNameWithRank username={thirdPlace.username} globalRating={thirdPlace.globalRating} className="text-xs" />
+                            <UserNameWithRank username={thirdPlace.username} globalRating={thirdPlace.globalRating} type={type} className="text-xs" />
                         </div>
                         <span className="text-xs text-blue-400 font-mono mb-2">{thirdPlace.globalRating} ELO</span>
                         <div className="w-full h-[80px] border-t-2 border-orange-600 bg-gradient-to-b from-orange-600/20 to-transparent rounded-t-xl flex justify-center items-start pt-2 shadow-xl">
@@ -282,6 +283,7 @@ export const LeaderboardPage: React.FC = () => {
                                                     <UserNameWithRank
                                                         username={u.fullName || u.username}
                                                         globalRating={u.globalRating}
+                                                        type={type}
                                                         className={`text-base transition-colors cursor-pointer hover:text-blue-400 ${u.userId === user?.id ? 'text-blue-400' : ''}`}
                                                     />
                                                     {u.userId === user?.id && <span className="text-xs ml-1 bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bạn</span>}
@@ -303,11 +305,7 @@ export const LeaderboardPage: React.FC = () => {
                                         <td className="px-6 py-4 text-right">
                                             <span className={`text-base font-black font-mono tracking-wider drop-shadow-sm
                                                 ${u.rank === 1 ? 'text-yellow-400' : u.rank === 2 ? 'text-slate-300' : u.rank === 3 ? 'text-orange-400'
-                                                    : type === 'practice'
-                                                        ? (u.globalRating >= 800 ? 'text-red-400' : u.globalRating >= 500 ? 'text-yellow-400' : u.globalRating >= 250 ? 'text-purple-400' : u.globalRating >= 100 ? 'text-blue-400' : u.globalRating >= 30 ? 'text-green-400' : 'text-slate-300')
-                                                        : type === 'total'
-                                                            ? (u.globalRating >= 2500 ? 'text-red-400' : u.globalRating >= 1500 ? 'text-yellow-400' : u.globalRating >= 750 ? 'text-purple-400' : u.globalRating >= 300 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300')
-                                                            : (u.globalRating >= 1000 ? 'text-red-400' : u.globalRating >= 700 ? 'text-yellow-400' : u.globalRating >= 450 ? 'text-purple-400' : u.globalRating >= 250 ? 'text-blue-400' : u.globalRating >= 100 ? 'text-green-400' : 'text-slate-300')}`}>
+                                                    : getRankByRating(u.globalRating, type).color}`}>
                                                 {u.globalRating}
                                             </span>
                                         </td>
