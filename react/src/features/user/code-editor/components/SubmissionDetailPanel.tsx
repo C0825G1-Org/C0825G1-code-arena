@@ -44,7 +44,7 @@ const SubmissionDetailPanel: React.FC<SubmissionDetailPanelProps> = ({ submissio
             <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-800">
                 <h2 className="text-xl font-bold text-white flex items-center gap-3">
                     📄 Bài Nộp #{submissionId}
-                    {data && <UserNameWithRank username={data.username} globalRating={data.globalRating} className="text-sm font-normal" />}
+                    {data && <UserNameWithRank username={data.username} globalRating={data.practiceRating} type="practice" className="text-sm font-normal" />}
                 </h2>
                 <button
                     onClick={onClose}

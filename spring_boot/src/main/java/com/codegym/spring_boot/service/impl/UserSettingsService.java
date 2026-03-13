@@ -144,4 +144,17 @@ public class UserSettingsService implements IUserSettingsService {
 
         return getUserProfile(freshUser);
     }
+
+    @Override
+    @Transactional
+    public UserProfileResponse unequipFrame(User user) {
+        User freshUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại."));
+        Profile profile = freshUser.getProfile();
+        if (profile != null) {
+            profile.setAvatarFrame(null);
+            profileRepository.save(profile);
+        }
+        return getUserProfile(freshUser);
+    }
 }

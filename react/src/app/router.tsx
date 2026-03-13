@@ -363,6 +363,14 @@ export const router = createBrowserRouter([
         )
     },
     {
+        path: '/problems/:problemSlug',
+        element: (
+            <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>
+                <CodeEditorPage />
+            </ProtectedRoute>
+        )
+    },
+    {
         path: '/code-editor/:problemId',
         element: (
             <ProtectedRoute allowedRoles={['USER', 'MODERATOR', 'ADMIN']}>

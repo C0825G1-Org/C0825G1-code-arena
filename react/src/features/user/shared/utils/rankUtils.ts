@@ -97,6 +97,8 @@ export const getRankByRating = (rating: number, type: RankType = 'contest'): Ran
     if (type === 'practice') tiers = PRACTICE_RANK_TIERS;
     if (type === 'total') tiers = TOTAL_RANK_TIERS;
     
-    const tier = tiers.find(t => val >= t.min && val <= t.max);
+    // Tìm tier cao nhất mà rating đạt tới (min <= val)
+    // Sắp xếp ngược lại để tìm phần tử đầu tiên thỏa mãn
+    const tier = [...tiers].reverse().find(t => val >= t.min);
     return tier || tiers[0];
 };

@@ -56,9 +56,13 @@ public class UserDashboardService implements IUserDashboardService {
                                 SubmissionStatus.AC);
                 int streak = calculateStreak(acDates);
 
+                int practiceRating = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
+                int totalRating = (globalRating * 2) + practiceRating;
+
                 return UserStatsResponse.builder()
                                 .eloRanking(globalRating)
-                                .practiceRating(user.getPracticeRating() != null ? user.getPracticeRating() : 0)
+                                .practiceRating(practiceRating)
+                                .totalRating(totalRating)
                                 .topPercent(Math.round(topPercent * 100.0) / 100.0) // Round to 2 decimals
                                 .solvedCount(solvedCount)
                                 .acRate(Math.round(acRate * 100.0) / 100.0) // Round to 2 decimals
@@ -68,18 +72,28 @@ public class UserDashboardService implements IUserDashboardService {
 
         @Override
         public List<TopCoderResponse> getTopCoders() {
-                // Fetch top 3 users with role USER in ascending order (smaller rating = higher
-                // rank)
-                List<User> topUsers = userRepository.findTop3ByRoleOrderByGlobalRatingDescIdAsc(UserRole.user);
+                // Fetch top 3 users by Total Rating (globalRating * 2 + practiceRating)
+                List<User> topUsers = userRepository.findTopUsersByTotalRating(
+                        UserRole.user, 
+                        org.springframework.data.domain.PageRequest.of(0, 3)
+                );
 
-                return topUsers.stream().map(user -> TopCoderResponse.builder()
+                return topUsers.stream().map(user -> {
+                        int global = user.getGlobalRating() != null ? user.getGlobalRating() : 0;
+                        int practice = user.getPracticeRating() != null ? user.getPracticeRating() : 0;
+                        int total = (global * 2) + practice;
+                        
+                        return TopCoderResponse.builder()
                                 .userId(user.getId())
                                 .username(user.getUsername())
                                 .fullName(user.getFullName())
-                                .globalRating(user.getGlobalRating() != null ? user.getGlobalRating() : 0)
+                                .globalRating(global)
+                                .practiceRating(practice)
+                                .totalRating(total)
                                 .avatarUrl(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
                                 .avatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
-                                .build()).collect(Collectors.toList());
+                                .build();
+                }).collect(Collectors.toList());
         }
 
         private int calculateStreak(List<Date> acDatesDesc) {
@@ -135,6 +149,7 @@ public class UserDashboardService implements IUserDashboardService {
                                                 .builder()
                                                 .id(sub.getId())
                                                 .problemTitle(sub.getProblem().getTitle())
+                                                .problemSlug(sub.getProblem().getSlug())
                                                 .problemId(sub.getProblem().getId())
                                                 .status(sub.getStatus() != null ? sub.getStatus().name() : com.codegym.spring_boot.entity.enums.SubmissionStatus.pending.name())
                                                 .language(sub.getLanguage().getName())

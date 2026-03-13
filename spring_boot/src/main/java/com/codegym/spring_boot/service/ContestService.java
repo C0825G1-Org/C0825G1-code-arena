@@ -552,9 +552,11 @@ public class ContestService {
         }
 
         // Check plan limit based on contest creator
-        SubscriptionPlan creatorPlan = subscriptionService.getUserActivePlan(contest.getCreatedBy().getId());
-        if (participantRepository.countByIdContestId(contestId) >= creatorPlan.getMaxParticipantsPerContest()) {
-            throw new IllegalStateException("Cuộc thi đã đủ số lượng người đăng ký tối đa (" + creatorPlan.getMaxParticipantsPerContest() + " người) theo cấu hình gói cước của Host.");
+        if (contest.getCreatedBy() != null) {
+            SubscriptionPlan creatorPlan = subscriptionService.getUserActivePlan(contest.getCreatedBy().getId());
+            if (participantRepository.countByIdContestId(contestId) >= creatorPlan.getMaxParticipantsPerContest()) {
+                throw new IllegalStateException("Cuộc thi đã đủ số lượng người đăng ký tối đa (" + creatorPlan.getMaxParticipantsPerContest() + " người) theo cấu hình gói cước của Host.");
+            }
         }
 
         ContestParticipant participant = new ContestParticipant();

@@ -7,6 +7,7 @@ interface EditorHeaderProps {
     isExamMode: boolean;
     contestId?: string;
     problemId: number;
+    problemTitle?: string;
     isCapturing: boolean;
     contestTitle?: string;
     contestEndTime?: string;
@@ -20,6 +21,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
     isExamMode,
     contestId,
     problemId,
+    problemTitle,
     isCapturing,
     contestTitle,
     contestEndTime,
@@ -41,7 +43,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                         {isExamMode ? 'Contests' : 'Problems'}
                     </span>
                     <span className="text-slate-600">/</span>
-                    <span className="text-slate-200">Problem {problemId}</span>
+                    <span className="text-slate-200">{problemTitle || `Problem ${problemId}`}</span>
                 </div>
                 {isExamMode ? (
                     <span className="px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-red-400 bg-red-500/10 border border-red-500/20 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(239,68,68,0.2)]">

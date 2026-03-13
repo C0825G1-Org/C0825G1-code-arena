@@ -8,9 +8,9 @@ import java.util.List;
 public interface IProblemService {
     List<ProblemResponseDTO> getAllProblems(Boolean manage);
     ProblemResponseDTO getProblemById(Integer id);
+    ProblemResponseDTO getProblemBySlug(String slug);
     ProblemResponseDTO createProblem(ProblemRequestDTO requestDTO);
     ProblemResponseDTO updateProblem(Integer id, ProblemRequestDTO requestDTO);
     Boolean deleteProblem(Integer id);
     Boolean restoreProblem(Integer id);
-    ProblemResponseDTO getProblemBySlug(String slug);
 }

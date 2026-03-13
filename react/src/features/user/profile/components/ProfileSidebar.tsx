@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserProfileResponse, UserStats } from '../services/profileService';
 import { Link } from 'react-router-dom';
 import { Avatar } from '../../../../shared/components/Avatar';
 import RankProgression from './RankProgression';
+import RankLegendModal from '../../shared/components/RankLegendModal';
+import { Info } from '@phosphor-icons/react';
 
 interface Props {
     profile?: UserProfileResponse;
@@ -11,6 +13,14 @@ interface Props {
 }
 
 const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
+    const [isRankModalOpen, setIsRankModalOpen] = useState(false);
+    const [rankModalTab, setRankModalTab] = useState<'contest' | 'practice' | 'total'>('contest');
+
+    const handleOpenRankModal = (tab: 'contest' | 'practice' | 'total') => {
+        setRankModalTab(tab);
+        setIsRankModalOpen(true);
+    };
+
     const joinDate = profile?.createdAt
         ? new Date(profile.createdAt).toLocaleDateString("vi-VN")
         : "...";
@@ -45,12 +55,30 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
 
                 <div className="w-full mb-6 space-y-4">
                     <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Elo Cuộc Thi</p>
-                        <RankProgression rating={stats?.eloRanking || 0} />
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Elo Cuộc Thi</p>
+                            <button 
+                                onClick={() => handleOpenRankModal('contest')}
+                                className="text-slate-500 hover:text-blue-400 transition-colors"
+                                title="Xem bảng cấp bậc"
+                            >
+                                <Info size={16} weight="duotone" />
+                            </button>
+                        </div>
+                        <RankProgression rating={stats?.eloRanking || 0} type="contest" title="Thứ hạng Cuộc thi" />
                     </div>
                     <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Elo Luyện Tập</p>
-                        <RankProgression rating={stats?.practiceRating || 0} />
+                        <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Elo Luyện Tập</p>
+                            <button 
+                                onClick={() => handleOpenRankModal('practice')}
+                                className="text-slate-500 hover:text-emerald-400 transition-colors"
+                                title="Xem bảng cấp bậc"
+                            >
+                                <Info size={16} weight="duotone" />
+                            </button>
+                        </div>
+                        <RankProgression rating={stats?.practiceRating || 0} type="practice" title="Thứ hạng Luyện tập" />
                     </div>
                 </div>
 
@@ -76,6 +104,12 @@ const ProfileSidebar: React.FC<Props> = ({ profile, stats, isOwnProfile }) => {
                     )}
                 </div>
             </div>
+
+            <RankLegendModal 
+                isOpen={isRankModalOpen} 
+                onClose={() => setIsRankModalOpen(false)} 
+                initialTab={rankModalTab}
+            />
         </div>
     );
 };

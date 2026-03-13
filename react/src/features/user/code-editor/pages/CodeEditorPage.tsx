@@ -14,7 +14,7 @@ import { ContestDetailData } from "../../contests/pages/UserContestDetailPage";
 import { useSocket } from "../../../../shared/hooks/useSocket";
 import { getIceServers } from "../../../../shared/config/webrtcConfig";
 import { contestService } from "../../home/services/contestService";
-import { getSampleTestCases, TestCase } from "../services/problemService";
+import { getSampleTestCases, TestCase, getProblem, getProblemBySlug, Problem } from "../services/problemService";
 
 import { useArena, Language } from "../hooks/useArena";
 import { boilerplateMap, BACKEND_LANGUAGE_TO_EDITOR } from "../constants";
@@ -37,8 +37,11 @@ export default function Home() {
     const contestId = searchParams.get('contestId');
     const isExamMode = !!contestId;
 
-    const { problemId: problemIdStr } = useParams<{ problemId: string }>();
-    const problemId = problemIdStr ? parseInt(problemIdStr, 10) : 1;
+    const { problemId: problemIdStr, problemSlug } = useParams<{ problemId?: string, problemSlug?: string }>();
+    const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
+    const problemId = currentProblem?.id 
+        ? currentProblem.id 
+        : (problemIdStr ? parseInt(problemIdStr, 10) : 0);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -212,6 +215,25 @@ export default function Home() {
     const pendingSignals = useRef<any[]>([]);
 
     useEffect(() => {
+        const fetchProblemInfo = async () => {
+            try {
+                let data: Problem;
+                if (problemSlug) {
+                    data = await getProblemBySlug(problemSlug);
+                } else if (problemIdStr) {
+                    data = await getProblem(parseInt(problemIdStr));
+                } else {
+                    return;
+                }
+                setCurrentProblem(data);
+            } catch (err) {
+                console.error("Failed to fetch problem info:", err);
+            }
+        };
+        fetchProblemInfo();
+    }, [problemIdStr, problemSlug]);
+
+    useEffect(() => {
         if (isExamMode && !isAuthenticated) {
             navigate('/login', { state: { from: location.pathname + location.search }, replace: true });
             return;
@@ -239,30 +261,32 @@ export default function Home() {
                         // Đặt flag vào localStorage để examReadOnly = true khi component re-render
                         localStorage.setItem(`arena:contest_finished:${contestId}`, Date.now().toString());
                         // Lấy code từ lần nộp cuối cùng của bài này trong cuộc thi
-                        axiosClient.get(`/submissions/me`, {
-                            params: { problemId, contestId: parseInt(contestId!) }
-                        }).then((submissions: any) => {
-                            const list: any[] = Array.isArray(submissions) ? submissions : (submissions?.data ?? []);
-                            if (list.length > 0) {
-                                const last = list[0]; // Đã sắp xếp DESC từ API
-                                const mappedLang = BACKEND_LANGUAGE_TO_EDITOR[last.languageName] as any;
+                        if (problemId > 0) {
+                            axiosClient.get(`/submissions/me`, {
+                                params: { problemId, contestId: parseInt(contestId!) }
+                            }).then((submissions: any) => {
+                                const list: any[] = Array.isArray(submissions) ? submissions : (submissions?.data ?? []);
+                                if (list.length > 0) {
+                                    const last = list[0]; // Đã sắp xếp DESC từ API
+                                    const mappedLang = BACKEND_LANGUAGE_TO_EDITOR[last.languageName] as any;
 
-                                // Nếu code rỗng/trắng thì dùng boilerplate mặc định
-                                const codeToShow = last.sourceCode?.trim()
-                                    ? last.sourceCode
-                                    : (boilerplateMap[mappedLang as Language] ?? '');
+                                    // Nếu code rỗng/trắng thì dùng boilerplate mặc định
+                                    const codeToShow = last.sourceCode?.trim()
+                                        ? last.sourceCode
+                                        : (boilerplateMap[mappedLang as Language] ?? '');
 
-                                if (mappedLang) changeLanguage(mappedLang);
-                                // Set code trực tiếp qua setRawCode (đã thêm vào useArena) để tránh lỗi sync
-                                setRawCode(codeToShow);
-                            }
-                        }).catch(console.warn);
+                                    if (mappedLang) changeLanguage(mappedLang);
+                                    // Set code trực tiếp qua setRawCode (đã thêm vào useArena) để tránh lỗi sync
+                                    setRawCode(codeToShow);
+                                }
+                            }).catch(console.warn);
+                        }
                     }
                 })
                 .catch(err => console.error("API Error:", err));
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isExamMode, isAuthenticated, navigate, location.pathname, location.search, contestId]);
+    }, [isExamMode, isAuthenticated, navigate, location.pathname, location.search, contestId, problemId]);
 
     useEffect(() => {
         setActiveTab('problem');
@@ -481,6 +505,7 @@ export default function Home() {
                     isExamMode={isExamMode}
                     contestId={contestId || undefined}
                     problemId={problemId}
+                    problemTitle={currentProblem?.title}
                     isCapturing={isCapturing}
                     contestTitle={contest?.title}
                     contestEndTime={contest?.endTime}
@@ -581,7 +606,7 @@ export default function Home() {
                                 )}
                             </div>
                             <div className="flex-1 overflow-hidden relative bg-[#0f172a]/20 tour-problem-panel">
-                                {activeTab === 'problem' && <div className="absolute inset-0"><ProblemPanel problemId={problemId} contestId={contestId} /></div>}
+                                {activeTab === 'problem' && <div className="absolute inset-0"><ProblemPanel problemId={problemId} problemSlug={problemSlug} contestId={contestId} initialData={currentProblem || undefined} /></div>}
                                 {activeTab === 'submissions' && <div className="absolute inset-0"><SubmissionHistory problemId={problemId} contestId={contestId} /></div>}
                                 {activeTab === 'hints' && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-slate-400">

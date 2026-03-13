@@ -43,5 +43,10 @@ export const shopService = {
     equipFrame: async (itemId: number): Promise<any> => {
         const response = await axiosClient.patch(`/users/settings/equip-frame/${itemId}`);
         return response;
+    },
+    
+    unequipFrame: async (): Promise<any> => {
+        const response = await axiosClient.delete('/users/settings/unequip-frame');
+        return response;
     }
 };

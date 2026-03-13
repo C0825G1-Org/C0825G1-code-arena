@@ -500,6 +500,7 @@ public class SubmissionService implements ISubmissionService {
                                 .languageName(sub.getLanguage() != null ? sub.getLanguage().getName() : null)
                                 .username(sub.getUser().getUsername())
                                 .globalRating(sub.getUser().getGlobalRating())
+                                .practiceRating(sub.getUser().getPracticeRating())
                                 .build()).collect(Collectors.toList());
         }
 
@@ -612,6 +613,7 @@ public class SubmissionService implements ISubmissionService {
                                 .isTestRun(submission.getIsTestRun())
                                 .username(submission.getUser().getUsername())
                                 .globalRating(submission.getUser().getGlobalRating())
+                                .practiceRating(submission.getUser().getPracticeRating())
                                 .testCaseResults(detailTCs)
                                 .build();
         }

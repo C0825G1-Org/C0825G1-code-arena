@@ -15,6 +15,7 @@ public class ProblemDiscussionResponse {
     private String userUsername;
     private String userAvatar;
     private Integer userGlobalRating;
+    private Integer userPracticeRating;
     private String userAvatarFrame;
     private String content;
     private Boolean userIsDiscussionLocked;

@@ -15,12 +15,27 @@ import {
 } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 
+import { AdminLayout } from '../../components/AdminLayout';
+
+import { ConfirmModal } from '../../../../shared/components/ConfirmModal';
+
 export const AdminShopPage: React.FC = () => {
     const [items, setItems] = useState<ShopItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState<ShopItem | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Delete modal state
+    const [deleteModal, setDeleteModal] = useState<{
+        isOpen: boolean;
+        itemId: number | null;
+        itemName: string;
+    }>({
+        isOpen: false,
+        itemId: null,
+        itemName: ''
+    });
 
     // Form state
     const [formData, setFormData] = useState({
@@ -123,38 +138,51 @@ export const AdminShopPage: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa vật phẩm này?')) {
-            try {
-                await adminShopService.deleteItem(id);
-                toast.success('Đã xóa vật phẩm');
-                fetchItems();
-            } catch (error) {
-                toast.error('Lỗi khi xóa vật phẩm');
-            }
+    const handleDelete = async (item: ShopItem) => {
+        setDeleteModal({
+            isOpen: true,
+            itemId: item.id,
+            itemName: item.name
+        });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteModal.itemId) return;
+        
+        setIsSubmitting(true);
+        try {
+            await adminShopService.deleteItem(deleteModal.itemId);
+            toast.success('Đã xóa vật phẩm');
+            setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+            fetchItems();
+        } catch (error) {
+            toast.error('Lỗi khi xóa vật phẩm');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="p-6 space-y-6 bg-[#0f111a] min-h-screen text-gray-100">
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-500/20 rounded-lg">
-                        <Shop size={28} className="text-indigo-400" />
+        <AdminLayout title="Quản lý Cửa hàng" activeTab="shop">
+            <div className="space-y-6">
+                <div className="flex justify-between items-center bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                            <Shop size={28} className="text-red-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white">Vật phẩm Cửa hàng</h2>
+                            <p className="text-slate-400 text-sm">Quản lý Badge, Khung Avatar và các vật phẩm ảo khác</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold">Quản lý Cửa hàng</h1>
-                        <p className="text-gray-400 text-sm">Quản lý vật phẩm, Badge và Khung Avatar</p>
-                    </div>
+                    <button
+                        onClick={() => handleOpenModal()}
+                        className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-5 py-2.5 rounded-xl transition-all font-bold shadow-lg shadow-red-500/20 active:scale-95"
+                    >
+                        <Plus size={20} weight="bold" />
+                        Thêm Vật Phẩm
+                    </button>
                 </div>
-                <button
-                    onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg transition-colors font-medium"
-                >
-                    <Plus size={20} weight="bold" />
-                    Thêm Vật Phẩm
-                </button>
-            </div>
 
             <div className="bg-[#161b22] border border-gray-700/50 rounded-xl overflow-hidden">
                 <table className="w-full text-left">
@@ -226,10 +254,11 @@ export const AdminShopPage: React.FC = () => {
                                             <Pencil size={18} />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(item.id)}
-                                            className="p-2 hover:bg-red-500/10 rounded-lg transition-colors text-gray-400 hover:text-red-400"
+                                            onClick={() => handleDelete(item)}
+                                            className="p-2 hover:bg-red-500/10 rounded-lg transition-all text-slate-400 hover:text-red-400 border border-transparent hover:border-red-500/20 shadow-sm shadow-red-500/0 hover:shadow-red-500/5 active:scale-90"
+                                            title="Xóa vật phẩm"
                                         >
-                                            <Trash size={18} />
+                                            <Trash size={20} weight="duotone" />
                                         </button>
                                     </div>
                                 </td>
@@ -238,6 +267,18 @@ export const AdminShopPage: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Confirm Delete Modal */}
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ ...deleteModal, isOpen: false })}
+                onConfirm={confirmDelete}
+                isLoading={isSubmitting}
+                title="Xác nhận xóa"
+                message={`Bạn có chắc chắn muốn xóa vật phẩm "${deleteModal.itemName}"? Hành động này không thể hoàn tác.`}
+                confirmText="Xóa ngay"
+                type="danger"
+            />
 
             {/* Modal */}
             {showModal && (
@@ -278,8 +319,6 @@ export const AdminShopPage: React.FC = () => {
                                             className="w-full bg-[#0d1117] border border-gray-700 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
                                         >
                                             <option value="avatar_frame">Khung Avatar (avatar_frame)</option>
-                                            <option value="badge">Huy hiệu (badge)</option>
-                                            <option value="other">Khác</option>
                                         </select>
                                     </div>
                                 </div>
@@ -383,6 +422,7 @@ export const AdminShopPage: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+            </div>
+        </AdminLayout>
     );
 };

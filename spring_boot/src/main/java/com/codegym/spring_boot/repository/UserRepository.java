@@ -14,6 +14,9 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsernameAndIsDeletedFalse(String username);
+    
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.username = :username AND u.isDeleted = false")
+    Optional<User> findByUsernameWithProfile(@Param("username") String username);
 
     Optional<User> findByEmail(String email);
 
@@ -39,6 +42,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long countTotalRank(@Param("role") UserRole role, @Param("score") int score, @Param("userId") int userId);
 
     List<User> findTop3ByRoleOrderByPracticeRatingDescIdAsc(UserRole role);
+
+    @Query(value = "SELECT u FROM User u WHERE u.role = :role ORDER BY (COALESCE(u.globalRating, 0) * 2 + COALESCE(u.practiceRating, 0)) DESC, u.id ASC")
+    List<User> findTopUsersByTotalRating(@Param("role") UserRole role, org.springframework.data.domain.Pageable pageable);
 
     Page<User> findByRoleAndEmailContainingIgnoreCaseOrRoleAndFullNameContainingIgnoreCase(
             UserRole role1, String email, UserRole role2, String fullName, Pageable pageable);

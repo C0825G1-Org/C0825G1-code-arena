@@ -41,7 +41,7 @@ const RecentSubmissionsTable: React.FC<Props> = ({ submissions }) => {
                                 return (
                                     <tr key={sub.id} className="border-b border-slate-800 hover:bg-slate-800/30 transition-colors">
                                         <td className="px-6 py-3 font-medium text-blue-400 hover:underline cursor-pointer">
-                                            <Link to={`/code-editor/${sub.problemId}`} className="block w-full h-full">
+                                            <Link to={`/problems/${sub.problemSlug}`} className="block w-full h-full">
                                                 {sub.problemId}. {sub.problemTitle}
                                             </Link>
                                         </td>

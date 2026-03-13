@@ -231,7 +231,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                                 <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                     {showName && !isMe && (
                                         <div className="mb-1 ml-1" onClick={(e) => handleUserClick(e, msg)}>
-                                            <UserNameWithRank username={msg.senderName} globalRating={msg.senderGlobalRating} className="text-xs" />
+                                            <UserNameWithRank username={msg.senderName} globalRating={msg.senderGlobalRating} type="contest" className="text-xs" />
                                         </div>
                                     )}
                                     <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>

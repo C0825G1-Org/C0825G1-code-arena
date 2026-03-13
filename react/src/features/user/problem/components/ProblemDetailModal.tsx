@@ -21,6 +21,7 @@ interface TagDTO {
 interface ProblemDetailDTO {
     id: number;
     title: string;
+    slug: string;
     description: string;
     difficulty: 'easy' | 'medium' | 'hard';
     tags: TagDTO[];
@@ -177,7 +178,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({ isOpen, 
                     </button>
                     {problem && (
                          <Link 
-                            to={`/code-editor/${problem.id}`} 
+                            to={`/problems/${problem.slug}`} 
                             className={`flex items-center gap-2 px-6 py-2 rounded-xl shadow-lg transition-all font-bold ${
                                 userStatus === 'SOLVED' 
                                 ? 'bg-slate-700 hover:bg-slate-600 text-white shadow-slate-900/20 border border-slate-600'

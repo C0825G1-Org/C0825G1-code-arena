@@ -133,6 +133,7 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                         >
                             <Avatar
                                 src={user?.avatarUrl}
+                                frameUrl={user?.avatarFrame}
                                 userId={user?.id}
                                 size="md"
                             />

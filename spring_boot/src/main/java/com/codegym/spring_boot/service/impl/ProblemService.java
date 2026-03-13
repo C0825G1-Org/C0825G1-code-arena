@@ -98,6 +98,17 @@ public class ProblemService implements IProblemService {
     }
 
     @Override
+    public ProblemResponseDTO getProblemBySlug(String slug) {
+        Problem problem = problemRepository.findBySlug(slug)
+                .filter(p -> !Boolean.TRUE.equals(p.getIsDeleted()))
+                .orElseThrow(() -> new NoResultException("Không tìm thấy Problem có slug: " + slug));
+
+        checkReadPermission(problem);
+
+        return mapToResponseDTO(problem);
+    }
+
+    @Override
     public ProblemResponseDTO createProblem(ProblemRequestDTO requestDTO) {
         if (problemRepository.existsBySlug(requestDTO.getSlug())) {
             throw new RuntimeException("Slug đã tồn tại, vui lòng chọn slug khác");
@@ -169,13 +180,6 @@ public class ProblemService implements IProblemService {
         problem.setTestcaseStatus(TestCaseStatus.not_uploaded);
         problemRepository.save(problem);
         return true;
-    }
-
-    @Override
-    public ProblemResponseDTO getProblemBySlug(String slug) {
-        return problemRepository.findBySlug(slug)
-                .map(this::mapToResponseDTO)
-                .orElse(null);
     }
 
     private void checkIfProblemInActiveContest(Integer problemId) {

@@ -290,11 +290,15 @@ export const AdminContestManagementPage = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-1.5">
-                                                {contest.status?.toLowerCase() === 'active' && (
+                                                {(contest.status?.toLowerCase() === 'active' || contest.status?.toLowerCase() === 'upcoming') && (
                                                     <Link
                                                         to={`/moderator/contests/${contest.id}/monitor`}
-                                                        className="p-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors border border-emerald-500/20"
-                                                        title="Theo dõi diễn biến"
+                                                        className={`p-1.5 rounded-lg transition-colors border ${
+                                                            contest.status?.toLowerCase() === 'active' 
+                                                            ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20' 
+                                                            : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border-purple-500/20'
+                                                        }`}
+                                                        title={contest.status?.toLowerCase() === 'active' ? "Theo dõi diễn biến" : "Phòng chờ & Giám sát"}
                                                     >
                                                         <ChartLineUp size={16} weight="duotone" />
                                                     </Link>

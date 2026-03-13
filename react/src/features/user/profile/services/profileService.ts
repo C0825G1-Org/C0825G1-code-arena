@@ -3,6 +3,7 @@ import axiosInstance from '../../../../shared/services/axiosClient';
 export interface UserStats {
     eloRanking: number;
     practiceRating: number;
+    totalRating: number;
     topPercent: number;
     solvedCount: number;
     acRate: number;
@@ -12,6 +13,7 @@ export interface UserStats {
 export interface RecentSubmission {
     id: number;
     problemTitle: string;
+    problemSlug: string;
     problemId: number;
     status: string;
     language: string;

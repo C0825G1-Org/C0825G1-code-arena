@@ -173,13 +173,13 @@ export const ListPage = () => {
     const renderActionBtn = (problem: ProblemUserDTO) => {
         if (problem.userStatus === 'SOLVED') {
             return (
-                <Link to={`/code-editor/${problem.id}`} className="inline-block px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-md transition-colors text-xs font-medium border border-slate-600">
+                <Link to={`/problems/${problem.slug}`} className="inline-block px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-md transition-colors text-xs font-medium border border-slate-600">
                     Làm lại
                 </Link>
             );
         }
         return (
-            <Link to={`/code-editor/${problem.id}`} className="inline-block px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors text-xs font-medium shadow-lg shadow-blue-500/20">
+            <Link to={`/problems/${problem.slug}`} className="inline-block px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors text-xs font-medium shadow-lg shadow-blue-500/20">
                 Giải bài
             </Link>
         );

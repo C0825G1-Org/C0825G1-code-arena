@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class RecentSubmissionResponse {
     private Integer id;
     private String problemTitle;
+    private String problemSlug;
     private Integer problemId;
     private String status;
     private String language;
