@@ -115,8 +115,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         log.error("Lỗi hệ thống không mong đợi", ex);
+        String message = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.";
+        
+        // Nếu là lỗi liên quan đến file hoặc IO thì báo lỗi cụ thể hơn
+        if (ex instanceof java.io.IOException) {
+            message = "Lỗi xử lý tệp tin hoặc kết nối server tải ảnh thất bại.";
+        }
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(buildError(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Lỗi server: " + ex.getClass().getSimpleName() + " - " + ex.getMessage()));
+                .body(buildError(HttpStatus.INTERNAL_SERVER_ERROR, message));
     }
 }
