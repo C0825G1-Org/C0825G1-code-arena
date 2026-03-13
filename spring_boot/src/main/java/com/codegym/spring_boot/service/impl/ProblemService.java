@@ -182,13 +182,6 @@ public class ProblemService implements IProblemService {
         return true;
     }
 
-    @Override
-    public ProblemResponseDTO getProblemBySlug(String slug) {
-        return problemRepository.findBySlug(slug)
-                .map(this::mapToResponseDTO)
-                .orElse(null);
-    }
-
     private void checkIfProblemInActiveContest(Integer problemId) {
         List<ContestProblem> contests = contestProblemRepository.findByIdProblemId(problemId);
         for (ContestProblem cp : contests) {

@@ -272,13 +272,13 @@ export const UserHomePage: React.FC = () => {
                                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center group cursor-pointer hover:border-blue-500/50 transition-colors"
                                      onClick={() => navigate('/leaderboard')}>
                                     <div className="flex items-center gap-1 mb-2">
-                                        <Ranking weight="duotone" className={`text-3xl ${getRankByRating(userStats?.eloRanking || 0, 'contest').color}`} />
-                                        <span className="text-xl">{getRankByRating(userStats?.eloRanking || 0, 'contest').iconEmoji}</span>
+                                        <Ranking weight="duotone" className={`text-3xl ${getRankByRating(userStats?.totalRating || 0, 'total').color}`} />
+                                        <span className="text-xl">{getRankByRating(userStats?.totalRating || 0, 'total').iconEmoji}</span>
                                     </div>
-                                    <div className={`text-2xl font-bold flex items-baseline gap-1 ${getRankByRating(userStats?.eloRanking || 0, 'contest').color}`}>
-                                        {userStats?.eloRanking ?? 0}
+                                    <div className={`text-2xl font-bold flex items-baseline gap-1 ${getRankByRating(userStats?.totalRating || 0, 'total').color}`}>
+                                        {userStats?.totalRating ?? 0}
                                     </div>
-                                    <div className="text-xs text-slate-400 mt-1 uppercase font-black tracking-tighter">Elo Contest</div>
+                                    <div className="text-xs text-slate-400 mt-1 uppercase font-black tracking-tighter">Hạng Tổng</div>
                                 </div>
                                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
                                     <CheckCircle weight="duotone" className="text-3xl mb-2 text-emerald-400" />
@@ -413,7 +413,7 @@ export const UserHomePage: React.FC = () => {
                                                     <div className="text-[10px] text-slate-500 font-mono mt-0.5 uppercase tracking-widest">@{coder.username}</div>
                                                 </div>
                                                 <div className="text-right shrink-0">
-                                                    <div className={`text-sm font-black font-mono transition-all ${getRankByRating(coder.totalRating, 'total').color}`}>
+                                                    <div className={`text-sm font-black font-mono transition-all drop-shadow-[0_0_8px_rgba(0,0,0,0.5)] ${getRankByRating(coder.totalRating, 'total').color}`}>
                                                         {coder.totalRating}
                                                         <span className="text-[10px] ml-1 opacity-60">PTS</span>
                                                     </div>
