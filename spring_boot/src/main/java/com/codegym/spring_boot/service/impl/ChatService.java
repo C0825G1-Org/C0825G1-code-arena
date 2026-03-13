@@ -51,6 +51,29 @@ public class ChatService implements IChatService {
     @Override
     public List<Object> getChatHistory(Integer contestId) {
         List<com.codegym.spring_boot.entity.mongo.ChatMessage> messages = chatMessageRepository.findByContestIdOrderByTimestampAsc(contestId);
+
+        // Gom các senderId duy nhất để lấy thông tin mới nhất (tránh N+1)
+        java.util.Set<Integer> userIds = messages.stream()
+                .filter(m -> m.getSenderId() != null)
+                .map(com.codegym.spring_boot.entity.mongo.ChatMessage::getSenderId)
+                .collect(java.util.stream.Collectors.toSet());
+
+        if (!userIds.isEmpty()) {
+            java.util.Map<Integer, User> userMap = userRepository.findAllById(userIds).stream()
+                    .collect(java.util.stream.Collectors.toMap(User::getId, u -> u));
+
+            messages.forEach(m -> {
+                User u = userMap.get(m.getSenderId());
+                if (u != null && u.getProfile() != null) {
+                    // Ghi đè thông tin cũ bằng thông tin mới nhất từ Database
+                    m.setSenderAvatar(u.getProfile().getAvatarUrl());
+                    m.setSenderAvatarFrame(u.getProfile().getAvatarFrame());
+                    // Cập nhật cả tên nếu cần (để đồng bộ)
+                    m.setSenderName(u.getFullName() != null ? u.getFullName() : u.getUsername());
+                }
+            });
+        }
+
         return messages.stream().map(m -> (Object) m).collect(java.util.stream.Collectors.toList());
     }
 
