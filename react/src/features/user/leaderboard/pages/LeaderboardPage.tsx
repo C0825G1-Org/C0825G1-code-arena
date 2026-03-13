@@ -204,19 +204,19 @@ export const LeaderboardPage: React.FC = () => {
                             onClick={() => { setType('total'); setPage(0); setTop3([]); }}
                             className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'total' ? 'bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
                         >
-                            Bảng Tổng
+                            Tổng
                         </button>
                         <button
                             onClick={() => { setType('contest'); setPage(0); setTop3([]); }}
                             className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'contest' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
                         >
-                            Hệ Cuộc Thi
+                            Cuộc thi
                         </button>
                         <button
                             onClick={() => { setType('practice'); setPage(0); setTop3([]); }}
                             className={`px-8 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${type === 'practice' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
                         >
-                            Hệ Bài Tập
+                            Luyện tập
                         </button>
                     </div>
                 </div>
@@ -256,11 +256,11 @@ export const LeaderboardPage: React.FC = () => {
                                     <th className="px-6 py-5 text-center w-20 font-bold tracking-wider">Hạng</th>
                                     <th className="px-6 py-5 font-bold tracking-wider">Lập trình viên</th>
                                     <th className="px-6 py-5 font-bold tracking-wider text-center hidden md:table-cell">
-                                        {type === 'practice' ? 'Bài Tập AC' : type === 'total' ? 'Tổng Bài AC' : 'Bài Thi AC'}
+                                        {type === 'practice' ? 'Bài tập AC' : type === 'total' ? 'Tổng Bài AC' : 'Bài Thi AC'}
                                     </th>
                                     <th className="px-6 py-5 font-bold tracking-wider text-center hidden sm:table-cell">Tỉ lệ AC</th>
                                     <th className="px-6 py-5 font-bold tracking-wider text-right">
-                                        {type === 'practice' ? 'ELO Bài Tập' : type === 'total' ? 'ELO Tổng' : 'ELO Cuộc Thi'}
+                                        {type === 'practice' ? 'ELO Luyện Tập' : type === 'total' ? 'ELO Tổng' : 'ELO Cuộc Thi'}
                                     </th>
                                 </tr>
                             </thead>

@@ -122,7 +122,7 @@ const EloExplainingModal: React.FC<EloExplainingModalProps> = ({ isOpen, onClose
                                 <div className="text-2xl md:text-3xl font-black text-white tracking-tighter flex items-center gap-3">
                                     <span className="bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-700">(Elo Cuộc thi × 2)</span>
                                     <span className="text-violet-500">+</span>
-                                    <span className="bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-700">Elo Bài tập</span>
+                                    <span className="bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-700">Elo Luyện tập</span>
                                 </div>
                                 <p className="text-slate-400 text-[11px] mt-4 max-w-md text-center">
                                     CodeArena nhân đôi trọng số cuộc thi vì việc giải thuật dưới áp lực thời gian và đối mặt với đối thủ thực tế xứng đáng được vinh danh cao hơn.
