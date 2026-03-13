@@ -21,6 +21,7 @@ public class ChatMessage {
     private Integer senderId;
     private String senderName;
     private String senderAvatar;
+    private String senderAvatarFrame;
     private String content;
     private LocalDateTime timestamp;
     private boolean isSystem;

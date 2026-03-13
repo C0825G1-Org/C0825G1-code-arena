@@ -237,6 +237,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ contestId, currentUser, co
                                     <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                         <Avatar
                                             src={msg.senderAvatar}
+                                            frameUrl={msg.senderAvatarFrame}
                                             userId={msg.senderId}
                                             size="sm"
                                             alt={msg.senderName}

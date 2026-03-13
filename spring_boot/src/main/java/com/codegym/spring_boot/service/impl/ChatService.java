@@ -37,6 +37,7 @@ public class ChatService implements IChatService {
                 .senderId(userId)
                 .senderName(user.getFullName() != null ? user.getFullName() : user.getUsername())
                 .senderAvatar(user.getProfile() != null ? user.getProfile().getAvatarUrl() : null)
+                .senderAvatarFrame(user.getProfile() != null ? user.getProfile().getAvatarFrame() : null)
                 .content(content)
                 .timestamp(LocalDateTime.now())
                 .isSystem(false)
