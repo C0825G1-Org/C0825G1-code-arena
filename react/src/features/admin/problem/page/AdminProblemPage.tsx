@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { AdminLayout } from '../../components/AdminLayout';
 import { adminProblemApi, AdminProblemResponseDTO } from '../services/adminProblemApi';
 import { DeleteModal } from '../../../moderator/problem/DeleteModal';
+import { RestoreModal } from '../../../moderator/problem/RestoreModal';
 
 export const AdminProblemPage = () => {
     const navigate = useNavigate();
@@ -38,6 +39,7 @@ export const AdminProblemPage = () => {
             setIsDeleting(false);
         }
     };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -166,7 +168,7 @@ export const AdminProblemPage = () => {
                                 <tr key={prob.id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
                                     <td className="px-6 py-4 font-mono">#{prob.id}</td>
                                     <td className="px-6 py-4 font-medium text-white max-w-[200px] truncate" title={prob.title}>
-                                        {prob.title}
+                                        <span>{prob.title}</span>
                                     </td>
                                     <td className="px-6 py-4 min-w-[150px]">
                                         {prob.authorUsername ? (

@@ -3,6 +3,8 @@ package com.codegym.spring_boot.repository;
 import com.codegym.spring_boot.entity.ContestProblem;
 import com.codegym.spring_boot.entity.ContestProblemId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,6 +28,10 @@ public interface ContestProblemRepository extends JpaRepository<ContestProblem, 
     long countByIdContestId(Integer contestId);
 
     // Đếm số contest đang ACTIVE hoặc UPCOMING mà bài tập này tham gia
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(cp) FROM ContestProblem cp WHERE cp.id.problemId = :problemId AND cp.contest.status IN (com.codegym.spring_boot.entity.enums.ContestStatus.active, com.codegym.spring_boot.entity.enums.ContestStatus.upcoming)")
+    // @org.springframework.data.jpa.repository.Query("SELECT COUNT(cp) FROM ContestProblem cp WHERE cp.id.problemId = :problemId AND cp.contest.status IN (com.codegym.spring_boot.entity.enums.ContestStatus.active, com.codegym.spring_boot.entity.enums.ContestStatus.upcoming)")
     long countActiveOrUpcomingByIdProblemId(@org.springframework.data.repository.query.Param("problemId") Integer problemId);
+
+    @Modifying
+    @Transactional
+    void deleteByIdProblemId(Integer problemId);
 }

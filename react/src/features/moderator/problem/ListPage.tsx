@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { ModeratorLayout } from '../components/ModeratorLayout';
 import { problemApi, ProblemResponseDTO } from '../services/problemApi';
 import { DeleteModal } from './DeleteModal';
+import { RestoreModal } from './RestoreModal';
 import { RootState } from '../../../app/store';
 import { DiscussionModal } from './DiscussionModal';
 
@@ -48,6 +49,7 @@ export const ListPage = () => {
             setIsDeleting(false);
         }
     };
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -188,7 +190,7 @@ export const ListPage = () => {
                                 <tr key={prob.id} className="border-b border-[#1e293b] hover:bg-[#1e293b]/50 transition-colors">
                                     <td className="px-6 py-4 font-mono">#{prob.id}</td>
                                     <td className="px-6 py-4 font-medium text-white max-w-[250px] truncate" title={prob.title}>
-                                        {prob.title}
+                                        <span>{prob.title}</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className={`${getDifficultyClass(prob.difficulty)} border px-2 py-1 rounded text-xs font-semibold`}>
