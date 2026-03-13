@@ -107,13 +107,18 @@ public class LeaderboardService implements ILeaderboardService {
         // Map: userId → (problemId → ProblemDetail)
         Map<Integer, Map<Integer, LeaderboardDTO.ProblemDetail>> userProblemDetails = new java.util.HashMap<>();
         for (ContestParticipant p : participants) {
-            userProblemDetails.put(p.getUser().getId(), new java.util.HashMap<>());
+            if (p.getUser() != null) {
+                userProblemDetails.put(p.getUser().getId(), new java.util.HashMap<>());
+            }
         }
 
         // Cache maxScore theo problemId (tổng scoreWeight của tất cả test case)
         Map<Integer, Integer> maxScoreByProblem = new java.util.HashMap<>();
 
         for (Submission sub : allSubmissions) {
+            if (sub.getUser() == null || sub.getProblem() == null)
+                continue;
+
             Integer uid = sub.getUser().getId();
             Integer pid = sub.getProblem().getId();
 
@@ -148,10 +153,14 @@ public class LeaderboardService implements ILeaderboardService {
                 int subScore = sub.getScore() != null ? sub.getScore() : maxScore;
                 detail.setScore(Math.min(subScore, maxScore));
 
-                LocalDateTime startTime = sub.getContest().getStartTime();
+                LocalDateTime startTime = sub.getContest() != null ? sub.getContest().getStartTime() : null;
                 LocalDateTime subTime = sub.getCreatedAt() != null ? sub.getCreatedAt() : LocalDateTime.now();
-                long mins = Duration.between(startTime, subTime).toMinutes();
-                detail.setSolvedTimeMinutes((int) Math.max(0, mins));
+                int solveTime = 0;
+                if (startTime != null) {
+                    long mins = Duration.between(startTime, subTime).toMinutes();
+                    solveTime = (int) Math.max(0, mins);
+                }
+                detail.setSolvedTimeMinutes(solveTime);
 
                 // penaltyMinutes ICPC = thời gian giải + 20ph × lần sai (tách riêng khỏi score)
                 int problemPenalty = detail.getSolvedTimeMinutes()
@@ -171,19 +180,20 @@ public class LeaderboardService implements ILeaderboardService {
             }
         }
 
-        List<LeaderboardDTO> dtoList = participants.stream().map(p -> {
-            Integer uid = p.getUser().getId();
-            LeaderboardDTO dto = new LeaderboardDTO();
-            dto.setUserId(uid);
-            dto.setUsername(p.getUser().getUsername());
-            dto.setFullName(p.getUser().getFullName());
-            dto.setStatus(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name());
-            if (p.getUser().getProfile() != null) {
-                dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
-                dto.setAvatarFrame(p.getUser().getProfile().getAvatarFrame());
-            }
-            dto.setGlobalRating(p.getUser().getGlobalRating());
-            dto.setPreviousGlobalRating(p.getUser().getPreviousGlobalRating());
+        List<LeaderboardDTO> dtoList = participants.stream()
+                .filter(p -> p.getUser() != null)
+                .map(p -> {
+                    Integer uid = p.getUser().getId();
+                    LeaderboardDTO dto = new LeaderboardDTO();
+                    dto.setUserId(uid);
+                    dto.setUsername(p.getUser().getUsername());
+                    dto.setFullName(p.getUser().getFullName());
+                    dto.setStatus(p.getStatus() != null ? p.getStatus().name() : com.codegym.spring_boot.entity.enums.ParticipantStatus.JOINED.name());
+                    if (p.getUser().getProfile() != null) {
+                        dto.setAvatarUrl(p.getUser().getProfile().getAvatarUrl());
+                        dto.setAvatarFrame(p.getUser().getProfile().getAvatarFrame());
+                    }
+                    dto.setGlobalRating(p.getUser().getGlobalRating());
 
             // totalPenalty từ DB (đã tích lũy đúng: thời gian + 20ph*lần_sai + 1000ph nếu
             // vi phạm)
@@ -212,13 +222,19 @@ public class LeaderboardService implements ILeaderboardService {
             return dto;
         }).sorted((a, b) -> {
             // Sort: Total Score (DESC) -> Total Solved (DESC) -> Total Penalty (ASC)
-            if (!b.getTotalScore().equals(a.getTotalScore())) {
-                return b.getTotalScore() - a.getTotalScore();
-            }
-            if (!b.getTotalSolved().equals(a.getTotalSolved())) {
-                return b.getTotalSolved() - a.getTotalSolved();
-            }
-            return a.getTotalPenalty() - b.getTotalPenalty();
+            int scoreA = a.getTotalScore() != null ? a.getTotalScore() : 0;
+            int scoreB = b.getTotalScore() != null ? b.getTotalScore() : 0;
+            if (scoreA != scoreB)
+                return scoreB - scoreA;
+
+            int solvedA = a.getTotalSolved() != null ? a.getTotalSolved() : 0;
+            int solvedB = b.getTotalSolved() != null ? b.getTotalSolved() : 0;
+            if (solvedA != solvedB)
+                return solvedB - solvedA;
+
+            int penaltyA = a.getTotalPenalty() != null ? a.getTotalPenalty() : 0;
+            int penaltyB = b.getTotalPenalty() != null ? b.getTotalPenalty() : 0;
+            return penaltyA - penaltyB;
         }).collect(Collectors.toList());
 
         // Gán rank

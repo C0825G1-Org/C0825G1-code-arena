@@ -20,6 +20,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final com.codegym.spring_boot.service.SessionManager sessionManager;
 
     @Value("${app.oauth2.authorized-redirect-uris}")
     private String redirectUri;
@@ -32,6 +33,22 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         userRepository.findByEmail(email).ifPresentOrElse(
                 user -> {
+                    // Chặn đăng nhập nếu tài khoản đang được sử dụng ở nơi khác
+                    if (sessionManager.isUserLoggedIn(user.getId())) {
+                        String errorUrl = UriComponentsBuilder.fromUriString(redirectUri)
+                                .queryParam("error", "Tài khoản của bạn đang được đăng nhập ở nơi khác.")
+                                .build().toUriString();
+                        try {
+                            getRedirectStrategy().sendRedirect(request, response, errorUrl);
+                            return;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Đánh dấu online ngay lập tức
+                    sessionManager.addSession(user.getId());
+
                     // Cũ -> Login thẳng
                     String token = jwtService.generateToken(user);
                     String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
