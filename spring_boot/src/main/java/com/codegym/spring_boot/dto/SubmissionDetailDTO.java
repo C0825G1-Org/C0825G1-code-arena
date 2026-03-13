@@ -24,5 +24,6 @@ public class SubmissionDetailDTO {
     private Integer maxScore;
     private String username;
     private Integer globalRating;
+    private Integer practiceRating;
     private List<TestCaseResultDetailDTO> testCaseResults;
 }

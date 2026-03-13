@@ -16,6 +16,7 @@ import {
     ShoppingCart
 } from '@phosphor-icons/react';
 import { Avatar } from '../shared/components/Avatar';
+import UserNameWithRank from '../shared/components/UserNameWithRank';
 import axiosClient from '../shared/services/axiosClient';
 
 interface UserLayoutProps {
@@ -145,25 +146,28 @@ export const UserLayout: React.FC<UserLayoutProps> = ({ children, hideChrome = f
                                 to="/profile"
                                 className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
                             >
-                                <div className="text-right hidden sm:block">
-                                    <div className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors truncate max-w-[120px]">
-                                        {user?.fullName || 'User'}
-                                    </div>
-                                    <div className="flex items-center justify-end gap-1.5">
-                                        <span className="text-xs text-slate-400 font-mono">
-                                            Rating: <span className="text-yellow-400">{userStats?.eloRanking ?? 0}</span>
-                                        </span>
-                                        {currentPlan && (
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                                currentPlan.name === 'PRO'
-                                                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
-                                                    : 'bg-slate-700 text-slate-400'
-                                            }`}>
-                                                {currentPlan.name === 'PRO' ? '👑 PRO' : 'FREE'}
+                                    <div className="flex flex-col items-end">
+                                        <UserNameWithRank 
+                                            username={user?.fullName || 'User'} 
+                                            globalRating={userStats?.totalRating || 0} 
+                                            type="total"
+                                            className="text-sm font-semibold group-hover:text-blue-400 transition-colors truncate max-w-[120px]"
+                                        />
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            <span className="text-xs text-slate-400 font-mono">
+                                                Rating Tổng: <span className="text-yellow-400">{userStats?.totalRating ?? 0}</span>
                                             </span>
-                                        )}
+                                            {currentPlan && (
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                                    currentPlan.name === 'PRO'
+                                                        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                                                        : 'bg-slate-700 text-slate-400'
+                                                }`}>
+                                                    {currentPlan.name === 'PRO' ? '👑 PRO' : 'FREE'}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
                                 <Avatar
                                     src={user?.avatarUrl}
                                     frameUrl={user?.avatarFrame}

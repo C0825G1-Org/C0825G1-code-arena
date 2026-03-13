@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Question
+    CaretLeft, CaretRight, Crown, MagnifyingGlass, Medal, Question, Star
 } from '@phosphor-icons/react';
 import { RootState } from '../../../../app/store';
 import { getLeaderboard, LeaderboardUserResponse } from '../services/leaderboardService';
@@ -12,6 +12,7 @@ import { Avatar } from '../../../../shared/components/Avatar';
 import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
 import { getRankByRating, RankType } from '../../shared/utils/rankUtils';
 import EloExplainingModal from '../components/EloExplainingModal';
+import RankLegendModal from '../../shared/components/RankLegendModal';
 
 export const LeaderboardPage: React.FC = () => {
     const navigate = useNavigate();
@@ -25,6 +26,7 @@ export const LeaderboardPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [type, setType] = useState<RankType>('total'); // 'contest', 'practice', or 'total'
     const [isEloModalOpen, setIsEloModalOpen] = useState(false);
+    const [isRankLegendOpen, setIsRankLegendOpen] = useState(false);
 
     const size = 10;
 
@@ -228,8 +230,16 @@ export const LeaderboardPage: React.FC = () => {
                 <div className="bg-slate-800/60 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50 w-full mb-8 relative z-10">
                     {/* Toolbar */}
                     <div className="p-5 border-b border-slate-700/50 flex flex-wrap gap-4 justify-between items-center bg-slate-800/30">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                             <span className="text-xl font-bold text-slate-200">Danh Sách Xếp Hạng</span>
+                            <button
+                                onClick={() => setIsRankLegendOpen(true)}
+                                className="ml-2 p-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 rounded-lg border border-yellow-500/20 transition-all flex items-center gap-1.5 group"
+                                title="Xem các cấp bậc và ngưỡng điểm"
+                            >
+                                <Star size={16} weight="fill" className="group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] uppercase font-black tracking-tighter">Hạng</span>
+                            </button>
                         </div>
                         <div className="relative w-full sm:w-72">
                             <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg" />
@@ -398,6 +408,12 @@ export const LeaderboardPage: React.FC = () => {
             <EloExplainingModal
                 isOpen={isEloModalOpen}
                 onClose={() => setIsEloModalOpen(false)}
+            />
+
+            <RankLegendModal 
+                isOpen={isRankLegendOpen} 
+                onClose={() => setIsRankLegendOpen(false)} 
+                initialTab={type === 'practice' || type === 'contest' ? 'contest' : 'total'}
             />
         </UserLayout>
     );

@@ -22,4 +22,5 @@ public class SubmissionHistoryDTO {
     private String languageName; // Tên ngôn ngữ (cpp, java, python, javascript)
     private String username;
     private Integer globalRating;
+    private Integer practiceRating;
 }

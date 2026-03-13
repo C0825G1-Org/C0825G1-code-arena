@@ -17,9 +17,12 @@ import {
     Calendar,
     HourglassLow,
     Trophy,
-    CircleNotch
+    CircleNotch,
+    Crown
 } from '@phosphor-icons/react';
 import { UserLayout } from '../../../../layouts/UserLayout';
+import UserNameWithRank from '../../../../shared/components/UserNameWithRank';
+import { getRankByRating } from '../../shared/utils/rankUtils';
 
 // Tính thời gian còn lại
 const getTimeLeft = (targetTime: string, serverTime?: string): string => {
@@ -279,12 +282,16 @@ export const UserHomePage: React.FC = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-2 gap-4 relative z-10">
-                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
-                                    <Ranking weight="duotone" className="text-3xl mb-2 text-yellow-400" />
-                                    <div className="text-2xl font-bold flex items-baseline gap-1">
+                                <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center group cursor-pointer hover:border-blue-500/50 transition-colors"
+                                     onClick={() => navigate('/leaderboard')}>
+                                    <div className="flex items-center gap-1 mb-2">
+                                        <Ranking weight="duotone" className={`text-3xl ${getRankByRating(userStats?.eloRanking || 0, 'contest').color}`} />
+                                        <span className="text-xl">{getRankByRating(userStats?.eloRanking || 0, 'contest').iconEmoji}</span>
+                                    </div>
+                                    <div className={`text-2xl font-bold flex items-baseline gap-1 ${getRankByRating(userStats?.eloRanking || 0, 'contest').color}`}>
                                         {userStats?.eloRanking ?? 0}
                                     </div>
-                                    <div className="text-xs text-slate-400 mt-1">Elo Ranking</div>
+                                    <div className="text-xs text-slate-400 mt-1 uppercase font-black tracking-tighter">Elo Contest</div>
                                 </div>
                                 <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50 flex flex-col items-center text-center">
                                     <CheckCircle weight="duotone" className="text-3xl mb-2 text-emerald-400" />
@@ -392,27 +399,38 @@ export const UserHomePage: React.FC = () => {
                                         else if (index === 2) rankColors = "bg-orange-500/20 text-orange-400 border border-orange-500/50";
 
                                         return (
-                                            <div key={coder.userId} className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors">
-                                                <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${rankColors}`}>
+                                            <div key={coder.userId} className="p-4 flex items-center gap-4 hover:bg-slate-800/50 transition-colors group">
+                                                <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-sm ${rankColors}`}>
                                                     #{index + 1}
                                                 </div>
-                                                <Avatar
-                                                    src={coder.avatarUrl}
-                                                    frameUrl={coder.avatarFrame}
-                                                    userId={coder.userId}
-                                                    size="md"
-                                                    borderColor="border-yellow-500/30"
-                                                />
+                                                <div className="relative cursor-pointer transition-transform group-hover:scale-105" onClick={() => navigate(`/profile/${coder.userId}`)}>
+                                                    <Avatar
+                                                        src={coder.avatarUrl}
+                                                        frameUrl={coder.avatarFrame}
+                                                        userId={coder.userId}
+                                                        size="md"
+                                                        borderColor={index === 0 ? "border-yellow-500" : "border-slate-700"}
+                                                    />
+                                                    {index === 0 && <Crown weight="fill" className="absolute -top-2 -right-2 text-yellow-500 text-lg drop-shadow-md" />}
+                                                </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className={`font-semibold truncate ${index === 0 ? 'text-yellow-400' : 'text-white'}`}>
-                                                        {coder.fullName || coder.username}
+                                                    <div className="flex items-center gap-2">
+                                                        <UserNameWithRank 
+                                                            username={coder.fullName || coder.username} 
+                                                            globalRating={coder.totalRating} 
+                                                            type="total"
+                                                            className="text-base font-bold cursor-pointer hover:underline"
+                                                            onClick={() => navigate(`/profile/${coder.userId}`)}
+                                                        />
                                                     </div>
-                                                    <div className="text-xs text-slate-400">@{coder.username}</div>
+                                                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 uppercase tracking-widest">@{coder.username}</div>
                                                 </div>
                                                 <div className="text-right shrink-0">
-                                                    <div className="font-bold text-yellow-400 flex items-center justify-end gap-1">
-                                                        {coder.globalRating} <Ranking weight="bold" />
+                                                    <div className={`text-sm font-black font-mono transition-all ${getRankByRating(coder.totalRating, 'total').color}`}>
+                                                        {coder.totalRating}
+                                                        <span className="text-[10px] ml-1 opacity-60">PTS</span>
                                                     </div>
+                                                    <div className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mt-0.5">Rating Tổng</div>
                                                 </div>
                                             </div>
                                         );

@@ -7,9 +7,10 @@ interface Props {
     globalRating?: number;
     type?: RankType;
     className?: string;
+    onClick?: () => void;
 }
 
-const UserNameWithRank: React.FC<Props> = ({ username, globalRating, type = 'contest', className = '' }) => {
+const UserNameWithRank: React.FC<Props> = ({ username, globalRating, type = 'contest', className = '', onClick }) => {
     const tier = getRankByRating(globalRating || 0, type);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const badgeRef = useRef<HTMLSpanElement>(null);
@@ -62,7 +63,10 @@ const UserNameWithRank: React.FC<Props> = ({ username, globalRating, type = 'con
     ) : null;
 
     return (
-        <div className="inline-flex items-center gap-1 relative">
+        <div 
+            className={`inline-flex items-center gap-1 relative ${onClick ? 'cursor-pointer' : ''}`}
+            onClick={onClick}
+        >
             <span className={`font-semibold transition-colors duration-200 ${tier.color} ${className}`}>
                 {username}
             </span>

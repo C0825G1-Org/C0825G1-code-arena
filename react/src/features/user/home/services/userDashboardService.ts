@@ -2,6 +2,8 @@ import axiosClient from '../../../../shared/services/axiosClient';
 
 export interface UserStats {
     eloRanking: number;
+    practiceRating: number;
+    totalRating: number;
     topPercent: number;
     solvedCount: number;
     acRate: number;
@@ -13,6 +15,8 @@ export interface TopCoder {
     username: string;
     fullName: string;
     globalRating: number;
+    practiceRating: number;
+    totalRating: number;
     avatarUrl: string | null;
     avatarFrame?: string | null;
 }

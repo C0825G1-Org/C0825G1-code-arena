@@ -27,6 +27,7 @@ interface DiscussionMessage {
     content: string;
     userIsDiscussionLocked?: boolean;
     userGlobalRating?: number;
+    userPracticeRating?: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -231,7 +232,12 @@ export const ProblemDiscussionPanel = ({ problemId }: { problemId: number }) => 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
                                         <div onClick={(e) => handleUserClick(e, msg)} className="cursor-pointer">
-                                            <UserNameWithRank username={msg.userFullName} globalRating={msg.userGlobalRating} className="text-sm" />
+                                            <UserNameWithRank 
+                                                username={msg.userFullName} 
+                                                globalRating={msg.userPracticeRating} 
+                                                type="practice" 
+                                                className="text-sm" 
+                                            />
                                         </div>
                                         <span className="text-xs text-slate-500">@{msg.userUsername}</span>
                                         <span className="text-xs text-slate-500">• {dayjs(msg.createdAt).fromNow()}</span>

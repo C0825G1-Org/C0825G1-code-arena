@@ -40,6 +40,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     List<User> findTop3ByRoleOrderByPracticeRatingDescIdAsc(UserRole role);
 
+    @Query(value = "SELECT u FROM User u WHERE u.role = :role ORDER BY (COALESCE(u.globalRating, 0) * 2 + COALESCE(u.practiceRating, 0)) DESC, u.id ASC")
+    List<User> findTopUsersByTotalRating(@Param("role") UserRole role, org.springframework.data.domain.Pageable pageable);
+
     Page<User> findByRoleAndEmailContainingIgnoreCaseOrRoleAndFullNameContainingIgnoreCase(
             UserRole role1, String email, UserRole role2, String fullName, Pageable pageable);
 

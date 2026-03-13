@@ -68,8 +68,9 @@ public class ChatService implements IChatService {
                     // Ghi đè thông tin cũ bằng thông tin mới nhất từ Database
                     m.setSenderAvatar(u.getProfile().getAvatarUrl());
                     m.setSenderAvatarFrame(u.getProfile().getAvatarFrame());
-                    // Cập nhật cả tên nếu cần (để đồng bộ)
+                    // Cập nhật cả thông tin Rating và tên nếu cần (để đồng bộ)
                     m.setSenderName(u.getFullName() != null ? u.getFullName() : u.getUsername());
+                    m.setSenderGlobalRating(u.getGlobalRating());
                 }
             });
         }

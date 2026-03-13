@@ -1,14 +1,21 @@
-import React from 'react';
-import { RANK_TIERS } from '../../shared/utils/rankUtils';
+import { getRankByRating, CONTEST_RANK_TIERS, PRACTICE_RANK_TIERS, TOTAL_RANK_TIERS } from '../../shared/utils/rankUtils';
 
 interface Props {
     rating: number;
+    type?: 'contest' | 'practice' | 'total';
+    title?: string;
 }
 
-const RankProgression: React.FC<Props> = ({ rating }) => {
-    const currentTierIndex = RANK_TIERS.findIndex(tier => rating >= tier.min && rating <= tier.max);
-    const tier = RANK_TIERS[currentTierIndex] || RANK_TIERS[0];
-    const nextTier = RANK_TIERS[currentTierIndex + 1];
+const RankProgression: React.FC<Props> = ({ rating, type = 'contest', title }) => {
+    const tiers = type === 'total' ? TOTAL_RANK_TIERS : (type === 'practice' ? PRACTICE_RANK_TIERS : CONTEST_RANK_TIERS);
+    
+    // Tìm tier cao nhất mà rating đạt tới (min <= rating)
+    const currentTierIndex = [...tiers].reverse().findIndex(tier => rating >= tier.min);
+    // Vì ta reverse nên index thực tế sẽ là (length - 1 - reversedIndex)
+    const actualIndex = currentTierIndex !== -1 ? (tiers.length - 1 - currentTierIndex) : 0;
+    
+    const tier = tiers[actualIndex];
+    const nextTier = tiers[actualIndex + 1];
 
     const range = tier.max - tier.min;
     const progress = !nextTier ? 100 : (range > 0 ? ((rating - tier.min) / range) * 100 : 100);
@@ -25,7 +32,7 @@ const RankProgression: React.FC<Props> = ({ rating }) => {
                 >
                     <span style={{ fontSize: '20px', lineHeight: 1 }}>{tier.iconEmoji}</span>
                 </div>
-                <h3 className="text-sm font-bold text-slate-200 uppercase tracking-widest">Xếp Hạng Đấu Trường</h3>
+                <h3 className="text-sm font-bold text-slate-200 uppercase tracking-widest">{title || "Xếp Hạng Đấu Trường"}</h3>
             </div>
 
             <div className="flex flex-col items-center text-center space-y-2 mb-6">
