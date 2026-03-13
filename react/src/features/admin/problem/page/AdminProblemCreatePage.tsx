@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AdminLayout } from '../../components/AdminLayout';
-import { problemApi, TagDTO, LanguageDTO } from '../../../moderator/services/problemApi';
+import { problemApi, TagDTO, LanguageDTO, ProblemResponseDTO } from '../../../moderator/services/problemApi';
+import { RestoreModal } from '../../../moderator/problem/RestoreModal';
 export const AdminProblemCreatePage = () => {
     const navigate = useNavigate();
     const [title, setTitle] = useState('');
@@ -23,6 +24,11 @@ export const AdminProblemCreatePage = () => {
     const [allLanguages, setAllLanguages] = useState<LanguageDTO[]>([]);
     const [ioTemplates, setIoTemplates] = useState<{ languageId: number, templateCode: string }[]>([]);
     const [selectedLangId, setSelectedLangId] = useState<number | ''>('');
+
+    // Restore context
+    const [restoreModalOpen, setRestoreModalOpen] = useState(false);
+    const [problemToRestore, setProblemToRestore] = useState<ProblemResponseDTO | null>(null);
+    const [isRestoring, setIsRestoring] = useState(false);
 
     useEffect(() => {
         const fetchFormData = async () => {
@@ -65,6 +71,21 @@ export const AdminProblemCreatePage = () => {
 
         setIsSubmitting(true);
         try {
+            // Check slug existence first
+            const existingProb = await problemApi.getProblemBySlug(slug);
+            if (existingProb) {
+                if (existingProb.isDeleted) {
+                    setProblemToRestore(existingProb);
+                    setRestoreModalOpen(true);
+                    setIsSubmitting(false);
+                    return;
+                } else {
+                    toast.error('Slug đã tồn tại trên một bài tập khác. Vui lòng chọn slug khác!');
+                    setIsSubmitting(false);
+                    return;
+                }
+            }
+
             await problemApi.createProblem({
                 title,
                 slug,
@@ -79,9 +100,25 @@ export const AdminProblemCreatePage = () => {
             navigate('/admin/problems');
         } catch (error) {
             console.error('Lỗi khi tạo bài tập', error);
-            toast.error('Có lỗi xảy ra khi tạo bài tập! Vui lòng kiểm tra lại (có thể do trùng Slug).');
+            toast.error('Có lỗi xảy ra khi tạo bài tập! Vui lòng kiểm tra lại.');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleRestoreConfirm = async () => {
+        if (!problemToRestore) return;
+        setIsRestoring(true);
+        try {
+            await problemApi.restoreProblem(problemToRestore.id);
+            toast.success('Khôi phục bài tập thành công!');
+            navigate('/admin/problems');
+        } catch (error) {
+            console.error('Lỗi khi khôi phục', error);
+            toast.error('Không thể khôi phục bài tập!');
+        } finally {
+            setIsRestoring(false);
+            setRestoreModalOpen(false);
         }
     };
 
@@ -361,6 +398,15 @@ export const AdminProblemCreatePage = () => {
 
                 </div>
             </div>
+            
+            <RestoreModal
+                isOpen={restoreModalOpen}
+                onClose={() => setRestoreModalOpen(false)}
+                onConfirm={handleRestoreConfirm}
+                title="Slug đã tồn tại trong thùng rác"
+                description={`Slug "${slug}" thuộc về bài tập "${problemToRestore?.title}" đã bị xóa. Bạn có muốn khôi phục bài tập này không?`}
+                isRestoring={isRestoring}
+            />
         </AdminLayout>
     );
 };

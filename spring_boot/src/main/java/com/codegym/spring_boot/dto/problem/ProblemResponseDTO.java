@@ -22,4 +22,5 @@ public class ProblemResponseDTO {
     private String authorUsername;
     private String authorName;
     private Set<ProblemIOTemplateDTO> ioTemplates;
+    private Boolean isDeleted;
 }

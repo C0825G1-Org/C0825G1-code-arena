@@ -23,6 +23,7 @@ export interface ProblemResponseDTO {
     tags: TagDTO[];
     authorId?: number;
     ioTemplates?: { languageId: number, languageName: string, templateCode: string }[];
+    isDeleted?: boolean;
 }
 export interface ProblemUserDTO extends ProblemResponseDTO {
     userStatus?: string;
@@ -66,6 +67,13 @@ export const problemApi = {
 
     deleteProblem: async (id: number): Promise<void> => {
         return await axiosClient.delete(`/problems/${id}`);
+    },
+    restoreProblem: async (id: number): Promise<void> => {
+        return await axiosClient.post(`/problems/${id}/restore`);
+    },
+
+    getProblemBySlug: async (slug: string): Promise<ProblemResponseDTO | null> => {
+        return await axiosClient.get(`/problems/slug/${slug}`);
     },
 
     getLanguages: async (): Promise<LanguageDTO[]> => {

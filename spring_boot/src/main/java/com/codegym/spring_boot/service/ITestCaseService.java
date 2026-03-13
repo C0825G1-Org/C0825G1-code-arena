@@ -21,4 +21,5 @@ public interface ITestCaseService {
      * @return Chuỗi kết quả chuẩn để so khớp
      */
     String getExpectedOutput(Integer testCaseId);
+    void deleteByProblemId(Integer problemId);
 }
