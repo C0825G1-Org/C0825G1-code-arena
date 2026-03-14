@@ -18,7 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"createdBy", "tags", "ioTemplates"})
-@EqualsAndHashCode(exclude = {"createdBy", "tags", "ioTemplates"})
+@EqualsAndHashCode(callSuper = true, exclude = {"createdBy", "tags", "ioTemplates"})
 public class Problem extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,19 +37,23 @@ public class Problem extends BaseEntity {
     @Column(nullable = false, columnDefinition = "LONGTEXT")
     private String description;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty = Difficulty.easy;
 
 //    @Min(value = 100, message = "Thời gian giới hạn tối thiểu 100ms")
 //    @Max(value = 5000, message = "Thời gian giới hạn tối đa 5s")
+    @Builder.Default
     @Column(name = "time_limit")
     private Integer timeLimit = 1000;
 
 //    @Min(value = 16, message = "Bộ nhớ tối thiểu 16MB")
 //    @Max(value = 1024, message = "Bộ nhớ tối đa 1024MB")
+    @Builder.Default
     @Column(name = "memory_limit")
     private Integer memoryLimit = 256;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "testcase_status")
     private TestCaseStatus testcaseStatus = TestCaseStatus.not_uploaded;
@@ -58,6 +62,7 @@ public class Problem extends BaseEntity {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "problem_tags",
@@ -66,6 +71,7 @@ public class Problem extends BaseEntity {
     )
     private Set<Tag> tags = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProblemIOTemplate> ioTemplates = new HashSet<>();
 }

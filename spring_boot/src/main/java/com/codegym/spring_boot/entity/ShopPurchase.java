@@ -24,6 +24,7 @@ public class ShopPurchase {
     @JoinColumn(name = "item_id", nullable = false)
     private ShopItem item;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer quantity = 1;
 

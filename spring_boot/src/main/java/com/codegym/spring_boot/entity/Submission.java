@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class Submission extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,17 +41,22 @@ public class Submission extends BaseEntity {
     @Column(name = "source_code", columnDefinition = "LONGTEXT", nullable = false)
     private String sourceCode;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private SubmissionStatus status = SubmissionStatus.pending;
 
+    @Builder.Default
     @Column(name = "execution_time")
     private Integer executionTime = 0;
 
+    @Builder.Default
     @Column(name = "memory_used")
     private Integer memoryUsed = 0;
 
+    @Builder.Default
     private Integer score = 0;
 
+    @Builder.Default
     @Column(name = "is_test_run")
     private Boolean isTestRun = false;
 

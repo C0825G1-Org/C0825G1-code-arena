@@ -19,6 +19,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,6 +43,7 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "password_hash", nullable = false)
     private String password;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.user;
 
