@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../../../shared/services/axiosClient';
@@ -47,25 +47,29 @@ export const useContestSubmit = ({
     // Lắng nghe kết quả socket: cập nhật màu nút bài realtime
     // - AC  → nút xanh (isAC = true)
     // - WA/TLE/MLE/RE → nút cam (submitCount đã tăng khi submit, nhưng cũng confirm lại từ socket)
-    useSocket((data: any) => {
-        if (!isExamMode || !data?.problemId) return;
-        if (data.isRunOnly) return;
-        const pid = data.problemId;
-        if (data.status === 'AC') {
+    const handleSocketMessage = useCallback((data: any) => {
+        // Một số trường hợp data trả về bị bọc trong thuộc tính data
+        const payload = data?.data || data;
+        
+        if (!isExamMode || !payload?.problemId) return;
+        if (payload.isRunOnly) return;
+        
+        const pid = payload.problemId;
+        if (payload.status === 'AC') {
             setProblemStatus(prev => ({
                 ...prev,
                 [pid]: { ...(prev[pid] ?? { submitCount: 0, isAC: false }), isAC: true }
             }));
-        } else if (data.status === 'WA' || data.status === 'TLE' || data.status === 'MLE' || data.status === 'RE') {
-            // Đảm bảo submitCount > 0 để nút hiển thị cam
-            // (đã được tăng khi submit, nhưng confirm lại để tránh edge cases)
+        } else if (payload.status === 'WA' || payload.status === 'TLE' || payload.status === 'MLE' || payload.status === 'RE') {
             setProblemStatus(prev => {
                 const cur = prev[pid] ?? { submitCount: 0, isAC: false };
-                if (cur.isAC) return prev; // Đã AC rồi thì giữ nguyên
+                if (cur.isAC) return prev;
                 return { ...prev, [pid]: { ...cur, submitCount: Math.max(cur.submitCount, 1) } };
             });
         }
-    });
+    }, [isExamMode, setProblemStatus]);
+
+    useSocket(handleSocketMessage);
 
     /**
      * Kết thúc lượt thi và thoát trang.
@@ -76,7 +80,11 @@ export const useContestSubmit = ({
      */
     const handleConfirmExit = async (status: string = 'FINISHED') => {
         if (!contestId) {
-            blockerProceed();
+            if (blockerState === "blocked") {
+                blockerProceed();
+            } else {
+                navigate('/problems');
+            }
             return;
         }
 
@@ -130,7 +138,7 @@ export const useContestSubmit = ({
         const langId = LANGUAGE_NAME_TO_ID[language] ?? 1;
         setIsSubmitting(true);
         try {
-            await axiosClient.post('/submissions', {
+            await contestService.submit({
                 problemId,
                 languageId: langId,
                 sourceCode: code,

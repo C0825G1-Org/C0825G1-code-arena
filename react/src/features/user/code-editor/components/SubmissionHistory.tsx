@@ -40,21 +40,12 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
     }, [problemId, contestId, token]);
 
     // Socket listener for real-time updates
-    useSocket((payload) => {
+    const handleSubmissionUpdate = React.useCallback((payload: any) => {
         // useSocket returns { event: 'submission_update', data: actualData }
         if (payload.event !== 'submission_update') return;
 
         const data = payload.data;
         console.log('Submission update received in History:', data);
-
-        // Cập nhật âm thanh nếu AC
-        if (data.status === 'AC') {
-            try {
-                // new Audio('/ting.mp3').play();
-            } catch (e) {
-                // Ignore audio error if file not found
-            }
-        }
 
         setSubmissions((prev: any[]) => {
             // Filter out updates not meant for this contest view
@@ -63,18 +54,31 @@ const SubmissionHistory = ({ problemId, contestId }: { problemId: number, contes
             }
 
             // Check if submission already exists in list (update it)
-            const existsIndex = prev.findIndex(s => s.id === (data.id || data.submissionId) || s.submissionId === (data.id || data.submissionId));
+            const existsId = data.id || data.submissionId;
+            const existsIndex = prev.findIndex(s => (s.id === existsId) || (s.submissionId === existsId));
+            
             if (existsIndex >= 0) {
                 const newSubmissions = [...prev];
-                newSubmissions[existsIndex] = { ...newSubmissions[existsIndex], ...data, id: data.id || data.submissionId };
+                newSubmissions[existsIndex] = { 
+                    ...newSubmissions[existsIndex], 
+                    ...data, 
+                    id: existsId 
+                };
                 return newSubmissions;
             }
+            
             // Add new to top
-            // Gán isTestRun từ data.isRunOnly nếu có
             const isTestRun = data.isRunOnly === true;
-            return [{ ...data, id: data.id || data.submissionId, isTestRun, createdAt: new Date().toISOString() }, ...prev];
+            return [{ 
+                ...data, 
+                id: existsId, 
+                isTestRun, 
+                createdAt: new Date().toISOString() 
+            }, ...prev];
         });
-    });
+    }, [contestId]);
+
+    useSocket(handleSubmissionUpdate);
 
     const getStatusUI = (status) => {
         switch (status) {

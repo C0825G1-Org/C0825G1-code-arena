@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../../../../shared/hooks/useSocket';
 import { TestCase } from '../services/problemService';
 import { CheckCircle, XCircle, Clock, WarningCircle } from '@phosphor-icons/react';
@@ -35,7 +35,7 @@ export default function SampleTestCases({ testCases }: Props) {
     const [runResult, setRunResult] = useState<RunResult | null>(null);
     const [isRunning, setIsRunning] = useState(false);
 
-    useSocket((data: any) => {
+    const handleSocketMessage = useCallback((data: any) => {
         if (data.status === 'judging' && data.isRunOnly) {
             setIsRunning(true);
             setRunResult(null);
@@ -47,7 +47,9 @@ export default function SampleTestCases({ testCases }: Props) {
             setActiveResultCase(0);
             setPanelTab('result');
         }
-    });
+    }, []);
+
+    useSocket(handleSocketMessage);
 
     // Reset khi đổi bài
     useEffect(() => {
