@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../../app/store';
 import { logout } from '../../auth/store/authSlice';
 import { userDashboardService, UserStats } from "../../user/home/services/userDashboardService";
-import { Bell, ShieldStar } from "@phosphor-icons/react";
+import { Bell, ShieldStar, Crown, ShoppingCart, House } from "@phosphor-icons/react";
 import { Avatar } from '../../../shared/components/Avatar';
+import axiosClient from '../../../shared/services/axiosClient';
+import UserNameWithRank from '../../../shared/components/UserNameWithRank';
 
 interface ModeratorLayoutProps {
     children?: React.ReactNode;
@@ -17,19 +19,33 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [userStats, setUserStats] = useState<UserStats | null>(null);
-    useEffect(() => {
-        const fetchUserStats = async () => {
-            if (user) {
-                try {
-                    const stats = await userDashboardService.getUserStats();
-                    setUserStats(stats);
-                } catch (error) {
-                    console.error('Failed to fetch user stats', error);
-                }
+    const [currentPlan, setCurrentPlan] = useState<{ name: string } | null>(null);
+
+    const fetchUserStats = useCallback(async () => {
+        if (user) {
+            try {
+                const stats = await userDashboardService.getUserStats();
+                setUserStats(stats);
+            } catch (error) {
+                console.error('Failed to fetch user stats', error);
             }
-        };
-        fetchUserStats();
+        }
     }, [user]);
+
+    const fetchCurrentPlan = useCallback(async () => {
+        if (!user) return;
+        try {
+            const plan: any = await axiosClient.get('/subscriptions/my-plan');
+            setCurrentPlan(plan);
+        } catch (err) {
+            // Silently fail
+        }
+    }, [user]);
+
+    useEffect(() => {
+        fetchUserStats();
+        fetchCurrentPlan();
+    }, [fetchUserStats, fetchCurrentPlan]);
 
     const handleLogout = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -108,8 +124,6 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                 {/* HeaderBar */}
                 <header
                     className="top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10 bg-slate-900/60 backdrop-blur-xl">
-                    {/* Header title can be injected via context or left generic if pages titles are rendered in the content area. We will keep it generic or empty here, as each pages might want its own header tools (like CreatePage has a Back button and Save button).
-                        Actually, let's put the user profile and logout here. */}
                     <div className="flex-1">
                         {headerTitle ? (
                             typeof headerTitle === 'string' ? (
@@ -122,15 +136,54 @@ export const ModeratorLayout = ({ children, headerTitle }: ModeratorLayoutProps)
                     <div className="flex items-center gap-4">
                         <Link
                             to='/home'
-                            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600/40 hover:text-blue-100 transition-all text-sm font-medium border border-blue-500/20"
+                            title="HomePage"
+                            className="hidden sm:flex items-center gap-2 p-2 rounded-xl bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 hover:text-blue-300 transition-all border border-blue-500/20"
                         >
-                            <ShieldStar weight="duotone" className="text-lg" />
-                            <span>HomePage</span>
+                            <House weight="fill" className="text-xl" />
                         </Link>
+
+                        <Link
+                            to="/pricing"
+                            title="Nâng cấp"
+                            className="hidden sm:flex items-center justify-center p-2 text-purple-400 hover:bg-purple-500/10 rounded-xl transition-colors border border-purple-500/20 bg-purple-500/5 hover:border-purple-500/50"
+                        >
+                            <Crown weight="bold" className="text-xl" />
+                        </Link>
+
+                        <Link
+                            to="/shop"
+                            title="Cửa hàng"
+                            className="hidden sm:flex items-center justify-center p-2 text-yellow-400 hover:bg-yellow-500/10 rounded-xl transition-colors border border-yellow-500/20 bg-yellow-500/5 hover:border-yellow-500/50"
+                        >
+                            <ShoppingCart weight="bold" className="text-xl" />
+                        </Link>
+
                         <Link
                             to="/profile"
                             className="flex items-center gap-3 cursor-pointer group pl-3 border-l border-slate-700 hover:bg-slate-800/50 p-2 rounded-xl transition-colors"
                         >
+                            <div className="flex flex-col items-end">
+                                <UserNameWithRank 
+                                    username={user?.fullName || 'User'} 
+                                    globalRating={userStats?.totalRating || 0} 
+                                    type="total"
+                                    className="text-sm font-semibold group-hover:text-blue-400 transition-colors truncate max-w-[120px]"
+                                />
+                                <div className="flex items-center justify-end gap-1.5">
+                                    <span className="text-xs text-slate-400 font-mono">
+                                        Rating Tổng: <span className="text-yellow-400">{userStats?.totalRating ?? 0}</span>
+                                    </span>
+                                    {currentPlan && (
+                                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                            currentPlan.name === 'PRO'
+                                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                                                : 'bg-slate-700 text-slate-400'
+                                        }`}>
+                                            {currentPlan.name === 'PRO' ? '👑 PRO' : 'FREE'}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
                             <Avatar
                                 src={user?.avatarUrl}
                                 frameUrl={user?.avatarFrame}
