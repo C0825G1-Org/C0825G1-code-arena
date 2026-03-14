@@ -34,9 +34,16 @@ export const contestService = {
     getContestDetail: async (id: number): Promise<any> => {
         return axiosClient.get(`/contests/${id}`);
     },
+    // Alias cho CodeEditorPage.tsx sử dụng (số nhiều)
+    getContestDetails: async (id: number): Promise<any> => {
+        return axiosClient.get(`/contests/${id}`);
+    },
     finishContest: async (id: number, status?: string): Promise<void> => {
         await axiosClient.post(`/contests/${id}/finish`, null, {
             params: status ? { status } : {}
         });
+    },
+    submit: async (payload: any): Promise<any> => {
+        return axiosClient.post('/submissions', payload);
     }
 };
