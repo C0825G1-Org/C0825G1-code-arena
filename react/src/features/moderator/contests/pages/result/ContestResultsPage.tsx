@@ -14,6 +14,7 @@ import { GroupChat } from '../../../../chat/components/GroupChat';
 import { chatService, ChatMessage } from '../../../../chat/services/chatService';
 import dayjs from 'dayjs';
 import { SnapshotViewerModal } from '../../components/SnapshotViewerModal';
+import UserNameWithRank from '../../../../../shared/components/UserNameWithRank';
 
 /* ────── Types ────── */
 interface Problem {
@@ -149,12 +150,20 @@ const ChatSection = ({ contestId, contestStatus, endTime, user, contestTitle }: 
                         return (
                             <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                                 {showName && !isMe && (
-                                    <span className="text-xs text-slate-400 mb-1 ml-1">{msg.senderName}</span>
+                                    <div className="mb-1 ml-1">
+                                        <UserNameWithRank 
+                                            username={msg.senderName} 
+                                            globalRating={msg.senderGlobalRating} 
+                                            type="contest" 
+                                            className="text-xs" 
+                                        />
+                                    </div>
                                 )}
                                 <div className={`flex items-end gap-2 max-w-[85%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                     <div className="flex-shrink-0">
                                         <Avatar
                                             src={msg.senderAvatar}
+                                            frameUrl={msg.senderAvatarFrame}
                                             userId={msg.senderId}
                                             size="sm"
                                         />
