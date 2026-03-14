@@ -1,10 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useSelector } from 'react-redux';
 
 export const useSocket = (onMessage) => {
     const [socketInstance, setSocketInstance] = useState(null);
     const token = useSelector(state => state.auth.token);
+    const onMessageRef = useRef(onMessage);
+
+    // Cập nhật ref mỗi khi onMessage thay đổi mà không cần trigger useEffect kết nối
+    useEffect(() => {
+        onMessageRef.current = onMessage;
+    }, [onMessage]);
 
     useEffect(() => {
         if (!token) {
@@ -33,15 +39,15 @@ export const useSocket = (onMessage) => {
 
         socket.on('submission_update', (data) => {
             console.log('Socket.IO Received submission_update:', data);
-            if (onMessage) {
-                onMessage({ event: 'submission_update', data });
+            if (onMessageRef.current) {
+                onMessageRef.current({ event: 'submission_update', data });
             }
         });
 
         socket.on('user_lock_update', (data) => {
             console.log('Socket.IO Received user_lock_update:', data);
-            if (onMessage) {
-                onMessage({ event: 'user_lock_update', data });
+            if (onMessageRef.current) {
+                onMessageRef.current({ event: 'user_lock_update', data });
             }
         });
 
@@ -50,8 +56,9 @@ export const useSocket = (onMessage) => {
             socket.off('submission_update');
             socket.off('user_lock_update');
             socket.disconnect();
+            setSocketInstance(null);
         };
-    }, [token, onMessage]);
+    }, [token]); // Chỉ phụ thuộc vào token
 
     return socketInstance;
 };

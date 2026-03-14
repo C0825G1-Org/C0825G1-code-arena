@@ -10,8 +10,13 @@ export const useChatSocket = (
 ) => {
     const socketRef = useRef<Socket | null>(null);
     const [connected, setConnected] = useState(false);
+    const messageCallbackRef = useRef(onNewMessage);
     const errorCallbackRef = useRef(onChatError);
     const token = useSelector((state: any) => state.auth.token);
+
+    useEffect(() => {
+        messageCallbackRef.current = onNewMessage;
+    }, [onNewMessage]);
 
     useEffect(() => {
         errorCallbackRef.current = onChatError;
@@ -52,7 +57,9 @@ export const useChatSocket = (
         });
 
         socket.on('new_chat_message', (message: ChatMessage) => {
-            onNewMessage(message);
+            if (messageCallbackRef.current) {
+                messageCallbackRef.current(message);
+            }
         });
 
         socket.on('chat_error', (error: string) => {
